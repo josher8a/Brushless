@@ -1,0 +1,10 @@
+/node_modules
+/lib
+/examples
+/.devcontainer
+
+*.spec.ts
+*.test.js
+
+tsconfig.json
+tsconfig.test.json

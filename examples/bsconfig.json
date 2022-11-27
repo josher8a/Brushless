@@ -1,0 +1,23 @@
+{
+    "name": "example",
+    "sources": {
+      "dir": "src",
+      "subdirs": true
+    },
+    "gentypeconfig": {
+      "language": "typescript",
+      "generatedFileExtension": ".bs.ts",
+      "module": "commonjs",
+      "debug": {
+        "all": false,
+        "basic": false
+      }
+  },
+    "package-specs": {
+      "module": "commonjs",
+      "in-source": true
+    },
+    "suffix": ".bs.js",
+    "bsc-flags": ["-open RescriptCore"],
+    "bs-dependencies": ["@rescript/core", "dynamo-res"]
+  }

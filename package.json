@@ -1,0 +1,43 @@
+{
+  "name": "dynamo-res",
+  "version": "0.0.1",
+  "description": "DynamoDB utils lib write in Rescript and Typescript",
+  "main": "src/Dynamo.bs.js",
+  "keywords": [
+    "aws",
+    "dynamodb",
+    "rescript",
+    "typescript"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/josher8a/dynamo-res.git"
+  },
+  "bugs": {
+    "url": "https://github.com/josher8a/dynamo-res/issues"
+  },
+  "homepage": "https://github.com/josher8a/dynamo-res",
+  "scripts": {
+    "res:build": "rescript",
+    "res:clean": "rescript clean",
+    "res:dev": "rescript build -w",
+    "test": "jest \"src/(.+).spec.ts\""
+  },
+  "author": {
+    "name": "Joshua Hernandez",
+    "email": "josher8a@gmail.com"
+  },
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@aws/dynamodb-auto-marshaller": "^0.7.1",
+    "@rescript/core": "*",
+    "@types/jest": "^29.2.2",
+    "@types/node": "^18.11.9",
+    "aws-sdk": "^2.7.0",
+    "jest": "^29.3.1",
+    "rescript": "^11.0.0-rc.1",
+    "ts-jest": "^29.0.3",
+    "tsutils": "^3.21.0",
+    "typescript": "^4.7"
+  }
+}
