@@ -791,7 +791,6 @@ var P = {
 
 exports.AttributeName = AttributeName;
 exports.AttributeValue = AttributeValue;
-exports.splitWhen = splitWhen;
 exports.AttributePath = AttributePath;
 exports.Register = Register;
 exports.comparatorToString = comparatorToString;

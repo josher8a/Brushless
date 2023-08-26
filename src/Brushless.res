@@ -51,7 +51,21 @@ module AttributeValue = {
     }
 }
 
-let splitWhen = (str: string, predicate: string => bool) => {
+
+
+@genType
+module AttributePath = {
+  type sub =
+    | ...AttributeName.t
+    | ListIndex({index: int})
+  type rec t = AttributePath({name: string, subpath: array<sub>})
+
+  type parseState =
+    | Name
+    | Index
+
+  %%private(
+    let splitWhen = (str: string, predicate: string => bool) => {
   let rec splitWhen = (str: string, index: int) =>
     switch str->String.get(index) {
     | Some(char) if predicate(char) => (
@@ -65,16 +79,7 @@ let splitWhen = (str: string, predicate: string => bool) => {
   str->splitWhen(0)
 }
 
-@genType
-module AttributePath = {
-  type sub =
-    | ...AttributeName.t
-    | ListIndex({index: int})
-  type rec t = AttributePath({name: string, subpath: array<sub>})
-
-  type parseState =
-    | Name
-    | Index
+  )
 
   let fromString = (str: string): t => {
     let rec parse = (str, state, ~acc=[]) => {
