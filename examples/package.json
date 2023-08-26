@@ -23,6 +23,7 @@
     "typescript": "^4.7"
   },
   "dependencies": {
-    "dynamo-res": "^0.1.7"
+    "brushless": "*",
+    "dynamo-res": "github:josher8a/brushless"
   }
 }

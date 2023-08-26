@@ -1,22 +1,23 @@
 {
-  "name": "dynamo-res",
+  "name": "brushless",
   "version": "0.0.1",
   "description": "DynamoDB utils lib write in Rescript and Typescript",
-  "main": "src/Dynamo.bs.js",
+  "main": "src/Brushless.bs.js",
   "keywords": [
-    "aws",
-    "dynamodb",
-    "rescript",
-    "typescript"
+    "AWS",
+    "Dynamodb",
+    "expressions",
+    "Rescript",
+    "Typescript"
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/josher8a/dynamo-res.git"
+    "url": "git+https://github.com/josher8a/brushless.git"
   },
   "bugs": {
-    "url": "https://github.com/josher8a/dynamo-res/issues"
+    "url": "https://github.com/josher8a/brushless/issues"
   },
-  "homepage": "https://github.com/josher8a/dynamo-res",
+  "homepage": "https://github.com/josher8a/brushless",
   "scripts": {
     "res:build": "rescript",
     "res:clean": "rescript clean",

@@ -1,4 +1,4 @@
-import {AttributePath} from './Dynamo.bs';
+import {AttributePath} from './Brushless.bs';
 
 describe('AttributePath', () => {
     it('should convert a string path to a list of elements', () => {

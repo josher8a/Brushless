@@ -1,4 +1,4 @@
-import { Condition, AttributePath } from "./Dynamo.bs";
+import { Condition, AttributePath } from "./Brushless.bs";
 const {
     equals,
     notEquals,

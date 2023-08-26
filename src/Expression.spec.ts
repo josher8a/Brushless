@@ -1,4 +1,4 @@
-import { AttributeName, AttributePath, AttributeValue, Register, Condition, KeyCondition } from './Dynamo.bs';
+import { AttributeName, AttributePath, AttributeValue, Register, Condition, KeyCondition, C, K } from './Brushless.bs';
 import { DynamoDB } from 'aws-sdk';
 
 describe('Expression', () => {
@@ -73,7 +73,6 @@ describe('Expression', () => {
 
 
 
-            const { equals, and, or, greaterThan, lessThanOrEqualTo, contains } = Condition.Maker;
 
             const command: DynamoDB.QueryInput = {
                 TableName: '',
@@ -82,14 +81,10 @@ describe('Expression', () => {
                         name: pk,
                         value: pkVal
                     },
-                    sk: {
-                        TAG: "BeginsWith",
-                        name: sk,
-                        value: skVal
-                    }
+                    sk: K.beginsWith(sk, skVal)
                 }, register),
                 FilterExpression: Condition.build(
-                    and(equals(path, skVal), or(equals(foo, fooVal), and(equals(bar, barVal), contains(path, bazVal))))
+                    C.and(C.equals(path, skVal), C.or(C.equals(foo, fooVal), C.and(C.equals(bar, barVal), C.contains(path, bazVal))))
                     // {
                     //     TAG: "And",
                     //     lhs: {

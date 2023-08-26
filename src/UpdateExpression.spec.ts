@@ -1,4 +1,4 @@
-import { Register , AttributeName, AttributeValue, Update} from "./Dynamo.bs";
+import { Register , AttributeName, AttributeValue, Update} from "./Brushless.bs";
 import { Marshaller } from "@aws/dynamodb-auto-marshaller";
 const DefaultMarshaller = new Marshaller();
 describe('UpdateExpression', () => {

@@ -1,9 +1,9 @@
-/* TypeScript file generated from Dynamo.res by genType. */
+/* TypeScript file generated from Brushless.res by genType. */
 /* eslint-disable import/first */
 
 
 // @ts-ignore: Implicit any on import
-const DynamoBS = require('./Dynamo.bs');
+const BrushlessBS = require('./Brushless.bs');
 
 import type {AttributeValue as $$attributeValue} from './external';
 
@@ -174,225 +174,225 @@ export type K_keyCondition = { readonly pk: K_pkCond; readonly sk: K_skCondition
 // tslint:disable-next-line:interface-over-type-literal
 export type P_projection = Identifier_t[];
 
-export const AttributeName_make: (name:string) => AttributeName_t = DynamoBS.AttributeName.make;
+export const AttributeName_make: (name:string) => AttributeName_t = BrushlessBS.AttributeName.make;
 
-export const AttributeName_toString: (name:AttributeName_t) => string = DynamoBS.AttributeName.toString;
+export const AttributeName_toString: (name:AttributeName_t) => string = BrushlessBS.AttributeName.toString;
 
-export const AttributeValue_make: (x:AttributeValue_from<attributeValue>) => AttributeValue_t = DynamoBS.AttributeValue.make;
+export const AttributeValue_make: (x:AttributeValue_from<attributeValue>) => AttributeValue_t = BrushlessBS.AttributeValue.make;
 
-export const AttributeValue_toString: (value:AttributeValue_t) => string = DynamoBS.AttributeValue.toString;
+export const AttributeValue_toString: (value:AttributeValue_t) => string = BrushlessBS.AttributeValue.toString;
 
-export const AttributePath_fromString: (str:string) => AttributePath_t = DynamoBS.AttributePath.fromString;
+export const AttributePath_fromString: (str:string) => AttributePath_t = BrushlessBS.AttributePath.fromString;
 
-export const AttributePath_toString: (path:AttributePath_t) => string = DynamoBS.AttributePath.toString;
+export const AttributePath_toString: (path:AttributePath_t) => string = BrushlessBS.AttributePath.toString;
 
-export const Register_make: () => Register_t = DynamoBS.Register.make;
+export const Register_make: () => Register_t = BrushlessBS.Register.make;
 
-export const Register_addValue: (register:Register_t, element:AttributeValue_t) => AttributeValue_t = DynamoBS.Register.addValue;
+export const Register_addValue: (register:Register_t, element:AttributeValue_t) => AttributeValue_t = BrushlessBS.Register.addValue;
 
-export const Register_addName: (register:Register_t, element:AttributeName_t) => AttributeName_t = DynamoBS.Register.addName;
+export const Register_addName: (register:Register_t, element:AttributeName_t) => AttributeName_t = BrushlessBS.Register.addName;
 
-export const Register_addPath: (register:Register_t, element:AttributePath_t) => AttributePath_t = DynamoBS.Register.addPath;
+export const Register_addPath: (register:Register_t, element:AttributePath_t) => AttributePath_t = BrushlessBS.Register.addPath;
 
-export const Identifier_toString: (identifier:Identifier_t, register:Register_t) => string = DynamoBS.Identifier.toString;
+export const Identifier_toString: (identifier:Identifier_t, register:Register_t) => string = BrushlessBS.Identifier.toString;
 
-export const Condition_Maker_equals: (lhs:Condition_operand, rhs:Condition_operand) => Condition_condition = DynamoBS.Condition.Maker.equals;
+export const Condition_Maker_equals: (lhs:Condition_operand, rhs:Condition_operand) => Condition_condition = BrushlessBS.Condition.Maker.equals;
 
-export const Condition_Maker_notEquals: (lhs:Condition_operand, rhs:Condition_operand) => Condition_condition = DynamoBS.Condition.Maker.notEquals;
+export const Condition_Maker_notEquals: (lhs:Condition_operand, rhs:Condition_operand) => Condition_condition = BrushlessBS.Condition.Maker.notEquals;
 
-export const Condition_Maker_lessThan: (lhs:Condition_operand, rhs:Condition_operand) => Condition_condition = DynamoBS.Condition.Maker.lessThan;
+export const Condition_Maker_lessThan: (lhs:Condition_operand, rhs:Condition_operand) => Condition_condition = BrushlessBS.Condition.Maker.lessThan;
 
-export const Condition_Maker_lessThanOrEqualTo: (lhs:Condition_operand, rhs:Condition_operand) => Condition_condition = DynamoBS.Condition.Maker.lessThanOrEqualTo;
+export const Condition_Maker_lessThanOrEqualTo: (lhs:Condition_operand, rhs:Condition_operand) => Condition_condition = BrushlessBS.Condition.Maker.lessThanOrEqualTo;
 
-export const Condition_Maker_greaterThan: (lhs:Condition_operand, rhs:Condition_operand) => Condition_condition = DynamoBS.Condition.Maker.greaterThan;
+export const Condition_Maker_greaterThan: (lhs:Condition_operand, rhs:Condition_operand) => Condition_condition = BrushlessBS.Condition.Maker.greaterThan;
 
-export const Condition_Maker_greaterThanOrEqualTo: (lhs:Condition_operand, rhs:Condition_operand) => Condition_condition = DynamoBS.Condition.Maker.greaterThanOrEqualTo;
+export const Condition_Maker_greaterThanOrEqualTo: (lhs:Condition_operand, rhs:Condition_operand) => Condition_condition = BrushlessBS.Condition.Maker.greaterThanOrEqualTo;
 
-export const Condition_Maker_between: (operand:Condition_operand, limits:Condition_limits) => Condition_condition = DynamoBS.Condition.Maker.between;
+export const Condition_Maker_between: (operand:Condition_operand, limits:Condition_limits) => Condition_condition = BrushlessBS.Condition.Maker.between;
 
-export const Condition_Maker_inList: (operand:Condition_operand, list:Condition_operand[]) => Condition_condition = DynamoBS.Condition.Maker.inList;
+export const Condition_Maker_inList: (operand:Condition_operand, list:Condition_operand[]) => Condition_condition = BrushlessBS.Condition.Maker.inList;
 
-export const Condition_Maker_attributeExists: (identifier:Identifier_t) => Condition_condition = DynamoBS.Condition.Maker.attributeExists;
+export const Condition_Maker_attributeExists: (identifier:Identifier_t) => Condition_condition = BrushlessBS.Condition.Maker.attributeExists;
 
-export const Condition_Maker_attributeNotExists: (identifier:Identifier_t) => Condition_condition = DynamoBS.Condition.Maker.attributeNotExists;
+export const Condition_Maker_attributeNotExists: (identifier:Identifier_t) => Condition_condition = BrushlessBS.Condition.Maker.attributeNotExists;
 
-export const Condition_Maker_attributeType: (identifier:Identifier_t, operand:Condition_operand) => Condition_condition = DynamoBS.Condition.Maker.attributeType;
+export const Condition_Maker_attributeType: (identifier:Identifier_t, operand:Condition_operand) => Condition_condition = BrushlessBS.Condition.Maker.attributeType;
 
-export const Condition_Maker_beginsWith: (identifier:Identifier_t, operand:Condition_operand) => Condition_condition = DynamoBS.Condition.Maker.beginsWith;
+export const Condition_Maker_beginsWith: (identifier:Identifier_t, operand:Condition_operand) => Condition_condition = BrushlessBS.Condition.Maker.beginsWith;
 
-export const Condition_Maker_contains: (identifier:Identifier_t, operand:Condition_operand) => Condition_condition = DynamoBS.Condition.Maker.contains;
+export const Condition_Maker_contains: (identifier:Identifier_t, operand:Condition_operand) => Condition_condition = BrushlessBS.Condition.Maker.contains;
 
-export const Condition_Maker_and: (lhs:Condition_condition, rhs:Condition_condition) => Condition_condition = DynamoBS.Condition.Maker.and;
+export const Condition_Maker_and: (lhs:Condition_condition, rhs:Condition_condition) => Condition_condition = BrushlessBS.Condition.Maker.and;
 
-export const Condition_Maker_or: (lhs:Condition_condition, rhs:Condition_condition) => Condition_condition = DynamoBS.Condition.Maker.or;
+export const Condition_Maker_or: (lhs:Condition_condition, rhs:Condition_condition) => Condition_condition = BrushlessBS.Condition.Maker.or;
 
-export const Condition_Maker_not: (condition:Condition_condition) => Condition_condition = DynamoBS.Condition.Maker.not;
+export const Condition_Maker_not: (condition:Condition_condition) => Condition_condition = BrushlessBS.Condition.Maker.not;
 
-export const Condition_Maker_size: (operand:Condition_operand) => Condition_operand = DynamoBS.Condition.Maker.size;
+export const Condition_Maker_size: (operand:Condition_operand) => Condition_operand = BrushlessBS.Condition.Maker.size;
 
-export const Condition_equals: (_1:Condition_operand, _2:Condition_operand) => Condition_condition = DynamoBS.Condition.equals;
+export const Condition_equals: (_1:Condition_operand, _2:Condition_operand) => Condition_condition = BrushlessBS.Condition.equals;
 
-export const Condition_notEquals: (_1:Condition_operand, _2:Condition_operand) => Condition_condition = DynamoBS.Condition.notEquals;
+export const Condition_notEquals: (_1:Condition_operand, _2:Condition_operand) => Condition_condition = BrushlessBS.Condition.notEquals;
 
-export const Condition_lessThan: (_1:Condition_operand, _2:Condition_operand) => Condition_condition = DynamoBS.Condition.lessThan;
+export const Condition_lessThan: (_1:Condition_operand, _2:Condition_operand) => Condition_condition = BrushlessBS.Condition.lessThan;
 
-export const Condition_lessThanOrEqualTo: (_1:Condition_operand, _2:Condition_operand) => Condition_condition = DynamoBS.Condition.lessThanOrEqualTo;
+export const Condition_lessThanOrEqualTo: (_1:Condition_operand, _2:Condition_operand) => Condition_condition = BrushlessBS.Condition.lessThanOrEqualTo;
 
-export const Condition_greaterThan: (_1:Condition_operand, _2:Condition_operand) => Condition_condition = DynamoBS.Condition.greaterThan;
+export const Condition_greaterThan: (_1:Condition_operand, _2:Condition_operand) => Condition_condition = BrushlessBS.Condition.greaterThan;
 
-export const Condition_greaterThanOrEqualTo: (_1:Condition_operand, _2:Condition_operand) => Condition_condition = DynamoBS.Condition.greaterThanOrEqualTo;
+export const Condition_greaterThanOrEqualTo: (_1:Condition_operand, _2:Condition_operand) => Condition_condition = BrushlessBS.Condition.greaterThanOrEqualTo;
 
-export const Condition_between: (_1:Condition_operand, _2:Condition_limits) => Condition_condition = DynamoBS.Condition.between;
+export const Condition_between: (_1:Condition_operand, _2:Condition_limits) => Condition_condition = BrushlessBS.Condition.between;
 
-export const Condition_inList: (_1:Condition_operand, _2:Condition_operand[]) => Condition_condition = DynamoBS.Condition.inList;
+export const Condition_inList: (_1:Condition_operand, _2:Condition_operand[]) => Condition_condition = BrushlessBS.Condition.inList;
 
-export const Condition_attributeExists: (_1:Identifier_t) => Condition_condition = DynamoBS.Condition.attributeExists;
+export const Condition_attributeExists: (_1:Identifier_t) => Condition_condition = BrushlessBS.Condition.attributeExists;
 
-export const Condition_attributeNotExists: (_1:Identifier_t) => Condition_condition = DynamoBS.Condition.attributeNotExists;
+export const Condition_attributeNotExists: (_1:Identifier_t) => Condition_condition = BrushlessBS.Condition.attributeNotExists;
 
-export const Condition_attributeType: (_1:Identifier_t, _2:Condition_operand) => Condition_condition = DynamoBS.Condition.attributeType;
+export const Condition_attributeType: (_1:Identifier_t, _2:Condition_operand) => Condition_condition = BrushlessBS.Condition.attributeType;
 
-export const Condition_beginsWith: (_1:Identifier_t, _2:Condition_operand) => Condition_condition = DynamoBS.Condition.beginsWith;
+export const Condition_beginsWith: (_1:Identifier_t, _2:Condition_operand) => Condition_condition = BrushlessBS.Condition.beginsWith;
 
-export const Condition_contains: (_1:Identifier_t, _2:Condition_operand) => Condition_condition = DynamoBS.Condition.contains;
+export const Condition_contains: (_1:Identifier_t, _2:Condition_operand) => Condition_condition = BrushlessBS.Condition.contains;
 
-export const Condition_and: (_1:Condition_condition, _2:Condition_condition) => Condition_condition = DynamoBS.Condition.and;
+export const Condition_and: (_1:Condition_condition, _2:Condition_condition) => Condition_condition = BrushlessBS.Condition.and;
 
-export const Condition_or: (_1:Condition_condition, _2:Condition_condition) => Condition_condition = DynamoBS.Condition.or;
+export const Condition_or: (_1:Condition_condition, _2:Condition_condition) => Condition_condition = BrushlessBS.Condition.or;
 
-export const Condition_not: (_1:Condition_condition) => Condition_condition = DynamoBS.Condition.not;
+export const Condition_not: (_1:Condition_condition) => Condition_condition = BrushlessBS.Condition.not;
 
-export const Condition_size: (_1:Condition_operand) => Condition_operand = DynamoBS.Condition.size;
+export const Condition_size: (_1:Condition_operand) => Condition_operand = BrushlessBS.Condition.size;
 
-export const Condition_build: (condition:Condition_condition, register:Register_t) => string = DynamoBS.Condition.build;
+export const Condition_build: (condition:Condition_condition, register:Register_t) => string = BrushlessBS.Condition.build;
 
-export const Projection_build: (projection:Projection_projection, register:Register_t) => string = DynamoBS.Projection.build;
+export const Projection_build: (projection:Projection_projection, register:Register_t) => string = BrushlessBS.Projection.build;
 
-export const KeyCondition_Maker_equals: (name:AttributeName_t, value:AttributeValue_t) => KeyCondition_skCondition = DynamoBS.KeyCondition.Maker.equals;
+export const KeyCondition_Maker_equals: (name:AttributeName_t, value:AttributeValue_t) => KeyCondition_skCondition = BrushlessBS.KeyCondition.Maker.equals;
 
-export const KeyCondition_Maker_notEquals: (name:AttributeName_t, value:AttributeValue_t) => KeyCondition_skCondition = DynamoBS.KeyCondition.Maker.notEquals;
+export const KeyCondition_Maker_notEquals: (name:AttributeName_t, value:AttributeValue_t) => KeyCondition_skCondition = BrushlessBS.KeyCondition.Maker.notEquals;
 
-export const KeyCondition_Maker_lessThan: (name:AttributeName_t, value:AttributeValue_t) => KeyCondition_skCondition = DynamoBS.KeyCondition.Maker.lessThan;
+export const KeyCondition_Maker_lessThan: (name:AttributeName_t, value:AttributeValue_t) => KeyCondition_skCondition = BrushlessBS.KeyCondition.Maker.lessThan;
 
-export const KeyCondition_Maker_lessThanOrEqualTo: (name:AttributeName_t, value:AttributeValue_t) => KeyCondition_skCondition = DynamoBS.KeyCondition.Maker.lessThanOrEqualTo;
+export const KeyCondition_Maker_lessThanOrEqualTo: (name:AttributeName_t, value:AttributeValue_t) => KeyCondition_skCondition = BrushlessBS.KeyCondition.Maker.lessThanOrEqualTo;
 
-export const KeyCondition_Maker_greaterThan: (name:AttributeName_t, value:AttributeValue_t) => KeyCondition_skCondition = DynamoBS.KeyCondition.Maker.greaterThan;
+export const KeyCondition_Maker_greaterThan: (name:AttributeName_t, value:AttributeValue_t) => KeyCondition_skCondition = BrushlessBS.KeyCondition.Maker.greaterThan;
 
-export const KeyCondition_Maker_greaterThanOrEqualTo: (name:AttributeName_t, value:AttributeValue_t) => KeyCondition_skCondition = DynamoBS.KeyCondition.Maker.greaterThanOrEqualTo;
+export const KeyCondition_Maker_greaterThanOrEqualTo: (name:AttributeName_t, value:AttributeValue_t) => KeyCondition_skCondition = BrushlessBS.KeyCondition.Maker.greaterThanOrEqualTo;
 
-export const KeyCondition_Maker_between: (name:AttributeName_t, limits:KeyCondition_limits) => KeyCondition_skCondition = DynamoBS.KeyCondition.Maker.between;
+export const KeyCondition_Maker_between: (name:AttributeName_t, limits:KeyCondition_limits) => KeyCondition_skCondition = BrushlessBS.KeyCondition.Maker.between;
 
-export const KeyCondition_Maker_beginsWith: (name:AttributeName_t, value:AttributeValue_t) => KeyCondition_skCondition = DynamoBS.KeyCondition.Maker.beginsWith;
+export const KeyCondition_Maker_beginsWith: (name:AttributeName_t, value:AttributeValue_t) => KeyCondition_skCondition = BrushlessBS.KeyCondition.Maker.beginsWith;
 
-export const KeyCondition_Maker_any: KeyCondition_skCondition = DynamoBS.KeyCondition.Maker.any;
+export const KeyCondition_Maker_any: KeyCondition_skCondition = BrushlessBS.KeyCondition.Maker.any;
 
-export const KeyCondition_equals: (_1:AttributeName_t, _2:AttributeValue_t) => KeyCondition_skCondition = DynamoBS.KeyCondition.equals;
+export const KeyCondition_equals: (_1:AttributeName_t, _2:AttributeValue_t) => KeyCondition_skCondition = BrushlessBS.KeyCondition.equals;
 
-export const KeyCondition_notEquals: (_1:AttributeName_t, _2:AttributeValue_t) => KeyCondition_skCondition = DynamoBS.KeyCondition.notEquals;
+export const KeyCondition_notEquals: (_1:AttributeName_t, _2:AttributeValue_t) => KeyCondition_skCondition = BrushlessBS.KeyCondition.notEquals;
 
-export const KeyCondition_lessThan: (_1:AttributeName_t, _2:AttributeValue_t) => KeyCondition_skCondition = DynamoBS.KeyCondition.lessThan;
+export const KeyCondition_lessThan: (_1:AttributeName_t, _2:AttributeValue_t) => KeyCondition_skCondition = BrushlessBS.KeyCondition.lessThan;
 
-export const KeyCondition_lessThanOrEqualTo: (_1:AttributeName_t, _2:AttributeValue_t) => KeyCondition_skCondition = DynamoBS.KeyCondition.lessThanOrEqualTo;
+export const KeyCondition_lessThanOrEqualTo: (_1:AttributeName_t, _2:AttributeValue_t) => KeyCondition_skCondition = BrushlessBS.KeyCondition.lessThanOrEqualTo;
 
-export const KeyCondition_greaterThan: (_1:AttributeName_t, _2:AttributeValue_t) => KeyCondition_skCondition = DynamoBS.KeyCondition.greaterThan;
+export const KeyCondition_greaterThan: (_1:AttributeName_t, _2:AttributeValue_t) => KeyCondition_skCondition = BrushlessBS.KeyCondition.greaterThan;
 
-export const KeyCondition_greaterThanOrEqualTo: (_1:AttributeName_t, _2:AttributeValue_t) => KeyCondition_skCondition = DynamoBS.KeyCondition.greaterThanOrEqualTo;
+export const KeyCondition_greaterThanOrEqualTo: (_1:AttributeName_t, _2:AttributeValue_t) => KeyCondition_skCondition = BrushlessBS.KeyCondition.greaterThanOrEqualTo;
 
-export const KeyCondition_between: (_1:AttributeName_t, _2:KeyCondition_limits) => KeyCondition_skCondition = DynamoBS.KeyCondition.between;
+export const KeyCondition_between: (_1:AttributeName_t, _2:KeyCondition_limits) => KeyCondition_skCondition = BrushlessBS.KeyCondition.between;
 
-export const KeyCondition_beginsWith: (_1:AttributeName_t, _2:AttributeValue_t) => KeyCondition_skCondition = DynamoBS.KeyCondition.beginsWith;
+export const KeyCondition_beginsWith: (_1:AttributeName_t, _2:AttributeValue_t) => KeyCondition_skCondition = BrushlessBS.KeyCondition.beginsWith;
 
-export const KeyCondition_any: KeyCondition_skCondition = DynamoBS.KeyCondition.any;
+export const KeyCondition_any: KeyCondition_skCondition = BrushlessBS.KeyCondition.any;
 
-export const KeyCondition_build: (keyCondition:KeyCondition_keyCondition, register:Register_t) => string = DynamoBS.KeyCondition.build;
+export const KeyCondition_build: (keyCondition:KeyCondition_keyCondition, register:Register_t) => string = BrushlessBS.KeyCondition.build;
 
-export const Update_Maker_listAppend: (identifier:Update_operand, operand:Update_operand) => Update_operand = DynamoBS.Update.Maker.listAppend;
+export const Update_Maker_listAppend: (identifier:Update_operand, operand:Update_operand) => Update_operand = BrushlessBS.Update.Maker.listAppend;
 
-export const Update_Maker_ifNotExists: (identifier:Update_operand, operand:Update_operand) => Update_operand = DynamoBS.Update.Maker.ifNotExists;
+export const Update_Maker_ifNotExists: (identifier:Update_operand, operand:Update_operand) => Update_operand = BrushlessBS.Update.Maker.ifNotExists;
 
-export const Update_Maker_sum: (lhs:Update_operand, rhs:Update_operand) => Update_operand = DynamoBS.Update.Maker.sum;
+export const Update_Maker_sum: (lhs:Update_operand, rhs:Update_operand) => Update_operand = BrushlessBS.Update.Maker.sum;
 
-export const Update_Maker_sub: (lhs:Update_operand, rhs:Update_operand) => Update_operand = DynamoBS.Update.Maker.sub;
+export const Update_Maker_sub: (lhs:Update_operand, rhs:Update_operand) => Update_operand = BrushlessBS.Update.Maker.sub;
 
-export const Update_listAppend: (_1:Update_operand, _2:Update_operand) => Update_operand = DynamoBS.Update.listAppend;
+export const Update_listAppend: (_1:Update_operand, _2:Update_operand) => Update_operand = BrushlessBS.Update.listAppend;
 
-export const Update_ifNotExists: (_1:Update_operand, _2:Update_operand) => Update_operand = DynamoBS.Update.ifNotExists;
+export const Update_ifNotExists: (_1:Update_operand, _2:Update_operand) => Update_operand = BrushlessBS.Update.ifNotExists;
 
-export const Update_sum: (_1:Update_operand, _2:Update_operand) => Update_operand = DynamoBS.Update.sum;
+export const Update_sum: (_1:Update_operand, _2:Update_operand) => Update_operand = BrushlessBS.Update.sum;
 
-export const Update_sub: (_1:Update_operand, _2:Update_operand) => Update_operand = DynamoBS.Update.sub;
+export const Update_sub: (_1:Update_operand, _2:Update_operand) => Update_operand = BrushlessBS.Update.sub;
 
-export const Update_build: (update:Update_update, register:Register_t) => string = DynamoBS.Update.build;
+export const Update_build: (update:Update_update, register:Register_t) => string = BrushlessBS.Update.build;
 
-export const U_listAppend: (_1:U_operand, _2:U_operand) => U_operand = DynamoBS.U.listAppend;
+export const U_listAppend: (_1:U_operand, _2:U_operand) => U_operand = BrushlessBS.U.listAppend;
 
-export const U_ifNotExists: (_1:U_operand, _2:U_operand) => U_operand = DynamoBS.U.ifNotExists;
+export const U_ifNotExists: (_1:U_operand, _2:U_operand) => U_operand = BrushlessBS.U.ifNotExists;
 
-export const U_sum: (_1:U_operand, _2:U_operand) => U_operand = DynamoBS.U.sum;
+export const U_sum: (_1:U_operand, _2:U_operand) => U_operand = BrushlessBS.U.sum;
 
-export const U_sub: (_1:U_operand, _2:U_operand) => U_operand = DynamoBS.U.sub;
+export const U_sub: (_1:U_operand, _2:U_operand) => U_operand = BrushlessBS.U.sub;
 
-export const U_build: (_1:U_update, _2:Register_t) => string = DynamoBS.U.build;
+export const U_build: (_1:U_update, _2:Register_t) => string = BrushlessBS.U.build;
 
-export const C_equals: (_1:C_operand, _2:C_operand) => C_condition = DynamoBS.C.equals;
+export const C_equals: (_1:C_operand, _2:C_operand) => C_condition = BrushlessBS.C.equals;
 
-export const C_notEquals: (_1:C_operand, _2:C_operand) => C_condition = DynamoBS.C.notEquals;
+export const C_notEquals: (_1:C_operand, _2:C_operand) => C_condition = BrushlessBS.C.notEquals;
 
-export const C_lessThan: (_1:C_operand, _2:C_operand) => C_condition = DynamoBS.C.lessThan;
+export const C_lessThan: (_1:C_operand, _2:C_operand) => C_condition = BrushlessBS.C.lessThan;
 
-export const C_lessThanOrEqualTo: (_1:C_operand, _2:C_operand) => C_condition = DynamoBS.C.lessThanOrEqualTo;
+export const C_lessThanOrEqualTo: (_1:C_operand, _2:C_operand) => C_condition = BrushlessBS.C.lessThanOrEqualTo;
 
-export const C_greaterThan: (_1:C_operand, _2:C_operand) => C_condition = DynamoBS.C.greaterThan;
+export const C_greaterThan: (_1:C_operand, _2:C_operand) => C_condition = BrushlessBS.C.greaterThan;
 
-export const C_greaterThanOrEqualTo: (_1:C_operand, _2:C_operand) => C_condition = DynamoBS.C.greaterThanOrEqualTo;
+export const C_greaterThanOrEqualTo: (_1:C_operand, _2:C_operand) => C_condition = BrushlessBS.C.greaterThanOrEqualTo;
 
-export const C_between: (_1:C_operand, _2:C_limits) => C_condition = DynamoBS.C.between;
+export const C_between: (_1:C_operand, _2:C_limits) => C_condition = BrushlessBS.C.between;
 
-export const C_inList: (_1:C_operand, _2:C_operand[]) => C_condition = DynamoBS.C.inList;
+export const C_inList: (_1:C_operand, _2:C_operand[]) => C_condition = BrushlessBS.C.inList;
 
-export const C_attributeExists: (_1:Identifier_t) => C_condition = DynamoBS.C.attributeExists;
+export const C_attributeExists: (_1:Identifier_t) => C_condition = BrushlessBS.C.attributeExists;
 
-export const C_attributeNotExists: (_1:Identifier_t) => C_condition = DynamoBS.C.attributeNotExists;
+export const C_attributeNotExists: (_1:Identifier_t) => C_condition = BrushlessBS.C.attributeNotExists;
 
-export const C_attributeType: (_1:Identifier_t, _2:C_operand) => C_condition = DynamoBS.C.attributeType;
+export const C_attributeType: (_1:Identifier_t, _2:C_operand) => C_condition = BrushlessBS.C.attributeType;
 
-export const C_beginsWith: (_1:Identifier_t, _2:C_operand) => C_condition = DynamoBS.C.beginsWith;
+export const C_beginsWith: (_1:Identifier_t, _2:C_operand) => C_condition = BrushlessBS.C.beginsWith;
 
-export const C_contains: (_1:Identifier_t, _2:C_operand) => C_condition = DynamoBS.C.contains;
+export const C_contains: (_1:Identifier_t, _2:C_operand) => C_condition = BrushlessBS.C.contains;
 
-export const C_and: (_1:C_condition, _2:C_condition) => C_condition = DynamoBS.C.and;
+export const C_and: (_1:C_condition, _2:C_condition) => C_condition = BrushlessBS.C.and;
 
-export const C_or: (_1:C_condition, _2:C_condition) => C_condition = DynamoBS.C.or;
+export const C_or: (_1:C_condition, _2:C_condition) => C_condition = BrushlessBS.C.or;
 
-export const C_not: (_1:C_condition) => C_condition = DynamoBS.C.not;
+export const C_not: (_1:C_condition) => C_condition = BrushlessBS.C.not;
 
-export const C_size: (_1:C_operand) => C_operand = DynamoBS.C.size;
+export const C_size: (_1:C_operand) => C_operand = BrushlessBS.C.size;
 
-export const C_build: (_1:C_condition, _2:Register_t) => string = DynamoBS.C.build;
+export const C_build: (_1:C_condition, _2:Register_t) => string = BrushlessBS.C.build;
 
-export const K_equals: (_1:AttributeName_t, _2:AttributeValue_t) => K_skCondition = DynamoBS.K.equals;
+export const K_equals: (_1:AttributeName_t, _2:AttributeValue_t) => K_skCondition = BrushlessBS.K.equals;
 
-export const K_notEquals: (_1:AttributeName_t, _2:AttributeValue_t) => K_skCondition = DynamoBS.K.notEquals;
+export const K_notEquals: (_1:AttributeName_t, _2:AttributeValue_t) => K_skCondition = BrushlessBS.K.notEquals;
 
-export const K_lessThan: (_1:AttributeName_t, _2:AttributeValue_t) => K_skCondition = DynamoBS.K.lessThan;
+export const K_lessThan: (_1:AttributeName_t, _2:AttributeValue_t) => K_skCondition = BrushlessBS.K.lessThan;
 
-export const K_lessThanOrEqualTo: (_1:AttributeName_t, _2:AttributeValue_t) => K_skCondition = DynamoBS.K.lessThanOrEqualTo;
+export const K_lessThanOrEqualTo: (_1:AttributeName_t, _2:AttributeValue_t) => K_skCondition = BrushlessBS.K.lessThanOrEqualTo;
 
-export const K_greaterThan: (_1:AttributeName_t, _2:AttributeValue_t) => K_skCondition = DynamoBS.K.greaterThan;
+export const K_greaterThan: (_1:AttributeName_t, _2:AttributeValue_t) => K_skCondition = BrushlessBS.K.greaterThan;
 
-export const K_greaterThanOrEqualTo: (_1:AttributeName_t, _2:AttributeValue_t) => K_skCondition = DynamoBS.K.greaterThanOrEqualTo;
+export const K_greaterThanOrEqualTo: (_1:AttributeName_t, _2:AttributeValue_t) => K_skCondition = BrushlessBS.K.greaterThanOrEqualTo;
 
-export const K_between: (_1:AttributeName_t, _2:K_limits) => K_skCondition = DynamoBS.K.between;
+export const K_between: (_1:AttributeName_t, _2:K_limits) => K_skCondition = BrushlessBS.K.between;
 
-export const K_beginsWith: (_1:AttributeName_t, _2:AttributeValue_t) => K_skCondition = DynamoBS.K.beginsWith;
+export const K_beginsWith: (_1:AttributeName_t, _2:AttributeValue_t) => K_skCondition = BrushlessBS.K.beginsWith;
 
-export const K_any: K_skCondition = DynamoBS.K.any;
+export const K_any: K_skCondition = BrushlessBS.K.any;
 
-export const K_build: (_1:K_keyCondition, _2:Register_t) => string = DynamoBS.K.build;
+export const K_build: (_1:K_keyCondition, _2:Register_t) => string = BrushlessBS.K.build;
 
-export const P_build: (_1:P_projection, _2:Register_t) => string = DynamoBS.P.build;
+export const P_build: (_1:P_projection, _2:Register_t) => string = BrushlessBS.P.build;
 
-export const AttributeName: { toString: (name:AttributeName_t) => string; make: (name:string) => AttributeName_t } = DynamoBS.AttributeName
+export const AttributeName: { toString: (name:AttributeName_t) => string; make: (name:string) => AttributeName_t } = BrushlessBS.AttributeName
 
 export const K: {
   notEquals: (_1:AttributeName_t, _2:AttributeValue_t) => K_skCondition; 
@@ -405,9 +405,9 @@ export const K: {
   lessThan: (_1:AttributeName_t, _2:AttributeValue_t) => K_skCondition; 
   equals: (_1:AttributeName_t, _2:AttributeValue_t) => K_skCondition; 
   beginsWith: (_1:AttributeName_t, _2:AttributeValue_t) => K_skCondition
-} = DynamoBS.K
+} = BrushlessBS.K
 
-export const Identifier: { toString: (identifier:Identifier_t, register:Register_t) => string } = DynamoBS.Identifier
+export const Identifier: { toString: (identifier:Identifier_t, register:Register_t) => string } = BrushlessBS.Identifier
 
 export const Condition: {
   attributeType: (_1:Identifier_t, _2:Condition_operand) => Condition_condition; 
@@ -447,7 +447,7 @@ export const Condition: {
   or: (_1:Condition_condition, _2:Condition_condition) => Condition_condition; 
   attributeExists: (_1:Identifier_t) => Condition_condition; 
   contains: (_1:Identifier_t, _2:Condition_operand) => Condition_condition
-} = DynamoBS.Condition
+} = BrushlessBS.Condition
 
 export const KeyCondition: {
   notEquals: (_1:AttributeName_t, _2:AttributeValue_t) => KeyCondition_skCondition; 
@@ -471,7 +471,7 @@ export const KeyCondition: {
     beginsWith: (name:AttributeName_t, value:AttributeValue_t) => KeyCondition_skCondition
   }; 
   beginsWith: (_1:AttributeName_t, _2:AttributeValue_t) => KeyCondition_skCondition
-} = DynamoBS.KeyCondition
+} = BrushlessBS.KeyCondition
 
 export const Update: {
   sub: (_1:Update_operand, _2:Update_operand) => Update_operand; 
@@ -485,18 +485,18 @@ export const Update: {
     ifNotExists: (identifier:Update_operand, operand:Update_operand) => Update_operand; 
     sum: (lhs:Update_operand, rhs:Update_operand) => Update_operand
   }
-} = DynamoBS.Update
+} = BrushlessBS.Update
 
 export const Register: {
   addValue: (register:Register_t, element:AttributeValue_t) => AttributeValue_t; 
   addPath: (register:Register_t, element:AttributePath_t) => AttributePath_t; 
   addName: (register:Register_t, element:AttributeName_t) => AttributeName_t; 
   make: () => Register_t
-} = DynamoBS.Register
+} = BrushlessBS.Register
 
-export const Projection: { build: (projection:Projection_projection, register:Register_t) => string } = DynamoBS.Projection
+export const Projection: { build: (projection:Projection_projection, register:Register_t) => string } = BrushlessBS.Projection
 
-export const AttributePath: { fromString: (str:string) => AttributePath_t; toString: (path:AttributePath_t) => string } = DynamoBS.AttributePath
+export const AttributePath: { fromString: (str:string) => AttributePath_t; toString: (path:AttributePath_t) => string } = BrushlessBS.AttributePath
 
 export const U: {
   sub: (_1:U_operand, _2:U_operand) => U_operand; 
@@ -504,7 +504,7 @@ export const U: {
   ifNotExists: (_1:U_operand, _2:U_operand) => U_operand; 
   sum: (_1:U_operand, _2:U_operand) => U_operand; 
   build: (_1:U_update, _2:Register_t) => string
-} = DynamoBS.U
+} = BrushlessBS.U
 
 export const C: {
   attributeType: (_1:Identifier_t, _2:C_operand) => C_condition; 
@@ -525,8 +525,8 @@ export const C: {
   or: (_1:C_condition, _2:C_condition) => C_condition; 
   attributeExists: (_1:Identifier_t) => C_condition; 
   contains: (_1:Identifier_t, _2:C_operand) => C_condition
-} = DynamoBS.C
+} = BrushlessBS.C
 
-export const AttributeValue: { toString: (value:AttributeValue_t) => string; make: (x:AttributeValue_from<attributeValue>) => AttributeValue_t } = DynamoBS.AttributeValue
+export const AttributeValue: { toString: (value:AttributeValue_t) => string; make: (x:AttributeValue_from<attributeValue>) => AttributeValue_t } = BrushlessBS.AttributeValue
 
-export const P: { build: (_1:P_projection, _2:Register_t) => string } = DynamoBS.P
+export const P: { build: (_1:P_projection, _2:Register_t) => string } = BrushlessBS.P

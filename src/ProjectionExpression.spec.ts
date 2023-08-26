@@ -1,4 +1,4 @@
-import { AttributeName, AttributePath, Register, Projection } from "./Dynamo.bs";
+import { AttributeName, AttributePath, Register, Projection } from "./Brushless.bs";
 
 describe('ProjectionExpression', () => {
     it('should allow the addition of scalar values', () => {

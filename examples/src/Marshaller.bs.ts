@@ -7,7 +7,7 @@ const MarshallerBS = require('./Marshaller.bs');
 
 import type {Marshaller as $$DefaultMarshaller_t} from '@aws/dynamodb-auto-marshaller';
 
-import type {attributeValue as Dynamo_attributeValue} from 'dynamo-res/src/Dynamo.bs';
+import type {attributeValue as Dynamo_attributeValue} from 'brushless/src/Brushless.bs';
 
 // tslint:disable-next-line:interface-over-type-literal
 export type DefaultMarshaller_t = $$DefaultMarshaller_t;

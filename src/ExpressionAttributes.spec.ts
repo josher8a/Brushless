@@ -1,4 +1,4 @@
-import { AttributePath, AttributeName, AttributeValue } from './Dynamo.bs';
+import { AttributePath, AttributeName, AttributeValue } from './Brushless.bs';
 describe('ExpressionAttributes', () => {
     describe('#addName', () => {
         it('should provide expression-safe aliases for names', () => {
