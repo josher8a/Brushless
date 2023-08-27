@@ -51,8 +51,6 @@ module AttributeValue = {
     }
 }
 
-
-
 @genType
 module AttributePath = {
   type sub =
@@ -60,63 +58,57 @@ module AttributePath = {
     | ListIndex({index: int})
   type rec t = AttributePath({name: string, subpath: array<sub>})
 
+  %%private(
+    let splitWhen = (str: string, predicate: string => bool) => {
+      let rec splitWhen = (str: string, index: int) =>
+        switch str->String.get(index) {
+        | Some(char) if predicate(char) => (
+            str->String.substring(~start=0, ~end=index),
+            str->String.substring(~start=index, ~end=index + 1),
+            str->String.substringToEnd(~start=index + 1),
+          )
+        | Some(_) => str->splitWhen(index + 1)
+        | None => (str, "", "")
+        }
+      str->splitWhen(0)
+    }
+  )
   type parseState =
     | Name
     | Index
 
-  %%private(
-    let splitWhen = (str: string, predicate: string => bool) => {
-  let rec splitWhen = (str: string, index: int) =>
-    switch str->String.get(index) {
-    | Some(char) if predicate(char) => (
-        str->String.substring(~start=0, ~end=index),
-        str->String.substring(~start=index, ~end=index + 1),
-        str->String.substringToEnd(~start=index + 1),
-      )
-    | Some(_) => str->splitWhen(index + 1)
-    | None => (str, "", "")
-    }
-  str->splitWhen(0)
-}
-
-  )
-
   let fromString = (str: string): t => {
-    let rec parse = (str, state, ~acc=[]) => {
-      let (name, char, rest) = str->splitWhen(char => char == "[" || char == ".")
-
-      switch state {
-      | Name if name == "" => throwError("InvalidPath")
-      | Name => acc->Array.push(AttributeName({name: name}))
-      | Index if name !== "" => throwError("InvalidPath")
-      | Index => ()
-      }
-      switch (char, rest) {
-      | ("", "") => acc
-      | (".", rest) => parse(rest, Name, ~acc)
-      | ("[", rest) =>
-        switch rest->splitWhen(char => char == "]") {
-        | (index, "]", rest) => {
-            acc->Array.push(ListIndex({index: index->parseIndex}))
-            parse(rest, Index, ~acc)
-          }
-        | _ => throwError("InvalidPath")
+    let rec parse = (str, prevState, acc) => {
+      switch (prevState, str->splitWhen(char => char == "[" || char == ".")) {
+      | (_, ("", "", "")) => acc
+      | (Name, (name, "", "")) if name !== "" => {
+          acc->Array.push(AttributeName({name: name}))
+          acc
         }
+      | (Name, (name, ".", rest)) if name !== "" => {
+          acc->Array.push(AttributeName({name: name}))
+          parse(rest, Name, acc)
+        }
+      | (Name, (name, "[", rest)) if name !== "" => {
+          acc->Array.push(AttributeName({name: name}))
+          parseIndex(rest, acc)
+        }
+      | (Index, ("", ".", rest)) => parse(rest, Name, acc)
+      | (Index, ("", "[", rest)) => parseIndex(rest, acc)
+
       | _ => throwError("InvalidPath")
       }
     }
-    and parseIndex = index =>
-      switch Float.parseInt(index) {
-      | x
-        if Float.isFinite(x) &&
-        x >= 0. &&
-        index->String.length === x->Float.toString->String.length =>
-        x->Float.toInt
-      | _ => throwError("InvalidIndex: " ++ index)
+    and parseIndex = (rest, acc) =>
+      switch rest->splitWhen(char => char == "]") {
+      | (index, "]", rest) if index->String.search(%re("/^[0-9]+$/")) !== -1 => {
+          acc->Array.push(ListIndex({index: index->Float.parseInt->Float.toInt}))
+          parse(rest, Index, acc)
+        }
+      | (badIndex, _, _) => throwError("InvalidIndex: " ++ badIndex)
       }
-
     let acc = []
-    switch Array.shift(str->parse(Name, ~acc)) {
+    switch Array.shift(str->parse(Name, acc)) {
     | Some(AttributeName({name})) => AttributePath({name, subpath: acc})
     | _ => throwError("InvalidPath")
     }

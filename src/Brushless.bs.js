@@ -67,12 +67,10 @@ function splitWhen(str, predicate) {
 }
 
 function fromString(str) {
-  var parse = function (_str, _state, _accOpt) {
+  var parse = function (_str, _prevState, acc) {
     while(true) {
-      var accOpt = _accOpt;
-      var state = _state;
+      var prevState = _prevState;
       var str = _str;
-      var acc = accOpt !== undefined ? accOpt : [];
       var match = splitWhen(str, (function ($$char) {
               if ($$char === "[") {
                 return true;
@@ -80,56 +78,78 @@ function fromString(str) {
                 return $$char === ".";
               }
             }));
-      var rest = match[2];
-      var name = match[0];
-      if (state === "Name") {
-        if (name === "") {
-          throwError("InvalidPath");
-        } else {
-          acc.push({
-                TAG: "AttributeName",
-                name: name
-              });
-        }
-      } else if (name !== "") {
-        throwError("InvalidPath");
+      if (match[0] === "" && match[1] === "" && match[2] === "") {
+        return acc;
       }
-      switch (match[1]) {
-        case "" :
-            if (rest === "") {
-              return acc;
-            } else {
-              return throwError("InvalidPath");
-            }
-        case "." :
-            _accOpt = acc;
-            _state = "Name";
-            _str = rest;
-            continue ;
-        case "[" :
-            var match$1 = splitWhen(rest, (function ($$char) {
-                    return $$char === "]";
-                  }));
-            if (match$1[1] !== "]") {
-              return throwError("InvalidPath");
-            }
-            acc.push({
-                  TAG: "ListIndex",
-                  index: parseIndex(match$1[0])
-                });
-            _accOpt = acc;
-            _state = "Index";
-            _str = match$1[2];
-            continue ;
-        default:
+      if (prevState === "Name") {
+        var name = match[0];
+        switch (match[1]) {
+          case "" :
+              if (match[2] === "" && name !== "") {
+                acc.push({
+                      TAG: "AttributeName",
+                      name: name
+                    });
+                return acc;
+              } else {
+                return throwError("InvalidPath");
+              }
+          case "." :
+              if (name === "") {
+                return throwError("InvalidPath");
+              }
+              acc.push({
+                    TAG: "AttributeName",
+                    name: name
+                  });
+              _prevState = "Name";
+              _str = match[2];
+              continue ;
+          case "[" :
+              if (name !== "") {
+                acc.push({
+                      TAG: "AttributeName",
+                      name: name
+                    });
+                return parseIndex(match[2], acc);
+              } else {
+                return throwError("InvalidPath");
+              }
+          default:
+            return throwError("InvalidPath");
+        }
+      } else {
+        if (match[0] !== "") {
           return throwError("InvalidPath");
+        }
+        switch (match[1]) {
+          case "." :
+              _prevState = "Name";
+              _str = match[2];
+              continue ;
+          case "[" :
+              return parseIndex(match[2], acc);
+          default:
+            return throwError("InvalidPath");
+        }
       }
     };
   };
-  var parseIndex = function (index) {
-    var x = parseInt(index);
-    if (isFinite(x) && x >= 0 && index.length === x.toString().length) {
-      return x | 0;
+  var parseIndex = function (rest, acc) {
+    var match = splitWhen(rest, (function ($$char) {
+            return $$char === "]";
+          }));
+    var index = match[0];
+    if (match[1] === "]") {
+      if (index.search(/^[0-9]+$/) !== -1) {
+        acc.push({
+              TAG: "ListIndex",
+              index: parseInt(index) | 0
+            });
+        return parse(match[2], "Index", acc);
+      } else {
+        return throwError("InvalidIndex: " + index);
+      }
     } else {
       return throwError("InvalidIndex: " + index);
     }
