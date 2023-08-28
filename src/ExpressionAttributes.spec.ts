@@ -24,17 +24,17 @@ describe('ExpressionAttributes', () => {
 
 
         it('should allow the addition of list index dereferences', () => {
-            expect(AttributePath.toString(AttributePath.fromString('foo[2]'))).toEqual('#foo[2]');
+            expect(AttributePath.toString(AttributePath.fromStringUnsafe('foo[2]'))).toEqual('#foo[2]');
         });
 
         it('should allow the addition of nested attributes', () => {
-            expect(AttributePath.toString(AttributePath.fromString('foo.bar'))).toEqual('#foo.#bar');
+            expect(AttributePath.toString(AttributePath.fromStringUnsafe('foo.bar'))).toEqual('#foo.#bar');
         });
 
         it(
             'should allow the nesting of complex attributes to an arbitrary depth',
             () => {
-                expect(AttributePath.toString(AttributePath.fromString('foo.bar[3].baz[4].quux.snap.crackle.pop[2][1][0]'))).toEqual(
+                expect(AttributePath.toString(AttributePath.fromStringUnsafe('foo.bar[3].baz[4].quux.snap.crackle.pop[2][1][0]'))).toEqual(
                     '#foo.#bar[3].#baz[4].#quux.#snap.#crackle.#pop[2][1][0]'
                 );
             }

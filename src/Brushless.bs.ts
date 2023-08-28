@@ -9,6 +9,8 @@ import type {AttributeValue as $$attributeValue} from './external';
 
 import type {t as Dict_t} from './Dict.bs';
 
+import type {t as Result_t} from './Result.bs';
+
 // tslint:disable-next-line:interface-over-type-literal
 export type attributeValue = $$attributeValue;
 
@@ -34,6 +36,13 @@ export type AttributePath_t =
 
 // tslint:disable-next-line:interface-over-type-literal
 export type AttributePath_parseState = "Name" | "Index";
+
+// tslint:disable-next-line:interface-over-type-literal
+export type AttributePath_parseError = 
+    "InvalidPath"
+  | "MissingBaseNameBeforeIndex"
+  | "EmptyPath"
+  | { TAG: "InvalidIndex"; _0: string };
 
 // tslint:disable-next-line:interface-over-type-literal
 export type Register_t = { readonly names: Dict_t<string>; readonly values: Dict_t<attributeValue> };
@@ -182,7 +191,9 @@ export const AttributeValue_make: (x:AttributeValue_from<attributeValue>) => Att
 
 export const AttributeValue_toString: (value:AttributeValue_t) => string = BrushlessBS.AttributeValue.toString;
 
-export const AttributePath_fromString: (str:string) => AttributePath_t = BrushlessBS.AttributePath.fromString;
+export const AttributePath_fromString: (str:string) => Result_t<AttributePath_t,AttributePath_parseError> = BrushlessBS.AttributePath.fromString;
+
+export const AttributePath_fromStringUnsafe: (path:string) => AttributePath_t = BrushlessBS.AttributePath.fromStringUnsafe;
 
 export const AttributePath_toString: (path:AttributePath_t) => string = BrushlessBS.AttributePath.toString;
 
@@ -496,7 +507,11 @@ export const Register: {
 
 export const Projection: { build: (projection:Projection_projection, register:Register_t) => string } = BrushlessBS.Projection
 
-export const AttributePath: { fromString: (str:string) => AttributePath_t; toString: (path:AttributePath_t) => string } = BrushlessBS.AttributePath
+export const AttributePath: {
+  fromString: (str:string) => Result_t<AttributePath_t,AttributePath_parseError>; 
+  fromStringUnsafe: (path:string) => AttributePath_t; 
+  toString: (path:AttributePath_t) => string
+} = BrushlessBS.AttributePath
 
 export const U: {
   sub: (_1:U_operand, _2:U_operand) => U_operand; 

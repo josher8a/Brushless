@@ -76,14 +76,19 @@ module AttributePath = {
   type parseState =
     | Name
     | Index
+  type parseError =
+    | InvalidPath
+    | InvalidIndex(string)
+    | MissingBaseNameBeforeIndex
+    | EmptyPath
 
-  let fromString = (str: string): t => {
+  let fromString = (str: string) => {
     let rec parse = (str, prevState, acc) => {
       switch (prevState, str->splitWhen(char => char == "[" || char == ".")) {
-      | (_, ("", "", "")) => acc
+      | (_, ("", "", "")) => Result.Ok(acc)
       | (Name, (name, "", "")) if name !== "" => {
           acc->Array.push(AttributeName({name: name}))
-          acc
+          Result.Ok(acc)
         }
       | (Name, (name, ".", rest)) if name !== "" => {
           acc->Array.push(AttributeName({name: name}))
@@ -96,7 +101,7 @@ module AttributePath = {
       | (Index, ("", ".", rest)) => parse(rest, Name, acc)
       | (Index, ("", "[", rest)) => parseIndex(rest, acc)
 
-      | _ => throwError("InvalidPath")
+      | _ => Result.Error(InvalidPath)
       }
     }
     and parseIndex = (rest, acc) =>
@@ -105,14 +110,25 @@ module AttributePath = {
           acc->Array.push(ListIndex({index: index->Float.parseInt->Float.toInt}))
           parse(rest, Index, acc)
         }
-      | (badIndex, _, _) => throwError("InvalidIndex: " ++ badIndex)
+      | (badIndex, _, _) => Result.Error(InvalidIndex(badIndex))
       }
     let acc = []
-    switch Array.shift(str->parse(Name, acc)) {
-    | Some(AttributeName({name})) => AttributePath({name, subpath: acc})
-    | _ => throwError("InvalidPath")
+    switch str->parse(Name, acc) {
+    | Ok(path) =>
+      switch path->Array.shift {
+      | Some(AttributeName({name})) => Result.Ok(AttributePath({name, subpath: acc}))
+      | Some(ListIndex(_)) => Result.Error(MissingBaseNameBeforeIndex)
+      | None => Result.Error(EmptyPath)
+      }
+    | Error(_) as err => err
     }
   }
+
+  let fromStringUnsafe = path =>
+    switch path->fromString {
+    | Ok(path) => path
+    | Error(err) => throwError(err->JSON.stringifyAny->Option.getUnsafe)
+    }
 
   let toString = (path: t): string => {
     let rec subToString = (acc: string, subs: array<sub>): string =>

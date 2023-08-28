@@ -4,7 +4,7 @@ import { DynamoDB } from 'aws-sdk';
 describe('Expression', () => {
     describe('path', () => {
         it('should return the path of the expression', () => {
-            const expression = AttributePath.fromString('foo.bar.baz');
+            const expression = AttributePath.fromStringUnsafe('foo.bar.baz');
             expect(AttributePath.toString(expression)).toEqual('#foo.#bar.#baz');
         }
         )
@@ -14,7 +14,7 @@ describe('Expression', () => {
             const register = Register.make();
             const { equals } = Condition.Maker;
             const expression = Condition.build(equals(
-                AttributePath.fromString('foo.bar.baz'),
+                AttributePath.fromStringUnsafe('foo.bar.baz'),
                 AttributeValue.make({
                     value: {
                         S: 'foo'
@@ -69,7 +69,7 @@ describe('Expression', () => {
                 alias: "baz"
             })
 
-            const path = AttributePath.fromString('foo.bar.baz[0]')
+            const path = AttributePath.fromStringUnsafe('foo.bar.baz[0]')
 
 
 

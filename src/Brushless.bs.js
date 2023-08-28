@@ -79,7 +79,10 @@ function fromString(str) {
               }
             }));
       if (match[0] === "" && match[1] === "" && match[2] === "") {
-        return acc;
+        return {
+                TAG: "Ok",
+                _0: acc
+              };
       }
       if (prevState === "Name") {
         var name = match[0];
@@ -90,13 +93,22 @@ function fromString(str) {
                       TAG: "AttributeName",
                       name: name
                     });
-                return acc;
+                return {
+                        TAG: "Ok",
+                        _0: acc
+                      };
               } else {
-                return throwError("InvalidPath");
+                return {
+                        TAG: "Error",
+                        _0: "InvalidPath"
+                      };
               }
           case "." :
               if (name === "") {
-                return throwError("InvalidPath");
+                return {
+                        TAG: "Error",
+                        _0: "InvalidPath"
+                      };
               }
               acc.push({
                     TAG: "AttributeName",
@@ -113,14 +125,23 @@ function fromString(str) {
                     });
                 return parseIndex(match[2], acc);
               } else {
-                return throwError("InvalidPath");
+                return {
+                        TAG: "Error",
+                        _0: "InvalidPath"
+                      };
               }
           default:
-            return throwError("InvalidPath");
+            return {
+                    TAG: "Error",
+                    _0: "InvalidPath"
+                  };
         }
       } else {
         if (match[0] !== "") {
-          return throwError("InvalidPath");
+          return {
+                  TAG: "Error",
+                  _0: "InvalidPath"
+                };
         }
         switch (match[1]) {
           case "." :
@@ -130,7 +151,10 @@ function fromString(str) {
           case "[" :
               return parseIndex(match[2], acc);
           default:
-            return throwError("InvalidPath");
+            return {
+                    TAG: "Error",
+                    _0: "InvalidPath"
+                  };
         }
       }
     };
@@ -140,30 +164,58 @@ function fromString(str) {
             return $$char === "]";
           }));
     var index = match[0];
-    if (match[1] === "]") {
-      if (index.search(/^[0-9]+$/) !== -1) {
-        acc.push({
-              TAG: "ListIndex",
-              index: parseInt(index) | 0
-            });
-        return parse(match[2], "Index", acc);
-      } else {
-        return throwError("InvalidIndex: " + index);
-      }
+    if (match[1] === "]" && index.search(/^[0-9]+$/) !== -1) {
+      acc.push({
+            TAG: "ListIndex",
+            index: parseInt(index) | 0
+          });
+      return parse(match[2], "Index", acc);
     } else {
-      return throwError("InvalidIndex: " + index);
+      return {
+              TAG: "Error",
+              _0: {
+                TAG: "InvalidIndex",
+                _0: index
+              }
+            };
     }
   };
   var acc = [];
-  var match = parse(str, "Name", acc).shift();
-  if (match !== undefined && match.TAG === "AttributeName") {
-    return {
-            TAG: "AttributePath",
-            name: match.name,
-            subpath: acc
-          };
+  var path = parse(str, "Name", acc);
+  if (path.TAG !== "Ok") {
+    return path;
+  }
+  var match = path._0.shift();
+  if (match !== undefined) {
+    if (match.TAG === "AttributeName") {
+      return {
+              TAG: "Ok",
+              _0: {
+                TAG: "AttributePath",
+                name: match.name,
+                subpath: acc
+              }
+            };
+    } else {
+      return {
+              TAG: "Error",
+              _0: "MissingBaseNameBeforeIndex"
+            };
+    }
   } else {
-    return throwError("InvalidPath");
+    return {
+            TAG: "Error",
+            _0: "EmptyPath"
+          };
+  }
+}
+
+function fromStringUnsafe(path) {
+  var path$1 = fromString(path);
+  if (path$1.TAG === "Ok") {
+    return path$1._0;
+  } else {
+    return throwError(JSON.stringify(path$1._0));
   }
 }
 
@@ -193,6 +245,7 @@ function toString$2(path) {
 
 var AttributePath = {
   fromString: fromString,
+  fromStringUnsafe: fromStringUnsafe,
   toString: toString$2
 };
 

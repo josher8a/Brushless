@@ -20,7 +20,7 @@ describe('ProjectionExpression', () => {
         const attributes = Register.make();
 
         expect(Projection.build(
-            [AttributePath.fromString('foo[2]')],
+            [AttributePath.fromStringUnsafe('foo[2]')],
             attributes
         )).toBe('#foo[2]');
         expect(attributes.names).toEqual({
@@ -32,7 +32,7 @@ describe('ProjectionExpression', () => {
         const attributes = Register.make();
 
         expect(Projection.build(
-            [AttributePath.fromString('foo.bar')],
+            [AttributePath.fromStringUnsafe('foo.bar')],
             attributes
         )).toBe('#foo.#bar');
         expect(attributes.names).toEqual({
@@ -46,7 +46,7 @@ describe('ProjectionExpression', () => {
         () => {
             const attributes = Register.make();
             expect(Projection.build(
-                [AttributePath.fromString('snap.foo[2].bar[3].baz[4].quux')],
+                [AttributePath.fromStringUnsafe('snap.foo[2].bar[3].baz[4].quux')],
                 attributes
             )).toBe('#snap.#foo[2].#bar[3].#baz[4].#quux');
             expect(attributes.names).toEqual({
