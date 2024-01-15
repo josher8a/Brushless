@@ -1,22 +1,24 @@
-import {AttributePath} from './Brushless.bs';
+import {Attribute} from './Brushless.bs';
 
 describe('AttributePath', () => {
     it('should convert a string path to a list of elements', () => {
         expect(
-            AttributePath.fromStringUnsafe('foo.bar.baz[3][4][2].fizz[0].buzz[1]')
+            Attribute.pathFromStringUnsafe('foo.bar.baz[3][4][2].fizz[0].buzz[1]')
         ).toMatchObject({
-            name:  'foo',
-            subpath:[
-            {TAG: 'AttributeName', name: 'bar'},
-            {TAG: 'AttributeName', name: 'baz'},
-            {TAG: 'ListIndex', index: 3},
-            {TAG: 'ListIndex', index: 4},
-            {TAG: 'ListIndex', index: 2},
-            {TAG: 'AttributeName', name: 'fizz'},
-            {TAG: 'ListIndex', index: 0},
-            {TAG: 'AttributeName', name: 'buzz'},
-            {TAG: 'ListIndex', index: 1},
-        ]});
+            TAG: 'AttributePath',
+            _0: { TAG: 'AttributeName', _0: 'foo' },
+            _1: [
+              { TAG: 'AttributeName', _0: 'bar' },
+              { TAG: 'AttributeName', _0: 'baz' },
+              { TAG: 'ListIndex', _0: 3 },
+              { TAG: 'ListIndex', _0: 4 },
+              { TAG: 'ListIndex', _0: 2 },
+              { TAG: 'AttributeName', _0: 'fizz' },
+              { TAG: 'ListIndex', _0: 0 },
+              { TAG: 'AttributeName', _0: 'buzz' },
+              { TAG: 'ListIndex', _0: 1 }
+            ]
+          });
     });
 
 
@@ -24,7 +26,7 @@ describe('AttributePath', () => {
         it(
             'should throw an error when a path begins with a control character',
             () => {
-                expect(AttributePath.fromString('[1]'))
+                expect(Attribute.pathFromString('[1]'))
                     .toMatchObject({
                         TAG: 'Error',
                         _0: 'InvalidPath'
@@ -35,7 +37,7 @@ describe('AttributePath', () => {
         it(
             'should throw an error when a list index access contains invalid characters',
             () => {
-                expect(AttributePath.fromString('foo[a]'))
+                expect(Attribute.pathFromString('foo[a]'))
                     .toMatchObject({
                         TAG: 'Error',
                         _0: {
@@ -49,7 +51,7 @@ describe('AttributePath', () => {
         it(
             'should throw an error when a list index access contains no characters',
             () => {
-                expect(AttributePath.fromString('foo[]'))
+                expect(Attribute.pathFromString('foo[]'))
                     .toMatchObject({
                         TAG: 'Error',
                         _0: {
@@ -63,7 +65,7 @@ describe('AttributePath', () => {
         it(
             'should throw an error when an identifier immediately follows a list index access',
             () => {
-                expect(AttributePath.fromString('foo[1]a'))
+                expect(Attribute.pathFromString('foo[1]a'))
                 .toMatchObject({
                     TAG: 'Error',
                     _0: 'InvalidPath'

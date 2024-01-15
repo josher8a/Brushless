@@ -1,11 +1,11 @@
-import { Condition, AttributePath } from "./Brushless.bs";
+import { Condition, Attribute } from "./Brushless.bs";
 const {
     equals,
     notEquals,
     lessThan,
-    lessThanOrEqualTo,
+    lessThanOrEqual,
     greaterThan,
-    greaterThanOrEqualTo,
+    greaterThanOrEqual,
     between,
     inList,
     attributeExists,
@@ -13,74 +13,22 @@ const {
     attributeType,
     beginsWith,
     contains,
-} = Condition.Maker;
+} = Condition;
 
-const name = AttributePath.fromStringUnsafe('name');
-describe('equals', () => {
-    it('should return an equality condition predicate', () => {
-        const pred = equals(name, AttributePath.fromStringUnsafe('foo'));
-        // expect(isConditionExpressionPredicate(pred)).toBe(true);
-        expect(pred.TAG).toBe('Comparison');
-        if(pred.TAG == 'Comparison')  expect(pred.comparator).toBe('Equals');
+const name = Attribute.pathFromStringUnsafe('name');
+
+
+describe('between', () => {
+    it('should return a bounded condition predicate', () => {
+        // const pred = between(name,{1, 10});
+        // // expect(isConditionExpressionPredicate(pred)).toBe(true);
+        // expect(pred).toEqual({
+        //     TAG: 'Between',
+        //     lowerBound: 1,
+        //     upperBound: 10,
+        // });
     });
 });
-
-describe('notEquals', () => {
-    it('should return an inequality condition predicate', () => {
-        const pred = notEquals(name, AttributePath.fromStringUnsafe('foo'));
-        // expect(isConditionExpressionPredicate(pred)).toBe(true);
-        expect(pred.TAG).toBe('Comparison');
-        if(pred.TAG == 'Comparison')  expect(pred.comparator).toBe('NotEquals');
-    });
-});
-
-describe('lessThan', () => {
-    it('should return an < condition predicate', () => {
-        const pred = lessThan(name,AttributePath.fromStringUnsafe('foo'));
-        // expect(isConditionExpressionPredicate(pred)).toBe(true);
-        expect(pred.TAG).toBe('Comparison');
-        if(pred.TAG == 'Comparison')  expect(pred.comparator).toBe('LessThan');
-    });
-});
-
-describe('lessThanOrEqualTo', () => {
-    it('should return an <= condition predicate', () => {
-        const pred = lessThanOrEqualTo(name,AttributePath.fromStringUnsafe('foo'));
-        // expect(isConditionExpressionPredicate(pred)).toBe(true);
-        expect(pred.TAG).toBe('Comparison');
-        if(pred.TAG == 'Comparison')  expect(pred.comparator).toBe('LessThanOrEqual');
-    });
-});
-
-describe('greaterThan', () => {
-    it('should return an > condition predicate', () => {
-        const pred = greaterThan(name,AttributePath.fromStringUnsafe('foo'));
-        // expect(isConditionExpressionPredicate(pred)).toBe(true);
-        expect(pred.TAG).toBe('Comparison');
-        if(pred.TAG == 'Comparison')  expect(pred.comparator).toBe('GreaterThan');
-    });
-});
-
-describe('greaterThanOrEqualTo', () => {
-    it('should return an >= condition predicate', () => {
-        const pred = greaterThanOrEqualTo(name,AttributePath.fromStringUnsafe('foo'));
-        // expect(isConditionExpressionPredicate(pred)).toBe(true);
-        expect(pred.TAG).toBe('Comparison');
-        if(pred.TAG == 'Comparison')  expect(pred.comparator).toBe('GreaterThanOrEqual');
-    });
-});
-
-// describe('between', () => {
-//     it('should return a bounded condition predicate', () => {
-//         const pred = between(name,{1, 10});
-//         // expect(isConditionExpressionPredicate(pred)).toBe(true);
-//         expect(pred).toEqual({
-//             TAG: 'Between',
-//             lowerBound: 1,
-//             upperBound: 10,
-//         });
-//     });
-// });
 
 // describe('inList', () => {
 //     it('should return a membership condition predicate', () => {

@@ -1,18 +1,18 @@
-import {AttributeValue} from "./Brushless.bs";
+import {Attribute} from "./Brushless.bs";
 import {Marshaller} from "@aws/dynamodb-auto-marshaller";
 
 const DefaultMarshaller = new Marshaller();
 describe('AttributeValue', () => {
     describe('::isAttributeValue', () => {
         it('should accept valid attribute values', () => {
-            const value = AttributeValue.make({
+            const value = Attribute.attributeValue({
                 value: {
                     S: 'string',
                 },
                 alias: 'www'
             });
 
-            const valueWithMarshalled = AttributeValue.make({
+            const valueWithMarshalled = Attribute.attributeValue({
                 value: DefaultMarshaller.marshallValue("string")!,
                 alias: 'www'
             });

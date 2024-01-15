@@ -1,9 +1,9 @@
-import { AttributePath, AttributeName, AttributeValue } from './Brushless.bs';
+import { Attribute } from './Brushless.bs';
 describe('ExpressionAttributes', () => {
     describe('#addName', () => {
         it('should provide expression-safe aliases for names', () => {
             for (const reservedWord of DDB_RESERVED_WORDS) {
-                const alias = AttributeName.toString(AttributeName.make(reservedWord));
+                const alias = Attribute.toString(Attribute.attributeName(reservedWord));
                 expect(alias).toMatch(/^#[A-Za-z0-9]+$/);
                 expect(alias).not.toBe(reservedWord);
                 expect(DDB_RESERVED_WORDS.has(alias)).toBe(false);
@@ -14,9 +14,9 @@ describe('ExpressionAttributes', () => {
             'should return the same alias for a name submitted multiple times',
             () => {
                 for (const reservedWord of DDB_RESERVED_WORDS) {
-                    const alias = AttributeName.toString(AttributeName.make(reservedWord));
+                    const alias = Attribute.toString(Attribute.attributeName(reservedWord));
                     for (let i = 0; i < 10; i++) {
-                        expect(AttributeName.toString(AttributeName.make(reservedWord))).toBe(alias);
+                        expect(Attribute.toString(Attribute.attributeName(reservedWord))).toBe(alias);
                     }
                 }
             }
@@ -24,17 +24,17 @@ describe('ExpressionAttributes', () => {
 
 
         it('should allow the addition of list index dereferences', () => {
-            expect(AttributePath.toString(AttributePath.fromStringUnsafe('foo[2]'))).toEqual('#foo[2]');
+            expect(Attribute.toString(Attribute.pathFromStringUnsafe('foo[2]'))).toEqual('#foo[2]');
         });
 
         it('should allow the addition of nested attributes', () => {
-            expect(AttributePath.toString(AttributePath.fromStringUnsafe('foo.bar'))).toEqual('#foo.#bar');
+            expect(Attribute.toString(Attribute.pathFromStringUnsafe('foo.bar'))).toEqual('#foo.#bar');
         });
 
         it(
             'should allow the nesting of complex attributes to an arbitrary depth',
             () => {
-                expect(AttributePath.toString(AttributePath.fromStringUnsafe('foo.bar[3].baz[4].quux.snap.crackle.pop[2][1][0]'))).toEqual(
+                expect(Attribute.toString(Attribute.pathFromStringUnsafe('foo.bar[3].baz[4].quux.snap.crackle.pop[2][1][0]'))).toEqual(
                     '#foo.#bar[3].#baz[4].#quux.#snap.#crackle.#pop[2][1][0]'
                 );
             }
@@ -44,10 +44,10 @@ describe('ExpressionAttributes', () => {
     describe('#addValue', () => {
         it('should provide expression-safe aliases for values', () => {
             for (const reservedWord of DDB_RESERVED_WORDS) {
-                const alias = AttributeValue.make({value: {
+                const alias = Attribute.attributeValue({value: {
                     S: reservedWord,
                 }, alias: reservedWord});
-                expect(AttributeValue.toString(alias)).toMatch(/^:[A-Za-z0-9]+$/);
+                expect(Attribute.toString(alias)).toMatch(/^:[A-Za-z0-9]+$/);
             }
         });
     });

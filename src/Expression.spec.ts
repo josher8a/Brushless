@@ -1,21 +1,21 @@
-import { AttributeName, AttributePath, AttributeValue, Register, Condition, KeyCondition, C, K } from './Brushless.bs';
+import { Attribute, Register, Condition, KeyCondition } from './Brushless.bs';
 import { DynamoDB } from 'aws-sdk';
 
 describe('Expression', () => {
     describe('path', () => {
         it('should return the path of the expression', () => {
-            const expression = AttributePath.fromStringUnsafe('foo.bar.baz');
-            expect(AttributePath.toString(expression)).toEqual('#foo.#bar.#baz');
+            const expression = Attribute.pathFromStringUnsafe('foo.bar.baz');
+            expect(Attribute.toString(expression)).toEqual('#foo.#bar.#baz');
         }
         )
     })
     describe('ConditionExpression', () => {
         it('should return the condition expression', () => {
             const register = Register.make();
-            const { equals } = Condition.Maker;
+            const { equals } = Condition;
             const expression = Condition.build(equals(
-                AttributePath.fromStringUnsafe('foo.bar.baz'),
-                AttributeValue.make({
+                Attribute.pathFromStringUnsafe('foo.bar.baz'),
+                Attribute.attributeValue({
                     value: {
                         S: 'foo'
                     },
@@ -30,46 +30,46 @@ describe('Expression', () => {
 
             const register = Register.make()
 
-            const pk = AttributeName.make("PK")
-            const sk = AttributeName.make("SK")
+            const pk = Attribute.attributeName("PK")
+            const sk = Attribute.attributeName("SK")
 
-            const pkVal = AttributeValue.make({
+            const pkVal = Attribute.attributeValue({
                 value: {
                     S: 'X'
                 },
                 alias: "PK"
             })
 
-            const skVal = AttributeValue.make({
+            const skVal = Attribute.attributeValue({
                 value: {
                     S: 'Y'
                 },
                 alias: "SK"
             })
 
-            const foo = AttributeName.make("foo")
-            const bar = AttributeName.make("bar")
-            const baz = AttributeName.make("baz")
-            const fooVal = AttributeValue.make({
+            const foo = Attribute.attributeName("foo")
+            const bar = Attribute.attributeName("bar")
+            const baz = Attribute.attributeName("baz")
+            const fooVal = Attribute.attributeValue({
                 value: {
                     S: 'foo'
                 },
                 alias: "foo"
             })
-            const barVal = AttributeValue.make({
+            const barVal = Attribute.attributeValue({
                 value: {
                     S: 'bar'
                 },
                 alias: "bar"
             })
-            const bazVal = AttributeValue.make({
+            const bazVal = Attribute.attributeValue({
                 value: {
                     S: 'baz'
                 },
                 alias: "baz"
             })
 
-            const path = AttributePath.fromStringUnsafe('foo.bar.baz[0]')
+            const path = Attribute.pathFromStringUnsafe('foo.bar.baz[0]')
 
 
 
@@ -77,14 +77,11 @@ describe('Expression', () => {
             const command: DynamoDB.QueryInput = {
                 TableName: '',
                 KeyConditionExpression: KeyCondition.build({
-                    pk: {
-                        name: pk,
-                        value: pkVal
-                    },
-                    sk: K.beginsWith(sk, skVal)
+                    pk: KeyCondition.partitionKey(pk, pkVal),
+                    sk: KeyCondition.beginsWith(sk, skVal)
                 }, register),
                 FilterExpression: Condition.build(
-                    C.and(C.equals(path, skVal), C.or(C.equals(foo, fooVal), C.and(C.equals(bar, barVal), C.contains(path, bazVal))))
+                    Condition.and(Condition.equals(path, skVal), Condition.or(Condition.equals(foo, fooVal), Condition.and(Condition.equals(bar, barVal), Condition.contains(path, bazVal))))
                     // {
                     //     TAG: "And",
                     //     lhs: {

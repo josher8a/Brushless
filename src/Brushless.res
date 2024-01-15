@@ -19,44 +19,29 @@ external throwError: string => 'a = "throwError"
 // }
 
 @genType
-module AttributeName = {
-  type t = AttributeName({name: string})
-  let make = name => AttributeName({name: name})
-  let toString = name =>
-    switch name {
-    | AttributeName({name}) => {
-        if name->String.includes(" ") {
-          throwError("InvalidName")
-        }
-        "#" ++ name
-      }
-    }
-}
+module Attribute = {
+  @genType @deriving(accessors)
+  type name = AttributeName(string)
 
-@genType
-module AttributeValue = {
-  type t = AttributeValue({value: attributeValue, alias: string})
+  type value_ = {value: attributeValue, alias: string}
+
+  @genType @deriving(accessors)
+  type value = AttributeValue(value_)
+
   type from<'a> = {
     value: 'a,
     alias: string,
   }
-  let make = x => AttributeValue({
-    value: x.value, // DefaultMarshaller.marshallValue(x.value),
-    alias: x.alias,
-  })
+  let make = x => AttributeValue(x)
 
-  let toString = value =>
-    switch value {
-    | AttributeValue({alias}) => ":" ++ alias
-    }
-}
-
-@genType
-module AttributePath = {
   type sub =
-    | ...AttributeName.t
-    | ListIndex({index: int})
-  type rec t = AttributePath({name: string, subpath: array<sub>})
+    | ...name
+    | ListIndex(int)
+
+  @genType @deriving(accessors)
+  type path = AttributePath(name, array<sub>)
+
+  type t = | ...path | ...name | ...value
 
   %%private(
     let splitWhen = (str: string, predicate: string => bool) => {
@@ -82,20 +67,20 @@ module AttributePath = {
     | MissingBaseNameBeforeIndex
     | EmptyPath
 
-  let fromString = (str: string) => {
-    let rec parse = (str, prevState, acc) => {
+  let pathFromString = (str: string): result<path, parseError> => {
+    let rec parse = (str, prevState, acc: array<sub>) => {
       switch (prevState, str->splitWhen(char => char == "[" || char == ".")) {
       | (_, ("", "", "")) => Result.Ok(acc)
       | (Name, (name, "", "")) if name !== "" => {
-          acc->Array.push(AttributeName({name: name}))
+          acc->Array.push(AttributeName(name))
           Result.Ok(acc)
         }
       | (Name, (name, ".", rest)) if name !== "" => {
-          acc->Array.push(AttributeName({name: name}))
+          acc->Array.push(AttributeName(name))
           parse(rest, Name, acc)
         }
       | (Name, (name, "[", rest)) if name !== "" => {
-          acc->Array.push(AttributeName({name: name}))
+          acc->Array.push(AttributeName(name))
           parseIndex(rest, acc)
         }
       | (Index, ("", ".", rest)) => parse(rest, Name, acc)
@@ -107,7 +92,7 @@ module AttributePath = {
     and parseIndex = (rest, acc) =>
       switch rest->splitWhen(char => char == "]") {
       | (index, "]", rest) if index->String.search(%re("/^[0-9]+$/")) !== -1 => {
-          acc->Array.push(ListIndex({index: index->Float.parseInt->Float.toInt}))
+          acc->Array.push(ListIndex(index->Float.parseInt->Float.toInt))
           parse(rest, Index, acc)
         }
       | (badIndex, _, _) => Result.Error(InvalidIndex(badIndex))
@@ -116,7 +101,7 @@ module AttributePath = {
     switch str->parse(Name, acc) {
     | Ok(path) =>
       switch path->Array.shift {
-      | Some(AttributeName({name})) => Result.Ok(AttributePath({name, subpath: acc}))
+      | Some(AttributeName(name)) => Result.Ok(AttributePath(AttributeName(name), acc))
       | Some(ListIndex(_)) => Result.Error(MissingBaseNameBeforeIndex)
       | None => Result.Error(EmptyPath)
       }
@@ -124,25 +109,37 @@ module AttributePath = {
     }
   }
 
-  let fromStringUnsafe = path =>
-    switch path->fromString {
+  let pathFromStringUnsafe = path =>
+    switch path->pathFromString {
     | Ok(path) => path
     | Error(err) => throwError(err->JSON.stringifyAny->Option.getUnsafe)
     }
 
-  let toString = (path: t): string => {
-    let rec subToString = (acc: string, subs: array<sub>): string =>
-      switch Array.shift(subs) {
-      | Some(AttributeName({name})) =>
-        subToString(`${acc}.${AttributeName.toString(AttributeName({name: name}))}`, subs)
-      | Some(ListIndex({index})) => subToString(`${acc}[${string_of_int(index)}]`, subs)
-      | None => acc
+  @send external reduce: (array<'b>, ('a, 'b) => 'a, 'a) => 'a = "reduce"
+  let toString = (x: t): string => {
+    let nameToString = (name: string) => {
+      if name->String.includes(" ") {
+        throwError("InvalidName")
       }
-    switch path {
-    | AttributePath({name, subpath}) =>
-      subToString(AttributeName.toString(AttributeName({name: name})), subpath)
+      "#" ++ name
+    }
+
+    switch x {
+    | AttributePath(AttributeName(base), subpath) =>
+      subpath->reduce((acc: string, sub: sub): string =>
+        switch sub {
+        | AttributeName(name) => `${acc}.${nameToString(name)}`
+        | ListIndex(index) => `${acc}[${string_of_int(index)}]`
+        }
+      , nameToString(base))
+    | AttributeName(name) => nameToString(name)
+    | AttributeValue({alias}) => ":" ++ alias
     }
   }
+
+  type identifier =
+    | ...path
+    | ...name
 }
 
 @genType
@@ -154,133 +151,66 @@ module Register = {
 
   let make = () => {names: Dict.make(), values: Dict.make()}
 
-  let addValue = (register, element) => {
-    open AttributeValue
+  let add = (register, element: Attribute.t) => {
+    open Attribute
     switch element {
-    | AttributeValue({value, alias}) =>
-      register.values->Dict.set(AttributeValue({value, alias})->toString, value)
-    }
+    | AttributeName(name) => register.names->Dict.set(element->toString, name)
 
+    | AttributeValue({value}) => register.values->Dict.set(element->toString, value)
+
+    | AttributePath(base, subpath) =>
+      [(base :> Attribute.sub)]
+      ->Array.concat(subpath)
+      ->Array.forEach(sub =>
+        switch sub {
+        | AttributeName(name) => register.names->Dict.set(AttributeName(name)->toString, name)
+        | ListIndex(_) => ()
+        }
+      )
+    }
     element
   }
 
-  let addName = (register, element) => {
-    open AttributeName
-    switch element {
-    | AttributeName({name}) => register.names->Dict.set(AttributeName({name: name})->toString, name)
-    }
-
-    element
-  }
-
-  let addPath = (register, element: AttributePath.t) => {
-    open AttributeName
-    switch element {
-    | AttributePath({name, subpath}) => {
-        register.names->Dict.set(toString(AttributeName({name: name})), name)
-
-        subpath->Array.forEach(sub =>
-          switch sub {
-          | AttributeName({name}) =>
-            register.names->Dict.set(toString(AttributeName({name: name})), name)
-          | ListIndex(_) => ()
-          }
-        )
-      }
-    }
-
-    element
+  let addToString = (register, element: Attribute.t) => {
+    add(register, element)->Attribute.toString
   }
 }
 
-type comparator =
-  | Equals // =
-  | NotEquals // <>
-  | LessThan // <
-  | LessThanOrEqual // <=
-  | GreaterThan // >
-  | GreaterThanOrEqual // >=
-
-let comparatorToString = comparator =>
-  switch comparator {
-  | Equals => "="
-  | NotEquals => "<>"
-  | LessThan => "<"
-  | LessThanOrEqual => "<="
-  | GreaterThan => ">"
-  | GreaterThanOrEqual => ">="
-  }
-@genType
-module Identifier = {
-  @genType
-  type rec t =
-    | ...AttributePath.t
-    | ...AttributeName.t
-
-  let toString = (identifier: t, register) =>
-    switch identifier {
-    | AttributePath({name, subpath}) =>
-      AttributePath.toString(Register.addPath(register, AttributePath({name, subpath})))
-    | AttributeName({name}) =>
-      AttributeName.toString(Register.addName(register, AttributeName({name: name})))
-    }
-}
 @genType
 module Condition = {
-  type rec operand =
-    | ...AttributePath.t
-    | ...AttributeName.t
-    | ...AttributeValue.t
-    | Size({operand: operand}) // is a function but it is the only one that returns a number
+  @genType @deriving(accessors)
+  type size = Size(Attribute.t) // is a function but it is the only one that returns a number
+
+  type operand = | ...Attribute.t | ...size
 
   type limits = {lower: operand, upper: operand}
 
+  @genType @deriving(accessors)
   type rec condition =
-    | Comparison({lhs: operand, comparator: comparator, rhs: operand})
-    | Between({operand: operand, limits: limits})
-    | In({operand: operand, list: array<operand>})
-    | And({lhs: condition, rhs: condition})
-    | Or({lhs: condition, rhs: condition})
-    | Not({condition: condition})
-    //   | Function(function)
-    // and function =
-    | AttributeExists({identifier: Identifier.t})
-    | AttributeNotExists({identifier: Identifier.t})
-    | AttributeType({identifier: Identifier.t, operand: operand})
-    | BeginsWith({identifier: Identifier.t, operand: operand})
-    | Contains({identifier: Identifier.t, operand: operand})
+    | Equals(operand, operand)
+    | NotEquals(operand, operand)
+    | LessThan(operand, operand)
+    | LessThanOrEqual(operand, operand)
+    | GreaterThan(operand, operand)
+    | GreaterThanOrEqual(operand, operand)
+    | Between(operand, limits)
+    | InList(operand, array<operand>)
+    | And(condition, condition)
+    | Or(condition, condition)
+    | Not(condition)
+    | AttributeExists(Attribute.identifier)
+    | AttributeNotExists(Attribute.identifier)
+    | AttributeType(Attribute.identifier, operand)
+    | BeginsWith(Attribute.identifier, operand)
+    | Contains(Attribute.identifier, operand)
 
-  module Maker = {
-    let equals = (lhs, rhs) => Comparison({lhs, comparator: Equals, rhs})
-    let notEquals = (lhs, rhs) => Comparison({lhs, comparator: NotEquals, rhs})
-    let lessThan = (lhs, rhs) => Comparison({lhs, comparator: LessThan, rhs})
-    let lessThanOrEqualTo = (lhs, rhs) => Comparison({lhs, comparator: LessThanOrEqual, rhs})
-    let greaterThan = (lhs, rhs) => Comparison({lhs, comparator: GreaterThan, rhs})
-    let greaterThanOrEqualTo = (lhs, rhs) => Comparison({
-      lhs,
-      comparator: GreaterThanOrEqual,
-      rhs,
-    })
-    let between = (operand, limits) => Between({operand, limits})
-    let inList = (operand, list) => In({operand, list})
-    let attributeExists = identifier => AttributeExists({identifier: identifier})
-    let attributeNotExists = identifier => AttributeNotExists({identifier: identifier})
-    let attributeType = (identifier, operand) => AttributeType({identifier, operand})
-    let beginsWith = (identifier, operand) => BeginsWith({identifier, operand})
-    let contains = (identifier, operand) => Contains({identifier, operand})
-    let \"and" = (lhs, rhs) => And({lhs, rhs})
-    let or = (lhs, rhs) => Or({lhs, rhs})
-    let not = condition => Not({condition: condition})
-    let size = operand => Size({operand: operand})
-  }
-  include Maker
   module Overload = {
     @genType.opaque
     let \"&&" = \"and"
     @genType.opaque
     let \"||" = or
     @genType.opaque
-    let \"!" = Maker.not
+    let \"!" = not
     @genType.opaque
     let \"==" = equals
     @genType.opaque
@@ -288,45 +218,45 @@ module Condition = {
     @genType.opaque
     let \"<" = lessThan
     @genType.opaque
-    let \"<=" = lessThanOrEqualTo
+    let \"<=" = lessThanOrEqual
     @genType.opaque
     let \">" = greaterThan
     @genType.opaque
-    let \">=" = greaterThanOrEqualTo
+    let \">=" = greaterThanOrEqual
   }
 
   let build = (condition, register) => {
     let rec toString = condition =>
       switch condition {
-      | Comparison({lhs, comparator, rhs}) =>
-        `${opString(lhs)} ${comparatorToString(comparator)} ${opString(rhs)}`
-      | Between({operand, limits}) =>
+      | Equals(lhs, rhs) => `${opString(lhs)} = ${opString(rhs)}`
+      | NotEquals(lhs, rhs) => `${opString(lhs)} <> ${opString(rhs)}`
+      | LessThan(lhs, rhs) => `${opString(lhs)} < ${opString(rhs)}`
+      | LessThanOrEqual(lhs, rhs) => `${opString(lhs)} <= ${opString(rhs)}`
+      | GreaterThan(lhs, rhs) => `${opString(lhs)} > ${opString(rhs)}`
+      | GreaterThanOrEqual(lhs, rhs) => `${opString(lhs)} >= ${opString(rhs)}`
+      | Between(operand, limits) =>
         `${opString(operand)} BETWEEN ${opString(limits.lower)} AND ${opString(limits.upper)}`
-      | In({operand, list}) =>
+      | InList(operand, list) =>
         `${opString(operand)} IN (${list->Array.map(opString)->Array.joinWith(", ")})`
-      | And({lhs, rhs}) => `(${toString(lhs)}) AND (${toString(rhs)})`
-      | Or({lhs, rhs}) => `(${toString(lhs)}) OR (${toString(rhs)})`
-      | Not({condition}) => `NOT (${toString(condition)})`
-      | AttributeExists({identifier}) =>
-        `attribute_exists(${Identifier.toString(identifier, register)})`
-      | AttributeNotExists({identifier}) =>
-        `attribute_not_exists(${Identifier.toString(identifier, register)})`
-      | AttributeType({identifier, operand}) =>
-        `attribute_type(${Identifier.toString(identifier, register)}, ${opString(operand)})`
-      | BeginsWith({identifier, operand}) =>
-        `begins_with(${Identifier.toString(identifier, register)}, ${opString(operand)})`
-      | Contains({identifier, operand}) =>
-        `contains(${Identifier.toString(identifier, register)}, ${opString(operand)})`
+      | And(lhs, rhs) => `(${toString(lhs)}) AND (${toString(rhs)})`
+      | Or(lhs, rhs) => `(${toString(lhs)}) OR (${toString(rhs)})`
+      | Not(condition) => `NOT (${toString(condition)})`
+      | AttributeExists(identifier) => `attribute_exists(${opString((identifier :> operand))}})`
+      | AttributeNotExists(identifier) =>
+        `attribute_not_exists(${opString((identifier :> operand))}})`
+      | AttributeType(identifier, operand) =>
+        `attribute_type(${opString((identifier :> operand))}}, ${opString(operand)})`
+      | BeginsWith(identifier, operand) =>
+        `begins_with(${opString((identifier :> operand))}}, ${opString(operand)})`
+      | Contains(identifier, operand) =>
+        `contains(${opString((identifier :> operand))}}, ${opString(operand)})`
       }
     and opString = operand =>
       switch operand {
-      | AttributePath({name, subpath}) =>
-        AttributePath.toString(Register.addPath(register, AttributePath({name, subpath})))
-      | AttributeName({name}) =>
-        AttributeName.toString(Register.addName(register, AttributeName({name: name})))
-      | AttributeValue({value, alias}) =>
-        AttributeValue.toString(Register.addValue(register, AttributeValue({value, alias})))
-      | Size({operand}) => `size(${opString(operand)})`
+      | AttributePath(base, subPath) => Register.addToString(register, AttributePath(base, subPath))
+      | AttributeName(name) => Register.addToString(register, AttributeName(name))
+      | AttributeValue(x) => Register.addToString(register, AttributeValue(x))
+      | Size(operand) => `size(${opString((operand :> operand))}})`
       }
 
     toString(condition)
@@ -335,110 +265,123 @@ module Condition = {
 
 @genType
 module Projection = {
-  type projection = array<Identifier.t>
+  type projection = array<Attribute.identifier>
 
   let build = (projection: projection, register) =>
-    projection->Array.map(Identifier.toString(_, register))->Array.joinWith(", ")
+    projection
+    ->Array.map(x => Register.addToString(register, (x :> Attribute.t)))
+    ->Array.joinWith(", ")
 }
 
 @genType
 module KeyCondition = {
-  type pkCond = {
-    name: AttributeName.t,
-    value: AttributeValue.t,
-  }
-  type limits = {lower: AttributeValue.t, upper: AttributeValue.t}
-
+  @genType @deriving(accessors)
+  type pkCondition = PartitionKey(Attribute.name, Attribute.value)
+  type limits = {lower: Attribute.value, upper: Attribute.value}
+  @genType @deriving(accessors)
   type skCondition =
-    | Comparison({name: AttributeName.t, comparator: comparator, value: AttributeValue.t})
-    | Between({name: AttributeName.t, limits: limits})
-    | BeginsWith({name: AttributeName.t, value: AttributeValue.t})
-    | Any
-  type keyCondition = {
-    pk: pkCond,
-    sk: skCondition,
-  }
+    | Equals(Attribute.name, Attribute.value)
+    | NotEquals(Attribute.name, Attribute.value)
+    | LessThan(Attribute.name, Attribute.value)
+    | LessThanOrEqual(Attribute.name, Attribute.value)
+    | GreaterThan(Attribute.name, Attribute.value)
+    | GreaterThanOrEqual(Attribute.name, Attribute.value)
+    | Between(Attribute.name, limits)
+    | BeginsWith(Attribute.name, Attribute.value)
 
-  module Maker = {
-    let equals = (name, value) => Comparison({name, comparator: Equals, value})
-    let notEquals = (name, value) => Comparison({name, comparator: NotEquals, value})
-    let lessThan = (name, value) => Comparison({name, comparator: LessThan, value})
-    let lessThanOrEqualTo = (name, value) => Comparison({name, comparator: LessThanOrEqual, value})
-    let greaterThan = (name, value) => Comparison({name, comparator: GreaterThan, value})
-    let greaterThanOrEqualTo = (name, value) => Comparison({
-      name,
-      comparator: GreaterThanOrEqual,
-      value,
-    })
-    let between = (name, limits) => Between({name, limits})
-    let beginsWith = (name, value) => BeginsWith({name, value})
-    let any = Any
+  type keyCondition = {
+    pk: pkCondition,
+    sk?: skCondition,
   }
-  include Maker
 
   %%private(
     let skConditionToString = (skCondition: skCondition, register) =>
       switch skCondition {
-      | Any => ""
-      | Comparison({name, comparator, value}) =>
-        ` AND ${AttributeName.toString(Register.addName(register, name))} ${comparatorToString(
-            comparator,
-          )} ${AttributeValue.toString(Register.addValue(register, value))}`
-      | Between({name, limits}) =>
-        ` AND ${AttributeName.toString(
-            Register.addName(register, name),
-          )} BETWEEN ${AttributeValue.toString(limits.lower)} AND ${AttributeValue.toString(
-            limits.upper,
+      | Equals(name, value) =>
+        ` AND ${Register.addToString(register, (name :> Attribute.t))} = ${Register.addToString(
+            register,
+            (value :> Attribute.t),
           )}`
-      | BeginsWith({name, value}) =>
-        ` AND begins_with(${AttributeName.toString(
-            Register.addName(register, name),
-          )}, ${AttributeValue.toString(Register.addValue(register, value))})`
+      | NotEquals(name, value) =>
+        ` AND ${Register.addToString(register, (name :> Attribute.t))} <> ${Register.addToString(
+            register,
+            (value :> Attribute.t),
+          )}`
+      | LessThan(name, value) =>
+        ` AND ${Register.addToString(register, (name :> Attribute.t))} < ${Register.addToString(
+            register,
+            (value :> Attribute.t),
+          )}`
+      | LessThanOrEqual(name, value) =>
+        ` AND ${Register.addToString(register, (name :> Attribute.t))} <= ${Register.addToString(
+            register,
+            (value :> Attribute.t),
+          )}`
+      | GreaterThan(name, value) =>
+        ` AND ${Register.addToString(register, (name :> Attribute.t))} > ${Register.addToString(
+            register,
+            (value :> Attribute.t),
+          )}`
+      | GreaterThanOrEqual(name, value) =>
+        ` AND ${Register.addToString(register, (name :> Attribute.t))} >= ${Register.addToString(
+            register,
+            (value :> Attribute.t),
+          )}`
+      | Between(name, limits) =>
+        ` AND ${Register.addToString(
+            register,
+            (name :> Attribute.t),
+          )} BETWEEN ${Register.addToString(
+            register,
+            (limits.lower :> Attribute.t),
+          )} AND ${Register.addToString(register, (limits.upper :> Attribute.t))}`
+      | BeginsWith(name, value) =>
+        ` AND begins_with(${Register.addToString(
+            register,
+            (name :> Attribute.t),
+          )}, ${Register.addToString(register, (value :> Attribute.t))})`
       }
+
+    let pkConditionToString = (PartitionKey(name, value), register) =>
+      `${Register.addToString(register, (name :> Attribute.t))} = ${Register.addToString(
+          register,
+          (value :> Attribute.t),
+        )}`
   )
 
-  let build = (keyCondition: keyCondition, register) =>
-    `${AttributeName.toString(
-        Register.addName(register, keyCondition.pk.name),
-      )} = ${AttributeValue.toString(Register.addValue(register, keyCondition.pk.value))}` ++
-    skConditionToString(keyCondition.sk, register)
+  let build = (condition: keyCondition, register) =>
+    pkConditionToString(condition.pk, register) ++
+    switch condition.sk {
+    | Some(skCondition) => skConditionToString(skCondition, register)
+    | None => ""
+    }
 }
 
 @genType
 module Update = {
-  type rec operand =
-    | ...AttributePath.t
-    | ...AttributeName.t
-    | ...AttributeValue.t
-    | ListAppend({identifier: operand, operand: operand})
-    | IfNotExists({identifier: operand, operand: operand})
-    | Sum({lhs: operand, rhs: operand})
-    | Sub({lhs: operand, rhs: operand})
-
-  module Maker = {
-    let listAppend = (identifier, operand) => ListAppend({identifier, operand})
-    let ifNotExists = (identifier, operand) => IfNotExists({identifier, operand})
-    let sum = (lhs, rhs) => Sum({lhs, rhs})
-    let sub = (lhs, rhs) => Sub({lhs, rhs})
+  type funcParams<'a> = {
+    identifier: 'a,
+    operand: 'a,
   }
-  include Maker
+  @genType @deriving(accessors)
+  type rec operand =
+    | Attribute(Attribute.t)
+    | ListAppend(funcParams<operand>)
+    | IfNotExists(funcParams<operand>)
+    | Sum(operand, operand)
+    | Sub(operand, operand)
 
   type rec update = {
-    set?: array<(Identifier.t, operand)>,
-    remove?: array<Identifier.t>,
-    add?: array<(Identifier.t, AttributeValue.t)>,
-    delete?: array<(Identifier.t, AttributeValue.t)>,
+    set?: array<(Attribute.identifier, operand)>,
+    remove?: array<Attribute.identifier>,
+    add?: array<(Attribute.identifier, Attribute.t)>,
+    delete?: array<(Attribute.identifier, Attribute.t)>,
   }
 
   %%private(
     let rec operandToString = (operand: operand, register) =>
       switch operand {
-      | AttributePath({name, subpath}) =>
-        AttributePath.toString(Register.addPath(register, AttributePath({name, subpath})))
-      | AttributeName({name}) =>
-        AttributeName.toString(Register.addName(register, AttributeName({name: name})))
-      | AttributeValue({value, alias}) =>
-        AttributeValue.toString(Register.addValue(register, AttributeValue({value, alias})))
+      | Attribute(attr) => Register.addToString(register, attr)
       | ListAppend({identifier, operand}) =>
         `list_append(${operandToString(identifier, register)}, ${operandToString(
             operand,
@@ -449,8 +392,8 @@ module Update = {
             operand,
             register,
           )})`
-      | Sum({lhs, rhs}) => `${operandToString(lhs, register)} + ${operandToString(rhs, register)}`
-      | Sub({lhs, rhs}) => `${operandToString(lhs, register)} - ${operandToString(rhs, register)}`
+      | Sum(lhs, rhs) => `${operandToString(lhs, register)} + ${operandToString(rhs, register)}`
+      | Sub(lhs, rhs) => `${operandToString(lhs, register)} - ${operandToString(rhs, register)}`
       }
     let appendIfNotEmpty = (acc, arr, tag, fn) => {
       open Array
@@ -462,34 +405,35 @@ module Update = {
   )
 
   let build = (update: update, register) => {
-    open Identifier
+    let toString = attr => Register.addToString(register, attr)
     ""
     ->appendIfNotEmpty(update.add, "ADD", ((id, value)) =>
-      toString(id, register) ++ " " ++ AttributeValue.toString(Register.addValue(register, value))
+      toString((id :> Attribute.t)) ++ " " ++ toString((value :> Attribute.t))
     )
     ->appendIfNotEmpty(update.delete, "DELETE", ((id, value)) =>
-      toString(id, register) ++ " " ++ AttributeValue.toString(Register.addValue(register, value))
+      toString((id :> Attribute.t)) ++ " " ++ toString((value :> Attribute.t))
     )
     ->appendIfNotEmpty(update.set, "SET", ((id, operand)) =>
-      `${toString(id, register)} = ${operandToString(operand, register)}`
+      toString((id :> Attribute.t)) ++ " = " ++ operandToString(operand, register)
     )
-    ->appendIfNotEmpty(update.remove, "REMOVE", toString(_, register))
+    ->appendIfNotEmpty(update.remove, "REMOVE", x => toString((x :> Attribute.t)))
     ->String.trim
   }
 }
-@genType
-module U = {
-  include Update
-}
-@genType
-module C = {
-  include Condition
-}
-@genType
-module K = {
-  include KeyCondition
-}
-@genType
-module P = {
-  include Projection
-}
+// TODO: Move to external binding in TS/JS
+// @genType
+// module U = {
+//   include Update
+// }
+// @genType
+// module C = {
+//   include Condition
+// }
+// @genType
+// module K = {
+//   include KeyCondition
+// }
+// @genType
+// module P = {
+//   include Projection
+// }
