@@ -1,4 +1,4 @@
-import {Attribute} from "./Brushless.bs";
+import {Attribute} from "./Brushless.res";
 import {Marshaller} from "@aws/dynamodb-auto-marshaller";
 
 const DefaultMarshaller = new Marshaller();

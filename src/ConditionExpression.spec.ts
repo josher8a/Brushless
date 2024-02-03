@@ -1,21 +1,21 @@
-import { Condition, Attribute } from "./Brushless.bs";
-const {
-    equals,
-    notEquals,
-    lessThan,
-    lessThanOrEqual,
-    greaterThan,
-    greaterThanOrEqual,
-    between,
-    inList,
-    attributeExists,
-    attributeNotExists,
-    attributeType,
-    beginsWith,
-    contains,
-} = Condition;
+// import { Condition, Attribute } from "./Brushless.res";
+// const {
+//     equals,
+//     notEquals,
+//     lessThan,
+//     lessThanOrEqual,
+//     greaterThan,
+//     greaterThanOrEqual,
+//     between,
+//     inList,
+//     attributeExists,
+//     attributeNotExists,
+//     attributeType,
+//     beginsWith,
+//     contains,
+// } = Condition;
 
-const name = Attribute.pathFromStringUnsafe('name');
+// const name = Attribute.pathFromStringUnsafe('name');
 
 
 describe('between', () => {
@@ -29,6 +29,8 @@ describe('between', () => {
         // });
     });
 });
+
+
 
 // describe('inList', () => {
 //     it('should return a membership condition predicate', () => {

@@ -1,11 +1,12 @@
-import { Attribute, Register, Projection } from "./Brushless.bs";
+import { Register, Projection } from "./Brushless.res";
+import { Attribute } from "./"
 
 describe('ProjectionExpression', () => {
     it('should allow the addition of scalar values', () => {
         const attributes = Register.make();
 
         expect(Projection.build(
-            ['foo', 'bar', 'baz', 'quux'].map(Attribute.attributeName),
+            ['foo', 'bar', 'baz', 'quux'].map(Attribute.name),
             attributes
         )).toBe('#foo, #bar, #baz, #quux');
         expect(attributes.names).toEqual({

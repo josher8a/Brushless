@@ -1,4 +1,5 @@
-import { Attribute, Register, Condition, KeyCondition } from './Brushless.bs';
+import {  Register, Condition, KeyCondition } from './Brushless.res';
+import { Attribute } from "./"
 import { DynamoDB } from 'aws-sdk';
 
 describe('Expression', () => {
@@ -30,8 +31,8 @@ describe('Expression', () => {
 
             const register = Register.make()
 
-            const pk = Attribute.attributeName("PK")
-            const sk = Attribute.attributeName("SK")
+            const pk = Attribute.name("PK")
+            const sk = Attribute.name("SK")
 
             const pkVal = Attribute.attributeValue({
                 value: {
@@ -47,9 +48,9 @@ describe('Expression', () => {
                 alias: "SK"
             })
 
-            const foo = Attribute.attributeName("foo")
-            const bar = Attribute.attributeName("bar")
-            const baz = Attribute.attributeName("baz")
+            const foo = Attribute.name("foo")
+            const bar = Attribute.name("bar")
+            const baz = Attribute.name("baz")
             const fooVal = Attribute.attributeValue({
                 value: {
                     S: 'foo'

@@ -3,54 +3,31 @@
 /* eslint-disable */
 /* tslint:disable */
 
-const BrushlessJS = require('./Brushless.bs.js');
+import * as BrushlessJS from './Brushless.res.js';
 
-import type {AttributeValue as $$attributeValue} from './external';
+import type {identifier as Attribute_identifier} from './Attribute.res';
 
-import type {t as Dict_t} from './Dict.bs';
+import type {marshalledValue as Attribute_marshalledValue} from './Attribute.res';
 
-export type attributeValue = $$attributeValue;
+import type {name as Attribute_name} from './Attribute.res';
 
-export type Attribute_name = { TAG: "AttributeName"; _0: string };
+import type {sub as Attribute_sub} from './Attribute.res';
 
-export type Attribute_value_ = { readonly value: attributeValue; readonly alias: string };
+import type {t as Attribute_t} from './Attribute.res';
 
-export type Attribute_value = 
-    { TAG: "AttributeValue"; _0: Attribute_value_ };
+import type {t as Dict_t} from './Dict.res';
 
-export type Attribute_from<a> = { readonly value: a; readonly alias: string };
+import type {value_ as Attribute_value_} from './Attribute.res';
 
-export type Attribute_sub = 
-    { TAG: "AttributeName"; _0: string }
-  | { TAG: "ListIndex"; _0: number };
+import type {value as Attribute_value} from './Attribute.res';
 
-export type Attribute_path = 
-    { TAG: "AttributePath"; _0: Attribute_name; _1: Attribute_sub[] };
-
-export type Attribute_t = 
-    { TAG: "AttributePath"; _0: Attribute_name; _1: Attribute_sub[] }
-  | { TAG: "AttributeName"; _0: string }
-  | { TAG: "AttributeValue"; _0: Attribute_value_ };
-
-export type Attribute_parseState = "Name" | "Index";
-
-export type Attribute_parseError = 
-    "InvalidPath"
-  | "MissingBaseNameBeforeIndex"
-  | "EmptyPath"
-  | { TAG: "InvalidIndex"; _0: string };
-
-export type Attribute_identifier = 
-    { TAG: "AttributePath"; _0: Attribute_name; _1: Attribute_sub[] }
-  | { TAG: "AttributeName"; _0: string };
-
-export type Register_t = { readonly names: Dict_t<string>; readonly values: Dict_t<attributeValue> };
+export type Register_t = { readonly names: Dict_t<string>; readonly values: Dict_t<Attribute_marshalledValue> };
 
 export type Condition_size = { TAG: "Size"; _0: Attribute_t };
 
 export type Condition_operand = 
     { TAG: "AttributePath"; _0: Attribute_name; _1: Attribute_sub[] }
-  | { TAG: "AttributeName"; _0: string }
+  | { TAG: "Name"; _0: string }
   | { TAG: "AttributeValue"; _0: Attribute_value_ }
   | { TAG: "Size"; _0: Attribute_t };
 
@@ -108,22 +85,6 @@ export type Update_update = {
   readonly add?: Array<[Attribute_identifier, Attribute_t]>; 
   readonly delete?: Array<[Attribute_identifier, Attribute_t]>
 };
-
-export const Attribute_attributeName: (_1:string) => Attribute_name = BrushlessJS.Attribute.attributeName as any;
-
-export const Attribute_attributeValue: (_1:Attribute_value_) => Attribute_value = BrushlessJS.Attribute.attributeValue as any;
-
-export const Attribute_make: (x:Attribute_value_) => Attribute_value = BrushlessJS.Attribute.make as any;
-
-export const Attribute_attributePath: (_1:Attribute_name, _2:Attribute_sub[]) => Attribute_path = BrushlessJS.Attribute.attributePath as any;
-
-export const Attribute_pathFromString: (str:string) => 
-    { TAG: "Ok"; _0: Attribute_path }
-  | { TAG: "Error"; _0: Attribute_parseError } = BrushlessJS.Attribute.pathFromString as any;
-
-export const Attribute_pathFromStringUnsafe: (path:string) => Attribute_path = BrushlessJS.Attribute.pathFromStringUnsafe as any;
-
-export const Attribute_toString: (x:Attribute_t) => string = BrushlessJS.Attribute.toString as any;
 
 export const Register_make: () => Register_t = BrushlessJS.Register.make as any;
 
@@ -251,21 +212,3 @@ export const Register: {
 } = BrushlessJS.Register as any;
 
 export const Projection: { build: (projection:Projection_projection, register:Register_t) => string } = BrushlessJS.Projection as any;
-
-export const Attribute: {
-  attributeValue: (_1:Attribute_value_) => Attribute_value; 
-  pathFromStringUnsafe: (path:string) => Attribute_path; 
-  attributePath: (_1:Attribute_name, _2:Attribute_sub[]) => Attribute_path; 
-  attributeName: (_1:string) => Attribute_name; 
-  toString: (x:Attribute_t) => string; 
-  pathFromString: (str:string) => 
-    {
-    TAG: "Ok"; 
-    _0: Attribute_path
-  }
-  | {
-    TAG: "Error"; 
-    _0: Attribute_parseError
-  }; 
-  make: (x:Attribute_value_) => Attribute_value
-} = BrushlessJS.Attribute as any;

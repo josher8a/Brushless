@@ -1,9 +1,9 @@
-import { Attribute } from './Brushless.bs';
+import { Attribute } from "./"
 describe('ExpressionAttributes', () => {
     describe('#addName', () => {
         it('should provide expression-safe aliases for names', () => {
             for (const reservedWord of DDB_RESERVED_WORDS) {
-                const alias = Attribute.toString(Attribute.attributeName(reservedWord));
+                const alias = Attribute.toString(Attribute.name(reservedWord));
                 expect(alias).toMatch(/^#[A-Za-z0-9]+$/);
                 expect(alias).not.toBe(reservedWord);
                 expect(DDB_RESERVED_WORDS.has(alias)).toBe(false);
@@ -14,9 +14,9 @@ describe('ExpressionAttributes', () => {
             'should return the same alias for a name submitted multiple times',
             () => {
                 for (const reservedWord of DDB_RESERVED_WORDS) {
-                    const alias = Attribute.toString(Attribute.attributeName(reservedWord));
+                    const alias = Attribute.toString(Attribute.name(reservedWord));
                     for (let i = 0; i < 10; i++) {
-                        expect(Attribute.toString(Attribute.attributeName(reservedWord))).toBe(alias);
+                        expect(Attribute.toString(Attribute.name(reservedWord))).toBe(alias);
                     }
                 }
             }

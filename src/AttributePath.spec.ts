@@ -1,4 +1,4 @@
-import {Attribute} from './Brushless.bs';
+import {Attribute,} from './index';
 
 describe('AttributePath', () => {
     it('should convert a string path to a list of elements', () => {
@@ -6,16 +6,16 @@ describe('AttributePath', () => {
             Attribute.pathFromStringUnsafe('foo.bar.baz[3][4][2].fizz[0].buzz[1]')
         ).toMatchObject({
             TAG: 'AttributePath',
-            _0: { TAG: 'AttributeName', _0: 'foo' },
+            _0: { TAG: 'name', _0: 'foo' },
             _1: [
-              { TAG: 'AttributeName', _0: 'bar' },
-              { TAG: 'AttributeName', _0: 'baz' },
+              { TAG: 'name', _0: 'bar' },
+              { TAG: 'name', _0: 'baz' },
               { TAG: 'ListIndex', _0: 3 },
               { TAG: 'ListIndex', _0: 4 },
               { TAG: 'ListIndex', _0: 2 },
-              { TAG: 'AttributeName', _0: 'fizz' },
+              { TAG: 'name', _0: 'fizz' },
               { TAG: 'ListIndex', _0: 0 },
-              { TAG: 'AttributeName', _0: 'buzz' },
+              { TAG: 'name', _0: 'buzz' },
               { TAG: 'ListIndex', _0: 1 }
             ]
           });

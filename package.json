@@ -2,7 +2,7 @@
   "name": "brushless",
   "version": "0.0.1",
   "description": "DynamoDB utils lib write in Rescript and Typescript",
-  "main": "src/Brushless.bs.js",
+  "main": "src/Brushless.res.js",
   "keywords": [
     "AWS",
     "Dynamodb",

@@ -1,0 +1,180 @@
+@genType
+module Attribute: {
+  @genType.import(("./external", "AttributeValue"))
+  type marshalledValue
+  @genType @deriving(accessors)
+  type name = name(string)
+
+  type value_ = {value: marshalledValue, alias: string}
+
+  @genType @deriving(accessors)
+  type value = AttributeValue(value_)
+
+  type from<'a> = {
+    value: 'a,
+    alias: string,
+  }
+
+  type sub =
+    | ...name
+    | ListIndex(int)
+
+  @genType @deriving(accessors)
+  type path = AttributePath(name, array<sub>)
+
+  type t = | ...path | ...name | ...value
+
+  type parseError =
+    | InvalidPath
+    | InvalidIndex(string)
+    | MissingBaseNameBeforeIndex
+    | EmptyPath
+
+  let pathFromString: string => result<path, parseError>
+
+  let pathFromStringUnsafe: string => path
+
+  let toString: t => string
+
+  type identifier =
+    | ...path
+    | ...name
+}
+
+@genType
+module Register: {
+  type t = {
+    names: Dict.t<string>,
+    values: Dict.t<Attribute.marshalledValue>,
+  }
+
+  let make: unit => t
+
+  let add: (t, Attribute.t) => Attribute.t
+
+  let addToString: (t, Attribute.t) => string
+}
+
+@genType
+module Condition: {
+  @genType @deriving(accessors)
+  type size = Size(Attribute.t) // is a function but it is the only one that returns a number
+
+  type operand = | ...Attribute.t | ...size
+
+  type limits = {lower: operand, upper: operand}
+
+  @genType @deriving(accessors) @uncurry
+  type rec condition =
+    | Equals(operand, operand)
+    | NotEquals(operand, operand)
+    | LessThan(operand, operand)
+    | LessThanOrEqual(operand, operand)
+    | GreaterThan(operand, operand)
+    | GreaterThanOrEqual(operand, operand)
+    | Between(operand, limits)
+    | InList(operand, array<operand>)
+    | And(condition, condition)
+    | Or(condition, condition)
+    | Not(condition)
+    | AttributeExists(Attribute.identifier)
+    | AttributeNotExists(Attribute.identifier)
+    | AttributeType(Attribute.identifier, operand)
+    | BeginsWith(Attribute.identifier, operand)
+    | Contains(Attribute.identifier, operand)
+
+  module Overload: {
+    // @genType.opaque
+    // let \"&&": (condition, condition) => condition
+    // @genType.opaque
+    // let \"||": (condition, condition) => condition
+    // @genType.opaque
+    // let \"!": condition => condition
+    // @genType.opaque
+    // let \"==": (operand, operand) => condition
+    // @genType.opaque
+    // let \"!=": (operand, operand) => condition
+    // @genType.opaque
+    // let \"<": (operand, operand) => condition
+    // @genType.opaque
+    // let \"<=": (operand, operand) => condition
+    // @genType.opaque
+    // let \">": (operand, operand) => condition
+    // @genType.opaque
+    // let \">=": (operand, operand) => condition
+  }
+
+  let build: (condition, Register.t) => string
+}
+
+@genType
+module Projection: {
+  type projection = array<Attribute.identifier>
+
+  let build: (projection, Register.t) => string
+}
+
+@genType
+module KeyCondition: {
+  @genType @deriving(accessors)
+  type pkCondition = PartitionKey(Attribute.name, Attribute.value)
+  type limits = {lower: Attribute.value, upper: Attribute.value}
+  @genType @deriving(accessors)
+  type skCondition =
+    | Equals(Attribute.name, Attribute.value)
+    | NotEquals(Attribute.name, Attribute.value)
+    | LessThan(Attribute.name, Attribute.value)
+    | LessThanOrEqual(Attribute.name, Attribute.value)
+    | GreaterThan(Attribute.name, Attribute.value)
+    | GreaterThanOrEqual(Attribute.name, Attribute.value)
+    | Between(Attribute.name, limits)
+    | BeginsWith(Attribute.name, Attribute.value)
+
+  type keyCondition = {
+    pk: pkCondition,
+    sk?: skCondition,
+  }
+
+  let build: (keyCondition, Register.t) => string
+}
+
+@genType
+module Update: {
+  type funcParams<'a> = {
+    identifier: 'a,
+    operand: 'a,
+  }
+  @genType @deriving(accessors)
+  type rec operand =
+    | Attribute(Attribute.t)
+    | ListAppend(funcParams<operand>)
+    | IfNotExists(funcParams<operand>)
+    | Sum(operand, operand)
+    | Sub(operand, operand)
+
+  type rec update = {
+    set?: array<(Attribute.identifier, operand)>,
+    remove?: array<Attribute.identifier>,
+    add?: array<(Attribute.identifier, Attribute.t)>,
+    delete?: array<(Attribute.identifier, Attribute.t)>,
+  }
+
+  let build: (update, Register.t) => string
+}
+// TODO: Move to external binding in TS/JS
+// @genType
+// module U = {
+//   include Update
+// }
+// @genType
+// module C = {
+//   include Condition
+// }
+// @genType
+// module K = {
+//   include KeyCondition
+// }
+// @genType
+// module P = {
+//   include Projection
+// }

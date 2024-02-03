@@ -6,18 +6,18 @@
   },
   "gentypeconfig": {
     "language": "typescript",
-    "generatedFileExtension": ".bs.ts",
-    "module": "commonjs",
+    "generatedFileExtension": ".res.ts",
+    "module": "es6",
     "debug": {
       "all": false,
       "basic": false
     }
   },
   "package-specs": {
-    "module": "commonjs",
+    "module": "es6",
     "in-source": true
   },
-  "suffix": ".bs.js",
+  "suffix": ".res.js",
   "bsc-flags": [
     "-open RescriptCore"
   ],
