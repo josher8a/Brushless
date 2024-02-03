@@ -153,7 +153,10 @@ function toString$2(param) {
                 } else {
                   return acc + "[" + String(subs.index) + "]";
                 }
-              }), param.name);
+              }), toString({
+                  TAG: "AttributeName",
+                  name: param.name
+                }));
 }
 
 var AttributePath = {

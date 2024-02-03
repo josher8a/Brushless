@@ -129,7 +129,7 @@ module AttributePath = {
       | AttributeName({name}) => `${acc}.${AttributeName.toString(AttributeName({name: name}))}`
       | ListIndex({index}) => `${acc}[${string_of_int(index)}]`
       }
-    , name)
+    , AttributeName.toString(AttributeName({name: name})))
   }
 }
 
