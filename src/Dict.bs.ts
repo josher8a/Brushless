@@ -1,1 +1,1 @@
-export type t<T> = { [id: string]: T }
+export type t<T> = Record<string, T>
