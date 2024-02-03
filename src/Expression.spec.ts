@@ -1,4 +1,4 @@
-import { AttributeName, AttributePath, AttributeValue, Register, Condition, KeyCondition, C, K } from './Brushless.bs';
+import { AttributeName, AttributePath, AttributeValue, Register, Condition, KeyCondition, C, K, U, P } from './Brushless.bs';
 import { DynamoDB } from 'aws-sdk';
 
 describe('Expression', () => {
@@ -75,7 +75,7 @@ describe('Expression', () => {
 
 
             const command: DynamoDB.QueryInput = {
-                TableName: '',
+                TableName: 'YourTable',
                 KeyConditionExpression: KeyCondition.build({
                     pk: {
                         name: pk,
@@ -85,45 +85,40 @@ describe('Expression', () => {
                 }, register),
                 FilterExpression: Condition.build(
                     C.and(C.equals(path, skVal), C.or(C.equals(foo, fooVal), C.and(C.equals(bar, barVal), C.contains(path, bazVal))))
-                    // {
-                    //     TAG: "And",
-                    //     lhs: {
-                    //         TAG: "Comparison",
-                    //         lhs: path,
-                    //         comparator: 'Equals',
-                    //         rhs: skVal
-                    //     },
-                    //     rhs: {
-                    //         TAG: "Or",
-                    //         lhs: {
-                    //             TAG: "Comparison",
-                    //             lhs: foo,
-                    //             comparator: 'Equals',
-                    //             rhs: fooVal
-                    //         },
-                    //         rhs: {
-                    //             TAG: "And",
-                    //             lhs: {
-                    //                 TAG: "Comparison",
-                    //                 lhs: bar,
-                    //                 comparator: 'Equals',
-                    //                 rhs: barVal
-                    //             },
-                    //             rhs: {
-                    //                 TAG: "Contains",
-                    //                 identifier: path,
-                    //                 operand: bazVal
-                    //             }
-                    //         }
-                    //     }
-                    // }
-
-                , register),
-
+                    , register),
+                ProjectionExpression: P.build([foo, bar, baz], register),
                 ExpressionAttributeNames: register.names,
                 ExpressionAttributeValues: register.values
             }
-            console.log(command)
+            console.log(JSON.stringify(command, null, 4))
+
+            const updateCommand: DynamoDB.UpdateItemInput = {
+                TableName: 'YourTable',
+                Key: {
+                    PK: pkVal.value,
+                    SK: skVal.value
+                },
+                UpdateExpression: U.build({
+                    set: [
+                        [foo, U.ifNotExists(foo, fooVal)],
+                        [bar, barVal],
+                        [baz, U.listAppend(baz, bazVal)],
+                        [path, U.sub(path, AttributeValue.make({
+                            value: {
+                                N: '1'
+                            },
+                            alias: "one"
+                        }))]
+
+                    ]
+                }, register),
+                ConditionExpression: Condition.build(
+                    C.and(C.equals(path, skVal), C.or(C.equals(foo, fooVal), C.and(C.equals(bar, barVal), C.contains(path, bazVal)))), register),
+                ExpressionAttributeNames: register.names,
+                ExpressionAttributeValues: register.values,
+            }
+
+            console.log(JSON.stringify(updateCommand, null, 4))
         })
     })
 })
