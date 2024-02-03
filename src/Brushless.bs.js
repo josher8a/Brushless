@@ -2,9 +2,6 @@
 'use strict';
 
 
-function throwError(message) { throw new Error(message); }
-;
-
 function make(name) {
   return {
           TAG: "AttributeName",
@@ -15,7 +12,7 @@ function make(name) {
 function toString(name) {
   var name$1 = name.name;
   if (name$1.includes(" ")) {
-    throwError("InvalidName");
+    throw new Error("InvalidName");
   }
   return "#" + name$1;
 }
@@ -84,23 +81,21 @@ function fromString(str) {
       var name = match[0];
       if (state === "Name") {
         if (name === "") {
-          throwError("InvalidPath");
-        } else {
-          acc.push({
-                TAG: "AttributeName",
-                name: name
-              });
+          throw new Error("InvalidPath");
         }
+        acc.push({
+              TAG: "AttributeName",
+              name: name
+            });
       } else if (name !== "") {
-        throwError("InvalidPath");
+        throw new Error("InvalidPath");
       }
       switch (match[1]) {
         case "" :
             if (rest === "") {
               return acc;
-            } else {
-              return throwError("InvalidPath");
             }
+            throw new Error("InvalidPath");
         case "." :
             _accOpt = acc;
             _state = "Name";
@@ -110,19 +105,19 @@ function fromString(str) {
             var match$1 = splitWhen(rest, (function ($$char) {
                     return $$char === "]";
                   }));
-            if (match$1[1] !== "]") {
-              return throwError("InvalidPath");
+            if (match$1[1] === "]") {
+              acc.push({
+                    TAG: "ListIndex",
+                    index: parseIndex(match$1[0])
+                  });
+              _accOpt = acc;
+              _state = "Index";
+              _str = match$1[2];
+              continue ;
             }
-            acc.push({
-                  TAG: "ListIndex",
-                  index: parseIndex(match$1[0])
-                });
-            _accOpt = acc;
-            _state = "Index";
-            _str = match$1[2];
-            continue ;
+            throw new Error("InvalidPath");
         default:
-          return throwError("InvalidPath");
+          throw new Error("InvalidPath");
       }
     };
   };
@@ -130,21 +125,22 @@ function fromString(str) {
     var x = parseInt(index);
     if (isFinite(x) && x >= 0 && index.length === x.toString().length) {
       return x | 0;
-    } else {
-      return throwError("InvalidIndex: " + index);
     }
+    throw new Error("InvalidIndex: " + index);
   };
   var acc = [];
   var match = parse(str, "Name", acc).shift();
-  if (match !== undefined && match.TAG === "AttributeName") {
-    return {
-            TAG: "AttributePath",
-            name: match.name,
-            subpath: acc
-          };
-  } else {
-    return throwError("InvalidPath");
+  if (match !== undefined) {
+    if (match.TAG === "AttributeName") {
+      return {
+              TAG: "AttributePath",
+              name: match.name,
+              subpath: acc
+            };
+    }
+    throw new Error("InvalidPath");
   }
+  throw new Error("InvalidPath");
 }
 
 function toString$2(path) {
@@ -803,4 +799,4 @@ exports.U = U;
 exports.C = C;
 exports.K = K;
 exports.P = P;
-/*  Not a pure module */
+/* No side effect */

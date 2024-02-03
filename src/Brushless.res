@@ -1,8 +1,10 @@
 @genType.import(("./external", "AttributeValue"))
 type attributeValue
 
-%%raw("function throwError(message) { throw new Error(message); }")
-external throwError: string => 'a = "throwError"
+%%private(
+  @new external makeError: string => 'a = "Error"
+  let throwError = message => raise(Obj.magic(makeError(message)))
+)
 
 // TODO: Move to external binding
 // @genType
@@ -51,8 +53,6 @@ module AttributeValue = {
     }
 }
 
-
-
 @genType
 module AttributePath = {
   type sub =
@@ -66,19 +66,18 @@ module AttributePath = {
 
   %%private(
     let splitWhen = (str: string, predicate: string => bool) => {
-  let rec splitWhen = (str: string, index: int) =>
-    switch str->String.get(index) {
-    | Some(char) if predicate(char) => (
-        str->String.substring(~start=0, ~end=index),
-        str->String.substring(~start=index, ~end=index + 1),
-        str->String.substringToEnd(~start=index + 1),
-      )
-    | Some(_) => str->splitWhen(index + 1)
-    | None => (str, "", "")
+      let rec splitWhen = (str: string, index: int) =>
+        switch str->String.get(index) {
+        | Some(char) if predicate(char) => (
+            str->String.substring(~start=0, ~end=index),
+            str->String.substring(~start=index, ~end=index + 1),
+            str->String.substringToEnd(~start=index + 1),
+          )
+        | Some(_) => str->splitWhen(index + 1)
+        | None => (str, "", "")
+        }
+      str->splitWhen(0)
     }
-  str->splitWhen(0)
-}
-
   )
 
   let fromString = (str: string): t => {
