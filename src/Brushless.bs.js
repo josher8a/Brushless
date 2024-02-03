@@ -143,28 +143,17 @@ function fromString(str) {
   throw new Error("InvalidPath");
 }
 
-function toString$2(path) {
-  var _acc = toString({
-        TAG: "AttributeName",
-        name: path.name
-      });
-  var subs = path.subpath;
-  while(true) {
-    var acc = _acc;
-    var match = subs.shift();
-    if (match === undefined) {
-      return acc;
-    }
-    if (match.TAG === "AttributeName") {
-      _acc = acc + "." + toString({
-            TAG: "AttributeName",
-            name: match.name
-          });
-      continue ;
-    }
-    _acc = acc + "[" + String(match.index) + "]";
-    continue ;
-  };
+function toString$2(param) {
+  return param.subpath.reduce((function (acc, subs) {
+                if (subs.TAG === "AttributeName") {
+                  return acc + "." + toString({
+                              TAG: "AttributeName",
+                              name: subs.name
+                            });
+                } else {
+                  return acc + "[" + String(subs.index) + "]";
+                }
+              }), param.name);
 }
 
 var AttributePath = {

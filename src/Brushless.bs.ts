@@ -154,7 +154,7 @@ export const AttributeValue_toString: (value:AttributeValue_t) => string = Brush
 
 export const AttributePath_fromString: (str:string) => AttributePath_t = BrushlessJS.AttributePath.fromString as any;
 
-export const AttributePath_toString: (path:AttributePath_t) => string = BrushlessJS.AttributePath.toString as any;
+export const AttributePath_toString: (param:AttributePath_t) => string = BrushlessJS.AttributePath.toString as any;
 
 export const Register_make: () => Register_t = BrushlessJS.Register.make as any;
 
@@ -466,7 +466,7 @@ export const Register: {
 
 export const Projection: { build: (projection:Projection_projection, register:Register_t) => string } = BrushlessJS.Projection as any;
 
-export const AttributePath: { fromString: (str:string) => AttributePath_t; toString: (path:AttributePath_t) => string } = BrushlessJS.AttributePath as any;
+export const AttributePath: { fromString: (str:string) => AttributePath_t; toString: (param:AttributePath_t) => string } = BrushlessJS.AttributePath as any;
 
 export const U: {
   sub: (_1:U_operand, _2:U_operand) => U_operand; 

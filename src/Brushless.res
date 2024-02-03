@@ -4,6 +4,8 @@ type attributeValue
 %%private(
   @new external makeError: string => 'a = "Error"
   let throwError = message => raise(Obj.magic(makeError(message)))
+
+  @send external reduce: (array<'b>, ('a, 'b) => 'a, 'a) => 'a = "reduce"
 )
 
 // TODO: Move to external binding
@@ -121,18 +123,13 @@ module AttributePath = {
     }
   }
 
-  let toString = (path: t): string => {
-    let rec subToString = (acc: string, subs: array<sub>): string =>
-      switch Array.shift(subs) {
-      | Some(AttributeName({name})) =>
-        subToString(`${acc}.${AttributeName.toString(AttributeName({name: name}))}`, subs)
-      | Some(ListIndex({index})) => subToString(`${acc}[${string_of_int(index)}]`, subs)
-      | None => acc
+  let toString = (AttributePath({name, subpath}): t): string => {
+    subpath->reduce((acc, subs) =>
+      switch subs {
+      | AttributeName({name}) => `${acc}.${AttributeName.toString(AttributeName({name: name}))}`
+      | ListIndex({index}) => `${acc}[${string_of_int(index)}]`
       }
-    switch path {
-    | AttributePath({name, subpath}) =>
-      subToString(AttributeName.toString(AttributeName({name: name})), subpath)
-    }
+    , name)
   }
 }
 
