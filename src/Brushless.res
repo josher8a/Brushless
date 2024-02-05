@@ -142,14 +142,65 @@ module Register = {
 
   let make = () => {names: Dict.make(), values: Dict.make()}
 
-  let addValue = (register, element) => {
+  @genType.opaque
+  type uint8Array = Js_typed_array2.Uint8Array.t
+  @genType.opaque
+  type rec attributeValue_ = {
+    @as("S") s?: string,
+    @as("N") n?: string,
+    @as("B") b?: uint8Array,
+    @as("SS") ss?: array<string>,
+    @as("NS") ns?: array<string>,
+    @as("BS") bs?: array<uint8Array>,
+    @as("M") m: Dict.t<attributeValue_>,
+    @as("L") l?: array<attributeValue_>,
+    @as("NULL") null?: bool,
+    @as("BOOL") bool?: bool,
+  }
+
+  %%private(
+    let rec isValueEqual = (a: attributeValue_, b: attributeValue_) =>
+      switch (a, b) {
+      | ({s: x}, {s: y}) => x === y
+      | ({n: x}, {n: y}) => x === y
+      | ({null: x}, {null: y}) => x === y
+      | ({bool: x}, {bool: y}) => x === y
+      | ({ss: x}, {ss: y}) => Array.every(x, v => Array.includes(y, v))
+      | ({ns: x}, {ns: y}) => Array.every(x, v => Array.includes(y, v))
+      | ({l: x}, {l: y}) =>
+        Array.everyWithIndex(x, (v, i) => isValueEqual(v, Js.Array.unsafe_get(y, i)))
+      | ({b: _}, {b: _}) => false
+      | ({bs: _}, {bs: _}) => false
+      | ({m: x}, {m: y}) => {
+          let keys = x->Dict.toArray
+          keys->Array.length === y->Dict.keysToArray->Array.length &&
+            keys->Array.every(((key, x)) => {
+              switch Dict.get(y, key) {
+              | Some(y) => isValueEqual(x, y)
+              | _ => false
+              }
+            })
+        }
+      }
+  )
+
+  let rec addValue = (register, element) => {
     open AttributeValue
     switch element {
     | AttributeValue({value, alias}) =>
-      register.values->Dict.set(AttributeValue({value, alias})->toString, value)
+      let key = AttributeValue({value, alias})->toString
+      let exist = register.values->Js.Dict.unsafeGet(key)
+      if (
+        Obj.magic(exist) !== undefined &&
+        exist !== value &&
+        !isValueEqual(Obj.magic(exist), Obj.magic(value))
+      ) {
+        addValue(register, AttributeValue({value, alias: alias ++ "_"}))
+      } else {
+        register.values->Dict.set(key, value)
+        element
+      }
     }
-
-    element
   }
 
   let addName = (register, element) => {
