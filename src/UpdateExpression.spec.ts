@@ -1,6 +1,9 @@
 import { Register , AttributeName, AttributeValue, Update} from "./Brushless.bs";
-import { Marshaller } from "@aws/dynamodb-auto-marshaller";
-const DefaultMarshaller = new Marshaller();
+import * as Marshaller from "@aws-sdk/util-dynamodb"
+
+const DefaultMarshaller = {
+    marshallValue: Marshaller.convertToAttr
+}
 describe('UpdateExpression', () => {
     it('should serialize ADD clauses', () => {
         const register = Register.make();

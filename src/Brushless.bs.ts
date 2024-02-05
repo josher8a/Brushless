@@ -30,6 +30,10 @@ export type AttributePath_parseState = "Name" | "Index";
 
 export type Register_t = { readonly names: Dict_t<string>; readonly values: Dict_t<attributeValue> };
 
+export abstract class Register_uint8Array { protected opaque!: any }; /* simulate opaque types */
+
+export abstract class Register_attributeValue_ { protected opaque!: any }; /* simulate opaque types */
+
 export type comparator = 
     "Equals"
   | "NotEquals"

@@ -1,53 +1,230 @@
-interface Blob {}
-export type BinaryAttributeValue = Buffer|Uint8Array|Blob|string;
-export type BinarySetAttributeValue = BinaryAttributeValue[];
-export type BooleanAttributeValue = boolean;
-export type ListAttributeValue = AttributeValue[];
-export type MapAttributeValue = {[key: string]: AttributeValue};
-export type StringAttributeValue = string;
-export type StringSetAttributeValue = StringAttributeValue[];
-export type NullAttributeValue = boolean;
-export type NumberAttributeValue = string;
-export type NumberSetAttributeValue = NumberAttributeValue[];
-export interface AttributeValue {
+export type AttributeValue = AttributeValue.BMember | AttributeValue.BOOLMember | AttributeValue.BSMember | AttributeValue.LMember | AttributeValue.MMember | AttributeValue.NMember | AttributeValue.NSMember | AttributeValue.NULLMember | AttributeValue.SMember | AttributeValue.SSMember | AttributeValue.$UnknownMember;
+/**
+ * @public
+ */
+export declare namespace AttributeValue {
     /**
-     * An attribute of type String. For example:  "S": "Hello" 
+     * @public
+     * <p>An attribute of type String. For example:</p>
+     *          <p>
+     *             <code>"S": "Hello"</code>
+     *          </p>
      */
-    S?: StringAttributeValue;
+    interface SMember {
+        S: string;
+        N?: never;
+        B?: never;
+        SS?: never;
+        NS?: never;
+        BS?: never;
+        M?: never;
+        L?: never;
+        NULL?: never;
+        BOOL?: never;
+        $unknown?: never;
+    }
     /**
-     * An attribute of type Number. For example:  "N": "123.45"  Numbers are sent across the network to DynamoDB as strings, to maximize compatibility across languages and libraries. However, DynamoDB treats them as number type attributes for mathematical operations.
+     * @public
+     * <p>An attribute of type Number. For example:</p>
+     *          <p>
+     *             <code>"N": "123.45"</code>
+     *          </p>
+     *          <p>Numbers are sent across the network to DynamoDB as strings, to maximize compatibility
+     *             across languages and libraries. However, DynamoDB treats them as number type attributes
+     *             for mathematical operations.</p>
      */
-    N?: NumberAttributeValue;
+    interface NMember {
+        S?: never;
+        N: string;
+        B?: never;
+        SS?: never;
+        NS?: never;
+        BS?: never;
+        M?: never;
+        L?: never;
+        NULL?: never;
+        BOOL?: never;
+        $unknown?: never;
+    }
     /**
-     * An attribute of type Binary. For example:  "B": "dGhpcyB0ZXh0IGlzIGJhc2U2NC1lbmNvZGVk" 
+     * @public
+     * <p>An attribute of type Binary. For example:</p>
+     *          <p>
+     *             <code>"B": "dGhpcyB0ZXh0IGlzIGJhc2U2NC1lbmNvZGVk"</code>
+     *          </p>
      */
-    B?: BinaryAttributeValue;
+    interface BMember {
+        S?: never;
+        N?: never;
+        B: Uint8Array;
+        SS?: never;
+        NS?: never;
+        BS?: never;
+        M?: never;
+        L?: never;
+        NULL?: never;
+        BOOL?: never;
+        $unknown?: never;
+    }
     /**
-     * An attribute of type String Set. For example:  "SS": ["Giraffe", "Hippo" ,"Zebra"] 
+     * @public
+     * <p>An attribute of type String Set. For example:</p>
+     *          <p>
+     *             <code>"SS": ["Giraffe", "Hippo" ,"Zebra"]</code>
+     *          </p>
      */
-    SS?: StringSetAttributeValue;
+    interface SSMember {
+        S?: never;
+        N?: never;
+        B?: never;
+        SS: string[];
+        NS?: never;
+        BS?: never;
+        M?: never;
+        L?: never;
+        NULL?: never;
+        BOOL?: never;
+        $unknown?: never;
+    }
     /**
-     * An attribute of type Number Set. For example:  "NS": ["42.2", "-19", "7.5", "3.14"]  Numbers are sent across the network to DynamoDB as strings, to maximize compatibility across languages and libraries. However, DynamoDB treats them as number type attributes for mathematical operations.
+     * @public
+     * <p>An attribute of type Number Set. For example:</p>
+     *          <p>
+     *             <code>"NS": ["42.2", "-19", "7.5", "3.14"]</code>
+     *          </p>
+     *          <p>Numbers are sent across the network to DynamoDB as strings, to maximize compatibility
+     *             across languages and libraries. However, DynamoDB treats them as number type attributes
+     *             for mathematical operations.</p>
      */
-    NS?: NumberSetAttributeValue;
+    interface NSMember {
+        S?: never;
+        N?: never;
+        B?: never;
+        SS?: never;
+        NS: string[];
+        BS?: never;
+        M?: never;
+        L?: never;
+        NULL?: never;
+        BOOL?: never;
+        $unknown?: never;
+    }
     /**
-     * An attribute of type Binary Set. For example:  "BS": ["U3Vubnk=", "UmFpbnk=", "U25vd3k="] 
+     * @public
+     * <p>An attribute of type Binary Set. For example:</p>
+     *          <p>
+     *             <code>"BS": ["U3Vubnk=", "UmFpbnk=", "U25vd3k="]</code>
+     *          </p>
      */
-    BS?: BinarySetAttributeValue;
+    interface BSMember {
+        S?: never;
+        N?: never;
+        B?: never;
+        SS?: never;
+        NS?: never;
+        BS: Uint8Array[];
+        M?: never;
+        L?: never;
+        NULL?: never;
+        BOOL?: never;
+        $unknown?: never;
+    }
     /**
-     * An attribute of type Map. For example:  "M": {"Name": {"S": "Joe"}, "Age": {"N": "35"}} 
+     * @public
+     * <p>An attribute of type Map. For example:</p>
+     *          <p>
+     *             <code>"M": \{"Name": \{"S": "Joe"\}, "Age": \{"N": "35"\}\}</code>
+     *          </p>
      */
-    M?: MapAttributeValue;
+    interface MMember {
+        S?: never;
+        N?: never;
+        B?: never;
+        SS?: never;
+        NS?: never;
+        BS?: never;
+        M: Record<string, AttributeValue>;
+        L?: never;
+        NULL?: never;
+        BOOL?: never;
+        $unknown?: never;
+    }
     /**
-     * An attribute of type List. For example:  "L": [ {"S": "Cookies"} , {"S": "Coffee"}, {"N": "3.14159"}] 
+     * @public
+     * <p>An attribute of type List. For example:</p>
+     *          <p>
+     *             <code>"L": [ \{"S": "Cookies"\} , \{"S": "Coffee"\}, \{"N": "3.14159"\}]</code>
+     *          </p>
      */
-    L?: ListAttributeValue;
+    interface LMember {
+        S?: never;
+        N?: never;
+        B?: never;
+        SS?: never;
+        NS?: never;
+        BS?: never;
+        M?: never;
+        L: AttributeValue[];
+        NULL?: never;
+        BOOL?: never;
+        $unknown?: never;
+    }
     /**
-     * An attribute of type Null. For example:  "NULL": true 
+     * @public
+     * <p>An attribute of type Null. For example:</p>
+     *          <p>
+     *             <code>"NULL": true</code>
+     *          </p>
      */
-    NULL?: NullAttributeValue;
+    interface NULLMember {
+        S?: never;
+        N?: never;
+        B?: never;
+        SS?: never;
+        NS?: never;
+        BS?: never;
+        M?: never;
+        L?: never;
+        NULL: boolean;
+        BOOL?: never;
+        $unknown?: never;
+    }
     /**
-     * An attribute of type Boolean. For example:  "BOOL": true 
+     * @public
+     * <p>An attribute of type Boolean. For example:</p>
+     *          <p>
+     *             <code>"BOOL": true</code>
+     *          </p>
      */
-    BOOL?: BooleanAttributeValue;
-  }
+    interface BOOLMember {
+        S?: never;
+        N?: never;
+        B?: never;
+        SS?: never;
+        NS?: never;
+        BS?: never;
+        M?: never;
+        L?: never;
+        NULL?: never;
+        BOOL: boolean;
+        $unknown?: never;
+    }
+    /**
+     * @public
+     */
+    interface $UnknownMember {
+        S?: never;
+        N?: never;
+        B?: never;
+        SS?: never;
+        NS?: never;
+        BS?: never;
+        M?: never;
+        L?: never;
+        NULL?: never;
+        BOOL?: never;
+        $unknown: [string, any];
+    }
+}
+
+export type Uint8Array_ = Uint8Array

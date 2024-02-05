@@ -171,14 +171,85 @@ function make$2() {
         };
 }
 
-function addValue(register, element) {
-  var value = element.value;
-  register.values[toString$1({
-            TAG: "AttributeValue",
-            value: value,
-            alias: element.alias
-          })] = value;
-  return element;
+function isValueEqual(a, b) {
+  var bothOr = function (match, a, b, fn) {
+    if (match !== undefined) {
+      return match;
+    } else if (a !== undefined && b !== undefined) {
+      return fn(a, b);
+    } else {
+      return ;
+    }
+  };
+  var cmp = bothOr(bothOr(bothOr(bothOr(bothOr(bothOr(bothOr(bothOr(undefined, a.S, b.S, (function (x, y) {
+                                      return x === y;
+                                    })), a.N, b.N, (function (x, y) {
+                                  return x === y;
+                                })), a.NULL, b.NULL, (function (x, y) {
+                              return x === y;
+                            })), a.BOOL, b.BOOL, (function (x, y) {
+                          return x === y;
+                        })), a.SS, b.SS, (function (x, y) {
+                      return x.every(function (v) {
+                                  return y.includes(v);
+                                });
+                    })), a.NS, b.NS, (function (x, y) {
+                  return x.every(function (v) {
+                              return y.includes(v);
+                            });
+                })), a.L, b.L, (function (x, y) {
+              return x.every(function (v, i) {
+                          var y$1 = y[i];
+                          if (y$1 !== undefined) {
+                            return isValueEqual(v, y$1);
+                          } else {
+                            return false;
+                          }
+                        });
+            })), a.M, b.M, (function (x, y) {
+          var keys = Object.entries(x);
+          if (keys.length === Object.keys(y).length) {
+            return keys.every(function (param) {
+                        var y$1 = y[param[0]];
+                        if (y$1 !== undefined) {
+                          return isValueEqual(param[1], y$1);
+                        } else {
+                          return false;
+                        }
+                      });
+          } else {
+            return false;
+          }
+        }));
+  if (cmp !== undefined) {
+    return cmp;
+  } else {
+    return false;
+  }
+}
+
+function addValue(register, _element) {
+  while(true) {
+    var element = _element;
+    var alias = element.alias;
+    var value = element.value;
+    var key = toString$1({
+          TAG: "AttributeValue",
+          value: value,
+          alias: alias
+        });
+    var exist = register.values[key];
+    if (exist !== undefined && exist !== value && !isValueEqual(exist, value)) {
+      _element = {
+        TAG: "AttributeValue",
+        value: value,
+        alias: alias + "_"
+      };
+      continue ;
+    }
+    register.values[key] = value;
+    return element;
+  };
 }
 
 function addName(register, element) {

@@ -1,5 +1,5 @@
 import { AttributeName, AttributePath, AttributeValue, Register, Condition, KeyCondition, C, K, U, P } from './Brushless.bs';
-import { DynamoDB } from 'aws-sdk';
+import * as DynamoDB from '@aws-sdk/client-dynamodb'
 
 describe('Expression', () => {
     describe('path', () => {
@@ -52,7 +52,21 @@ describe('Expression', () => {
             const baz = AttributeName.make("baz")
             const fooVal = AttributeValue.make({
                 value: {
-                    S: 'foo'
+                    M: {
+                        foo: {
+                            S: 'foo'
+                        },
+                        bar: {
+                            SS: ['bar', 'baz']
+                        },
+                        baz: {
+                            L: [
+                                {
+                                    S: 'baz'
+                                }
+                            ]
+                        }
+                    }
                 },
                 alias: "foo"
             })
@@ -101,6 +115,56 @@ describe('Expression', () => {
                 UpdateExpression: U.build({
                     set: [
                         [foo, U.ifNotExists(foo, fooVal)],
+                        [foo, U.ifNotExists(foo, fooVal)],
+                        [foo, U.ifNotExists(foo, AttributeValue.make({
+                            value: {
+                                M: {
+                                    foo: {
+                                        S: 'foo'
+                                    },
+                                    bar: {
+                                        SS: ['bar', 'baz']
+                                    },
+                                    baz: {
+                                        L: [
+                                            {
+                                                S: 'baz'
+                                            }
+                                        ]
+                                    }
+                                }
+                            },
+                            alias: "foo"
+                        }))],
+                        [foo, U.ifNotExists(foo, AttributeValue.make({
+                            value: {
+                                M: {
+                                    foo: {
+                                        S: 'foo'
+                                    },
+                                    bar: {
+                                        SS: ['bar', 'baz']
+                                    },
+                                    baz: {
+                                        L: [
+                                            {
+                                                S: 'baz'
+                                            },
+                                            {
+                                                S: 'bar'
+                                            }
+                                        ]
+                                    },
+                                }
+                            },
+                            alias: "foo"
+                        }))],
+                        [foo, U.ifNotExists(foo, AttributeValue.make({
+                            value: {
+                                S: 'fi fa fo fum'
+                            },
+                            alias: "foo"
+                        }))],
                         [bar, barVal],
                         [baz, U.listAppend(baz, bazVal)],
                         [path, U.sub(path, AttributeValue.make({
