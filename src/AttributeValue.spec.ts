@@ -1,7 +1,9 @@
 import {AttributeValue} from "./Brushless.bs";
-import {Marshaller} from "@aws/dynamodb-auto-marshaller";
+import * as Marshaller from "@aws-sdk/util-dynamodb"
 
-const DefaultMarshaller = new Marshaller();
+const DefaultMarshaller = {
+    marshallValue: Marshaller.convertToAttr
+}
 describe('AttributeValue', () => {
     describe('::isAttributeValue', () => {
         it('should accept valid attribute values', () => {

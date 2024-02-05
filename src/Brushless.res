@@ -142,14 +142,94 @@ module Register = {
 
   let make = () => {names: Dict.make(), values: Dict.make()}
 
-  let addValue = (register, element) => {
+  @genType.opaque
+  type uint8Array = Js_typed_array2.Uint8Array.t
+  @genType.opaque
+  type rec attributeValue_ = {
+    "S": Nullable.t<string>,
+    "N": Nullable.t<string>,
+    "B": Nullable.t<uint8Array>,
+    "SS": Nullable.t<array<string>>,
+    "NS": Nullable.t<array<string>>,
+    "BS": Nullable.t<array<uint8Array>>,
+    "M": Nullable.t<Dict.t<attributeValue_>>,
+    "L": Nullable.t<array<attributeValue_>>,
+    "NULL": Nullable.t<bool>,
+    "BOOL": Nullable.t<bool>,
+  }
+
+  %%private(
+    let rec isValueEqual = (a: attributeValue_, b: attributeValue_) => {
+      let bothOr = (
+        type t,
+        match: option<bool>,
+        a: Nullable.t<t>,
+        b: Nullable.t<t>,
+        fn: (t, t) => bool,
+      ) =>
+        switch match {
+        | Some(_) => match
+        | None =>
+          if a !== undefined && b !== undefined {
+            Some(fn(Obj.magic(a), Obj.magic(b)))
+          } else {
+            None
+          }
+        }
+      let cmp =
+        None
+        ->bothOr(a["S"], b["S"], (x, y) => x === y)
+        ->bothOr(a["N"], b["N"], (x, y) => x === y)
+        ->bothOr(a["NULL"], b["NULL"], (x, y) => x === y)
+        ->bothOr(a["BOOL"], b["BOOL"], (x, y) => x === y)
+        ->bothOr(a["SS"], b["SS"], (x, y) => Array.every(x, v => Array.includes(y, v)))
+        ->bothOr(a["NS"], b["NS"], (x, y) => Array.every(x, v => Array.includes(y, v)))
+        ->bothOr(a["L"], b["L"], (x, y) =>
+          Array.everyWithIndex(x, (v, i) => {
+            let y = Js.Array.unsafe_get(y, i)
+            if Obj.magic(y) !== undefined {
+              isValueEqual(v, Obj.magic(y))
+            } else {
+              false
+            }
+          })
+        )
+        ->bothOr(a["M"], b["M"], (x, y) => {
+          let keys = x->Dict.toArray
+          keys->Array.length === y->Dict.keysToArray->Array.length &&
+            keys->Array.every(((key, x)) => {
+              let y = Js.Dict.unsafeGet(y, key)
+              if Obj.magic(y) !== undefined {
+                isValueEqual(x, Obj.magic(y))
+              } else {
+                false
+              }
+            })
+        })
+      switch cmp {
+      | Some(x) => x
+      | None => false
+      }
+    }
+  )
+
+  let rec addValue = (register, element) => {
     open AttributeValue
     switch element {
     | AttributeValue({value, alias}) =>
-      register.values->Dict.set(AttributeValue({value, alias})->toString, value)
+      let key = AttributeValue({value, alias})->toString
+      let exist = register.values->Js.Dict.unsafeGet(key)
+      if (
+        Obj.magic(exist) !== undefined &&
+        exist !== value &&
+        !isValueEqual(Obj.magic(exist), Obj.magic(value))
+      ) {
+        addValue(register, AttributeValue({value, alias: alias ++ "_"}))
+      } else {
+        register.values->Dict.set(key, value)
+        element
+      }
     }
-
-    element
   }
 
   let addName = (register, element) => {

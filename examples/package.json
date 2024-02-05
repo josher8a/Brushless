@@ -23,6 +23,6 @@
     "typescript": "^4.7"
   },
   "dependencies": {
-    "brushless": "*"
+    "brushless": "^0.0.2"
   }
 }
