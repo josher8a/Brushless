@@ -172,144 +172,60 @@ function make$2() {
 }
 
 function isValueEqual(a, b) {
-  var x = a.S;
-  var exit = 0;
-  if (x !== undefined) {
-    var y = b.S;
-    if (y !== undefined) {
-      return x === y;
-    }
-    exit = 1;
-  } else {
-    exit = 1;
-  }
-  if (exit === 1) {
-    var x$1 = a.N;
-    var exit$1 = 0;
-    if (x$1 !== undefined) {
-      var y$1 = b.N;
-      if (y$1 !== undefined) {
-        return x$1 === y$1;
-      }
-      exit$1 = 2;
+  var bothOr = function (match, a, b, fn) {
+    if (match !== undefined) {
+      return match;
+    } else if (a !== undefined && b !== undefined) {
+      return fn(a, b);
     } else {
-      exit$1 = 2;
+      return ;
     }
-    if (exit$1 === 2) {
-      var exit$2 = 0;
-      var exit$3 = 0;
-      var x$2 = a.SS;
-      var exit$4 = 0;
-      var exit$5 = 0;
-      var x$3 = a.NULL;
-      var exit$6 = 0;
-      if (x$3 !== undefined) {
-        var y$2 = b.NULL;
-        if (y$2 !== undefined) {
-          return x$3 === y$2;
-        }
-        exit$6 = 7;
-      } else {
-        exit$6 = 7;
-      }
-      if (exit$6 === 7) {
-        var x$4 = a.BOOL;
-        if (x$4 !== undefined) {
-          var y$3 = b.BOOL;
-          if (y$3 !== undefined) {
-            return x$4 === y$3;
-          }
-          exit$5 = 6;
-        } else {
-          exit$5 = 6;
-        }
-      }
-      if (exit$5 === 6) {
-        if (x$2 !== undefined) {
-          var y$4 = b.SS;
-          if (y$4 !== undefined) {
-            return x$2.every(function (v) {
-                        return y$4.includes(v);
-                      });
-          }
-          exit$4 = 5;
-        } else {
-          exit$4 = 5;
-        }
-      }
-      if (exit$4 === 5) {
-        var x$5 = a.NS;
-        var exit$7 = 0;
-        if (x$5 !== undefined) {
-          var y$5 = b.NS;
-          if (y$5 !== undefined) {
-            return x$5.every(function (v) {
-                        return y$5.includes(v);
-                      });
-          }
-          exit$7 = 6;
-        } else {
-          exit$7 = 6;
-        }
-        if (exit$7 === 6) {
-          var exit$8 = 0;
-          var x$6 = a.L;
-          if (x$6 !== undefined) {
-            var y$6 = b.L;
-            if (y$6 !== undefined) {
-              return x$6.every(function (v, i) {
-                          return isValueEqual(v, y$6[i]);
+  };
+  var cmp = bothOr(bothOr(bothOr(bothOr(bothOr(bothOr(bothOr(bothOr(undefined, a.S, b.S, (function (x, y) {
+                                      return x === y;
+                                    })), a.N, b.N, (function (x, y) {
+                                  return x === y;
+                                })), a.NULL, b.NULL, (function (x, y) {
+                              return x === y;
+                            })), a.BOOL, b.BOOL, (function (x, y) {
+                          return x === y;
+                        })), a.SS, b.SS, (function (x, y) {
+                      return x.every(function (v) {
+                                  return y.includes(v);
+                                });
+                    })), a.NS, b.NS, (function (x, y) {
+                  return x.every(function (v) {
+                              return y.includes(v);
+                            });
+                })), a.L, b.L, (function (x, y) {
+              return x.every(function (v, i) {
+                          var y$1 = y[i];
+                          if (y$1 !== undefined) {
+                            return isValueEqual(v, y$1);
+                          } else {
+                            return false;
+                          }
                         });
-            }
-            exit$8 = 7;
+            })), a.M, b.M, (function (x, y) {
+          var keys = Object.entries(x);
+          if (keys.length === Object.keys(y).length) {
+            return keys.every(function (param) {
+                        var y$1 = y[param[0]];
+                        if (y$1 !== undefined) {
+                          return isValueEqual(param[1], y$1);
+                        } else {
+                          return false;
+                        }
+                      });
           } else {
-            exit$8 = 7;
-          }
-          if (exit$8 === 7) {
-            if (a.BS !== undefined) {
-              if (b.BS !== undefined) {
-                return false;
-              }
-              exit$3 = 4;
-            } else {
-              exit$3 = 4;
-            }
-          }
-          
-        }
-        
-      }
-      if (exit$3 === 4) {
-        if (a.B !== undefined) {
-          if (b.B !== undefined) {
             return false;
           }
-          exit$2 = 3;
-        } else {
-          exit$2 = 3;
-        }
-      }
-      if (exit$2 === 3) {
-        var y$7 = b.M;
-        var keys = Object.entries(a.M);
-        if (keys.length === Object.keys(y$7).length) {
-          return keys.every(function (param) {
-                      var y$8 = y$7[param[0]];
-                      if (y$8 !== undefined) {
-                        return isValueEqual(param[1], y$8);
-                      } else {
-                        return false;
-                      }
-                    });
-        } else {
-          return false;
-        }
-      }
-      
-    }
-    
+        }));
+  if (cmp !== undefined) {
+    return cmp;
+  } else {
+    return false;
   }
-  
 }
 
 function addValue(register, _element) {
