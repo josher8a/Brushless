@@ -21,6 +21,7 @@ type attributeValue
 //   let marshaller = init()
 //   let marshallValue = x => marshallValue(marshaller, x)
 // }
+@send external replaceAll: (string, string, string) => string = "replaceAll"
 
 @genType
 module AttributeName = {
@@ -29,10 +30,10 @@ module AttributeName = {
   let toString = name =>
     switch name {
     | AttributeName({name}) => {
-        if name->String.includes(" ") {
+        if name->String.includes(" ") || name->String.includes(".") {
           throwError("InvalidName")
         }
-        "#" ++ name
+        "#" ++ name->replaceAll("-", "_")
       }
     }
 }
