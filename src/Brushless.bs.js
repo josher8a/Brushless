@@ -11,10 +11,10 @@ function make(name) {
 
 function toString(name) {
   var name$1 = name.name;
-  if (name$1.includes(" ")) {
+  if (name$1.includes(" ") || name$1.includes(".")) {
     throw new Error("InvalidName");
   }
-  return "#" + name$1;
+  return "#" + name$1.replaceAll("-", "_");
 }
 
 var AttributeName = {
