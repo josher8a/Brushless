@@ -372,7 +372,7 @@ module Condition = {
       | Between({operand, limits}) =>
         `${opString(operand)} BETWEEN ${opString(limits.lower)} AND ${opString(limits.upper)}`
       | In({operand, list}) =>
-        `${opString(operand)} IN (${list->Array.map(opString)->Array.joinWith(", ")})`
+        `${opString(operand)} IN (${list->Array.map(opString)->Array.join(", ")})`
       | And({lhs, rhs}) => `(${toString(lhs)}) AND (${toString(rhs)})`
       | Or({lhs, rhs}) => `(${toString(lhs)}) OR (${toString(rhs)})`
       | Not({condition}) => `NOT (${toString(condition)})`
@@ -407,7 +407,7 @@ module Projection = {
   type projection = array<Identifier.t>
 
   let build = (projection: projection, register) =>
-    projection->Array.map(Identifier.toString(_, register))->Array.joinWith(", ")
+    projection->Array.map(Identifier.toString(_, register))->Array.join(", ")
 }
 
 @genType
@@ -524,7 +524,7 @@ module Update = {
     let appendIfNotEmpty = (acc, arr, tag, fn) => {
       open Array
       switch arr {
-      | Some(x) if x->length > 0 => acc ++ tag ++ " " ++ x->map(fn)->joinWith(", ") ++ " "
+      | Some(x) if x->length > 0 => acc ++ tag ++ " " ++ x->map(fn)->join(", ") ++ " "
       | _ => acc
       }
     }
