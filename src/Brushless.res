@@ -8,6 +8,23 @@ type attributeValue
   @send external reduce: (array<'b>, ('a, 'b) => 'a, 'a) => 'a = "reduce"
 )
 
+module Undefinable = {
+  @unboxed
+  type t<'a> =
+    | Value('a)
+    | @as(undefined) Undefined
+
+  external undefined: t<'a> = "#undefined"
+
+  external make: 'a => t<'a> = "%identity"
+
+  let getOr = (value, default) =>
+    switch value {
+    | Value(x) => x
+    | Undefined => default
+    }
+}
+
 // TODO: Move to external binding
 // @genType
 // module DefaultMarshaller = {
@@ -137,11 +154,11 @@ module AttributePath = {
 @genType
 module Register = {
   type t = {
-    names: Dict.t<string>,
-    values: Dict.t<attributeValue>,
+    mutable names: Undefinable.t<Dict.t<string>>,
+    mutable values: Undefinable.t<Dict.t<attributeValue>>,
   }
 
-  let make = () => {names: Dict.make(), values: Dict.make()}
+  let make = () => {names: Undefinable.undefined, values: Undefinable.undefined}
 
   @genType.opaque
   type uint8Array = Js_typed_array2.Uint8Array.t
@@ -219,7 +236,8 @@ module Register = {
     switch element {
     | AttributeValue({value, alias}) =>
       let key = AttributeValue({value, alias})->toString
-      let exist = register.values->Js.Dict.unsafeGet(key)
+      let dict = register.values->Undefinable.getOr(Dict.make())
+      let exist = dict->Js.Dict.unsafeGet(key)
       if (
         Obj.magic(exist) !== undefined &&
         exist !== value &&
@@ -227,7 +245,8 @@ module Register = {
       ) {
         addValue(register, AttributeValue({value, alias: alias ++ "_"}))
       } else {
-        register.values->Dict.set(key, value)
+        dict->Dict.set(key, value)
+        register.values = Undefinable.Value(dict)
         element
       }
     }
@@ -236,7 +255,10 @@ module Register = {
   let addName = (register, element) => {
     open AttributeName
     switch element {
-    | AttributeName({name}) => register.names->Dict.set(AttributeName({name: name})->toString, name)
+    | AttributeName({name}) =>
+      let dict = register.names->Undefinable.getOr(Dict.make())
+      dict->Dict.set(AttributeName({name: name})->toString, name)
+      register.names = Undefinable.Value(dict)
     }
 
     element
@@ -246,15 +268,16 @@ module Register = {
     open AttributeName
     switch element {
     | AttributePath({name, subpath}) => {
-        register.names->Dict.set(toString(AttributeName({name: name})), name)
+        let dict = register.names->Undefinable.getOr(Dict.make())
+        dict->Dict.set(toString(AttributeName({name: name})), name)
 
         subpath->Array.forEach(sub =>
           switch sub {
-          | AttributeName({name}) =>
-            register.names->Dict.set(toString(AttributeName({name: name})), name)
+          | AttributeName({name}) => dict->Dict.set(toString(AttributeName({name: name})), name)
           | ListIndex(_) => ()
           }
         )
+        register.names = Undefinable.Value(dict)
       }
     }
 
