@@ -271,22 +271,15 @@ module Register = {
 }
 
 type comparator =
-  | Equals // =
-  | NotEquals // <>
-  | LessThan // <
-  | LessThanOrEqual // <=
-  | GreaterThan // >
-  | GreaterThanOrEqual // >=
+  | @as("=") Equals
+  | @as("<>") NotEquals
+  | @as("<") LessThan
+  | @as("<=") LessThanOrEqual
+  | @as(">") GreaterThan
+  | @as(">=") GreaterThanOrEqual
 
-let comparatorToString = comparator =>
-  switch comparator {
-  | Equals => "="
-  | NotEquals => "<>"
-  | LessThan => "<"
-  | LessThanOrEqual => "<="
-  | GreaterThan => ">"
-  | GreaterThanOrEqual => ">="
-  }
+external comparatorToString: comparator => string = "%identity"
+
 @genType
 module Identifier = {
   @genType

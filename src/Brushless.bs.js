@@ -317,24 +317,6 @@ var Register = {
   addPath: addPath
 };
 
-function comparatorToString(comparator) {
-  switch (comparator) {
-    case "Equals" :
-        return "=";
-    case "NotEquals" :
-        return "<>";
-    case "LessThan" :
-        return "<";
-    case "LessThanOrEqual" :
-        return "<=";
-    case "GreaterThan" :
-        return ">";
-    case "GreaterThanOrEqual" :
-        return ">=";
-    
-  }
-}
-
 function toString$3(identifier, register) {
   if (identifier.TAG === "AttributePath") {
     return toString$2(addPath(register, {
@@ -358,7 +340,7 @@ function equals(lhs, rhs) {
   return {
           TAG: "Comparison",
           lhs: lhs,
-          comparator: "Equals",
+          comparator: "=",
           rhs: rhs
         };
 }
@@ -367,7 +349,7 @@ function notEquals(lhs, rhs) {
   return {
           TAG: "Comparison",
           lhs: lhs,
-          comparator: "NotEquals",
+          comparator: "<>",
           rhs: rhs
         };
 }
@@ -376,7 +358,7 @@ function lessThan(lhs, rhs) {
   return {
           TAG: "Comparison",
           lhs: lhs,
-          comparator: "LessThan",
+          comparator: "<",
           rhs: rhs
         };
 }
@@ -385,7 +367,7 @@ function lessThanOrEqualTo(lhs, rhs) {
   return {
           TAG: "Comparison",
           lhs: lhs,
-          comparator: "LessThanOrEqual",
+          comparator: "<=",
           rhs: rhs
         };
 }
@@ -394,7 +376,7 @@ function greaterThan(lhs, rhs) {
   return {
           TAG: "Comparison",
           lhs: lhs,
-          comparator: "GreaterThan",
+          comparator: ">",
           rhs: rhs
         };
 }
@@ -403,7 +385,7 @@ function greaterThanOrEqualTo(lhs, rhs) {
   return {
           TAG: "Comparison",
           lhs: lhs,
-          comparator: "GreaterThanOrEqual",
+          comparator: ">=",
           rhs: rhs
         };
 }
@@ -528,7 +510,7 @@ function build(condition, register) {
   var toString$4 = function (condition) {
     switch (condition.TAG) {
       case "Comparison" :
-          return opString(condition.lhs) + " " + comparatorToString(condition.comparator) + " " + opString(condition.rhs);
+          return opString(condition.lhs) + " " + condition.comparator + " " + opString(condition.rhs);
       case "Between" :
           var limits = condition.limits;
           return opString(condition.operand) + " BETWEEN " + opString(limits.lower) + " AND " + opString(limits.upper);
@@ -617,7 +599,7 @@ function equals$1(name, value) {
   return {
           TAG: "Comparison",
           name: name,
-          comparator: "Equals",
+          comparator: "=",
           value: value
         };
 }
@@ -626,7 +608,7 @@ function notEquals$1(name, value) {
   return {
           TAG: "Comparison",
           name: name,
-          comparator: "NotEquals",
+          comparator: "<>",
           value: value
         };
 }
@@ -635,7 +617,7 @@ function lessThan$1(name, value) {
   return {
           TAG: "Comparison",
           name: name,
-          comparator: "LessThan",
+          comparator: "<",
           value: value
         };
 }
@@ -644,7 +626,7 @@ function lessThanOrEqualTo$1(name, value) {
   return {
           TAG: "Comparison",
           name: name,
-          comparator: "LessThanOrEqual",
+          comparator: "<=",
           value: value
         };
 }
@@ -653,7 +635,7 @@ function greaterThan$1(name, value) {
   return {
           TAG: "Comparison",
           name: name,
-          comparator: "GreaterThan",
+          comparator: ">",
           value: value
         };
 }
@@ -662,7 +644,7 @@ function greaterThanOrEqualTo$1(name, value) {
   return {
           TAG: "Comparison",
           name: name,
-          comparator: "GreaterThanOrEqual",
+          comparator: ">=",
           value: value
         };
 }
@@ -701,7 +683,7 @@ function skConditionToString(skCondition, register) {
   }
   switch (skCondition.TAG) {
     case "Comparison" :
-        return " AND " + toString(addName(register, skCondition.name)) + " " + comparatorToString(skCondition.comparator) + " " + toString$1(addValue(register, skCondition.value));
+        return " AND " + toString(addName(register, skCondition.name)) + " " + skCondition.comparator + " " + toString$1(addValue(register, skCondition.value));
     case "Between" :
         var limits = skCondition.limits;
         return " AND " + toString(addName(register, skCondition.name)) + " BETWEEN " + toString$1(limits.lower) + " AND " + toString$1(limits.upper);
@@ -883,7 +865,6 @@ exports.AttributeName = AttributeName;
 exports.AttributeValue = AttributeValue;
 exports.AttributePath = AttributePath;
 exports.Register = Register;
-exports.comparatorToString = comparatorToString;
 exports.Identifier = Identifier;
 exports.Condition = Condition;
 exports.Projection = Projection;
