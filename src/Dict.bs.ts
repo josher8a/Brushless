@@ -1,1 +1,3 @@
-export type t<T> = Record<string, T>
+export type t<T> = {
+    [key: string]: T
+}
