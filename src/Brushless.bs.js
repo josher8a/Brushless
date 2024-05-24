@@ -2,6 +2,18 @@
 'use strict';
 
 
+function getOr(value, $$default) {
+  if (value === undefined) {
+    return $$default;
+  } else {
+    return value;
+  }
+}
+
+var Undefinable = {
+  getOr: getOr
+};
+
 function make(name) {
   return {
           TAG: "AttributeName",
@@ -166,8 +178,8 @@ var AttributePath = {
 
 function make$2() {
   return {
-          names: {},
-          values: {}
+          names: undefined,
+          values: undefined
         };
 }
 
@@ -238,7 +250,8 @@ function addValue(register, _element) {
           value: value,
           alias: alias
         });
-    var exist = register.values[key];
+    var dict = getOr(register.values, {});
+    var exist = dict[key];
     if (exist !== undefined && exist !== value && !isValueEqual(exist, value)) {
       _element = {
         TAG: "AttributeValue",
@@ -247,23 +260,27 @@ function addValue(register, _element) {
       };
       continue ;
     }
-    register.values[key] = value;
+    dict[key] = value;
+    register.values = dict;
     return element;
   };
 }
 
 function addName(register, element) {
   var name = element.name;
-  register.names[toString({
+  var dict = getOr(register.names, {});
+  dict[toString({
             TAG: "AttributeName",
             name: name
           })] = name;
+  register.names = dict;
   return element;
 }
 
 function addPath(register, element) {
   var name = element.name;
-  register.names[toString({
+  var dict = getOr(register.names, {});
+  dict[toString({
             TAG: "AttributeName",
             name: name
           })] = name;
@@ -272,11 +289,12 @@ function addPath(register, element) {
           return ;
         }
         var name = sub.name;
-        register.names[toString({
+        dict[toString({
                   TAG: "AttributeName",
                   name: name
                 })] = name;
       });
+  register.names = dict;
   return element;
 }
 
@@ -848,6 +866,7 @@ var P = {
   build: build$1
 };
 
+exports.Undefinable = Undefinable;
 exports.AttributeName = AttributeName;
 exports.AttributeValue = AttributeValue;
 exports.AttributePath = AttributePath;

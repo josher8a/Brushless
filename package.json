@@ -22,6 +22,7 @@
     "res:build": "rescript",
     "res:clean": "rescript clean",
     "res:dev": "rescript build -w",
+    "res:format": "rescript format -all",
     "test": "jest \"src/(.+).spec.ts\""
   },
   "author": {
