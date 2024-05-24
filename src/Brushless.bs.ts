@@ -36,13 +36,7 @@ export abstract class Register_uint8Array { protected opaque!: any }; /* simulat
 
 export abstract class Register_attributeValue_ { protected opaque!: any }; /* simulate opaque types */
 
-export type comparator = 
-    "Equals"
-  | "NotEquals"
-  | "LessThan"
-  | "LessThanOrEqual"
-  | "GreaterThan"
-  | "GreaterThanOrEqual";
+export type comparator = "=" | "<>" | "<" | "<=" | ">" | ">=";
 
 export type Identifier_t = 
     { TAG: "AttributePath"; readonly name: string; readonly subpath: AttributePath_sub[] }

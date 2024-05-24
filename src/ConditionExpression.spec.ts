@@ -21,7 +21,7 @@ describe('equals', () => {
         const pred = equals(name, AttributePath.fromString('foo'));
         // expect(isConditionExpressionPredicate(pred)).toBe(true);
         expect(pred.TAG).toBe('Comparison');
-        if(pred.TAG == 'Comparison')  expect(pred.comparator).toBe('Equals');
+        if(pred.TAG == 'Comparison')  expect(pred.comparator).toBe('=');
     });
 });
 
@@ -30,7 +30,7 @@ describe('notEquals', () => {
         const pred = notEquals(name, AttributePath.fromString('foo'));
         // expect(isConditionExpressionPredicate(pred)).toBe(true);
         expect(pred.TAG).toBe('Comparison');
-        if(pred.TAG == 'Comparison')  expect(pred.comparator).toBe('NotEquals');
+        if(pred.TAG == 'Comparison')  expect(pred.comparator).toBe('<>');
     });
 });
 
@@ -39,7 +39,7 @@ describe('lessThan', () => {
         const pred = lessThan(name,AttributePath.fromString('foo'));
         // expect(isConditionExpressionPredicate(pred)).toBe(true);
         expect(pred.TAG).toBe('Comparison');
-        if(pred.TAG == 'Comparison')  expect(pred.comparator).toBe('LessThan');
+        if(pred.TAG == 'Comparison')  expect(pred.comparator).toBe('<');
     });
 });
 
@@ -48,7 +48,7 @@ describe('lessThanOrEqualTo', () => {
         const pred = lessThanOrEqualTo(name,AttributePath.fromString('foo'));
         // expect(isConditionExpressionPredicate(pred)).toBe(true);
         expect(pred.TAG).toBe('Comparison');
-        if(pred.TAG == 'Comparison')  expect(pred.comparator).toBe('LessThanOrEqual');
+        if(pred.TAG == 'Comparison')  expect(pred.comparator).toBe('<=');
     });
 });
 
@@ -57,7 +57,7 @@ describe('greaterThan', () => {
         const pred = greaterThan(name,AttributePath.fromString('foo'));
         // expect(isConditionExpressionPredicate(pred)).toBe(true);
         expect(pred.TAG).toBe('Comparison');
-        if(pred.TAG == 'Comparison')  expect(pred.comparator).toBe('GreaterThan');
+        if(pred.TAG == 'Comparison')  expect(pred.comparator).toBe('>');
     });
 });
 
@@ -66,7 +66,7 @@ describe('greaterThanOrEqualTo', () => {
         const pred = greaterThanOrEqualTo(name,AttributePath.fromString('foo'));
         // expect(isConditionExpressionPredicate(pred)).toBe(true);
         expect(pred.TAG).toBe('Comparison');
-        if(pred.TAG == 'Comparison')  expect(pred.comparator).toBe('GreaterThanOrEqual');
+        if(pred.TAG == 'Comparison')  expect(pred.comparator).toBe('>=');
     });
 });
 
