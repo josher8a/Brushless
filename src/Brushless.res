@@ -23,6 +23,12 @@ module Undefinable = {
     | Value(x) => x
     | Undefined => default
     }
+  let equal = (a, b, eq) =>
+    switch (a, b) {
+    | (Value(a), Value(b)) => eq(a, b)
+    | (Undefined, Undefined) => true
+    | (Undefined, Value(_)) | (Value(_), Undefined) => false
+    }
 }
 
 // TODO: Move to external binding
@@ -164,45 +170,28 @@ module Register = {
   type uint8Array = Js_typed_array2.Uint8Array.t
   @genType.opaque
   type rec attributeValue_ = {
-    "S": Nullable.t<string>,
-    "N": Nullable.t<string>,
-    "B": Nullable.t<uint8Array>,
-    "SS": Nullable.t<array<string>>,
-    "NS": Nullable.t<array<string>>,
-    "BS": Nullable.t<array<uint8Array>>,
-    "M": Nullable.t<Dict.t<attributeValue_>>,
-    "L": Nullable.t<array<attributeValue_>>,
-    "NULL": Nullable.t<bool>,
-    "BOOL": Nullable.t<bool>,
+    "S": Undefinable.t<string>,
+    "N": Undefinable.t<string>,
+    "B": Undefinable.t<uint8Array>,
+    "SS": Undefinable.t<array<string>>,
+    "NS": Undefinable.t<array<string>>,
+    "BS": Undefinable.t<array<uint8Array>>,
+    "M": Undefinable.t<Dict.t<attributeValue_>>,
+    "L": Undefinable.t<array<attributeValue_>>,
+    "NULL": Undefinable.t<bool>,
+    "BOOL": Undefinable.t<bool>,
   }
 
   %%private(
-    let rec isValueEqual = (a: attributeValue_, b: attributeValue_) => {
-      let bothOr = (
-        type t,
-        match: option<bool>,
-        a: Nullable.t<t>,
-        b: Nullable.t<t>,
-        fn: (t, t) => bool,
-      ) =>
-        switch match {
-        | Some(_) => match
-        | None =>
-          if a !== undefined && b !== undefined {
-            Some(fn(Obj.magic(a), Obj.magic(b)))
-          } else {
-            None
-          }
-        }
-      let cmp =
-        None
-        ->bothOr(a["S"], b["S"], (x, y) => x === y)
-        ->bothOr(a["N"], b["N"], (x, y) => x === y)
-        ->bothOr(a["NULL"], b["NULL"], (x, y) => x === y)
-        ->bothOr(a["BOOL"], b["BOOL"], (x, y) => x === y)
-        ->bothOr(a["SS"], b["SS"], (x, y) => Array.every(x, v => Array.includes(y, v)))
-        ->bothOr(a["NS"], b["NS"], (x, y) => Array.every(x, v => Array.includes(y, v)))
-        ->bothOr(a["L"], b["L"], (x, y) =>
+    let rec isValueEqual = (a: attributeValue_, b: attributeValue_) =>
+      [
+        Undefinable.equal(a["S"], b["S"], (x, y) => x === y),
+        Undefinable.equal(a["N"], b["N"], (x, y) => x === y),
+        Undefinable.equal(a["NULL"], b["NULL"], (x, y) => x === y),
+        Undefinable.equal(a["BOOL"], b["BOOL"], (x, y) => x === y),
+        Undefinable.equal(a["SS"], b["SS"], (x, y) => Array.every(x, v => Array.includes(y, v))),
+        Undefinable.equal(a["NS"], b["NS"], (x, y) => Array.every(x, v => Array.includes(y, v))),
+        Undefinable.equal(a["L"], b["L"], (x, y) =>
           Array.everyWithIndex(x, (v, i) => {
             let y = Js.Array.unsafe_get(y, i)
             if Obj.magic(y) !== undefined {
@@ -211,8 +200,8 @@ module Register = {
               false
             }
           })
-        )
-        ->bothOr(a["M"], b["M"], (x, y) => {
+        ),
+        Undefinable.equal(a["M"], b["M"], (x, y) => {
           let keys = x->Dict.toArray
           keys->Array.length === y->Dict.keysToArray->Array.length &&
             keys->Array.every(((key, x)) => {
@@ -223,12 +212,8 @@ module Register = {
                 false
               }
             })
-        })
-      switch cmp {
-      | Some(x) => x
-      | None => false
-      }
-    }
+        }),
+      ]->Array.some(x => x)
   )
 
   let rec addValue = (register, element) => {
