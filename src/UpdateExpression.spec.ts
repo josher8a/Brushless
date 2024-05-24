@@ -68,8 +68,7 @@ describe('UpdateExpression', () => {
             '#foo': 'foo',
             '#fizz': 'fizz',
         });
-        expect(register.values).toEqual({
-        });
+        expect(register.values).toBeUndefined();
     });
 
     it('should serialize SET clauses', () => {
