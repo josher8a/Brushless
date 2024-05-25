@@ -749,24 +749,32 @@ function operandToString(operand, register) {
   }
 }
 
-function appendIfNotEmpty(acc, arr, tag, fn) {
-  if (arr !== undefined && arr.length > 0) {
-    return acc + tag + " " + arr.map(fn).join(", ") + " ";
-  } else {
-    return acc;
-  }
-}
-
 function build$3(update, register) {
-  return appendIfNotEmpty(appendIfNotEmpty(appendIfNotEmpty(appendIfNotEmpty("", update.add, "ADD", (function (param) {
-                              return toString$3(param[0], register) + " " + toString$1(addValue(register, param[1]));
-                            })), update.delete, "DELETE", (function (param) {
-                          return toString$3(param[0], register) + " " + toString$1(addValue(register, param[1]));
-                        })), update.set, "SET", (function (param) {
-                      return toString$3(param[0], register) + " = " + operandToString(param[1], register);
-                    })), update.remove, "REMOVE", (function (__x) {
-                  return toString$3(__x, register);
-                })).trim();
+  var acc = [];
+  var pushIfNotEmpty = function (arr, tag, fn) {
+    if (arr !== undefined && arr.length > 0) {
+      acc.push(tag);
+      acc.push(arr.map(fn).join(", "));
+      return ;
+    }
+    
+  };
+  pushIfNotEmpty(update.add, "ADD", (function (param) {
+          return toString$3(param[0], register) + " " + toString$1(addValue(register, param[1]));
+        }));
+  pushIfNotEmpty(update.delete, "DELETE", (function (param) {
+          return toString$3(param[0], register) + " " + toString$1(addValue(register, param[1]));
+        }));
+  pushIfNotEmpty(update.set, "SET", (function (param) {
+          return toString$3(param[0], register) + " = " + operandToString(param[1], register);
+        }));
+  pushIfNotEmpty(update.remove, "REMOVE", (function (__x) {
+          return toString$3(__x, register);
+        }));
+  if (acc.length === 0) {
+    throw new Error("EmptyUpdate");
+  }
+  return acc.join(" ").trim();
 }
 
 var Update = {

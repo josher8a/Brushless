@@ -512,29 +512,40 @@ module Update = {
       | Sum({lhs, rhs}) => `${operandToString(lhs, register)} + ${operandToString(rhs, register)}`
       | Sub({lhs, rhs}) => `${operandToString(lhs, register)} - ${operandToString(rhs, register)}`
       }
-    let appendIfNotEmpty = (acc, arr, tag, fn) => {
-      open Array
-      switch arr {
-      | Some(x) if x->length > 0 => acc ++ tag ++ " " ++ x->map(fn)->join(", ") ++ " "
-      | _ => acc
-      }
-    }
   )
 
   let build = (update: update, register) => {
-    open Identifier
-    ""
-    ->appendIfNotEmpty(update.add, "ADD", ((id, value)) =>
-      toString(id, register) ++ " " ++ AttributeValue.toString(Register.addValue(register, value))
+    open Array
+    let acc = []
+    let pushIfNotEmpty = (arr, tag, fn) => {
+      switch arr {
+      | Some(x) if x->length > 0 =>
+        acc->push(tag)
+        acc->push(x->map(fn)->join(", "))
+      | _ => ()
+      }
+    }
+
+    pushIfNotEmpty(update.add, "ADD", ((id, value)) =>
+      `${Identifier.toString(id, register)} ${AttributeValue.toString(
+          Register.addValue(register, value),
+        )}`
     )
-    ->appendIfNotEmpty(update.delete, "DELETE", ((id, value)) =>
-      toString(id, register) ++ " " ++ AttributeValue.toString(Register.addValue(register, value))
+    pushIfNotEmpty(update.delete, "DELETE", ((id, value)) =>
+      `${Identifier.toString(id, register)} ${AttributeValue.toString(
+          Register.addValue(register, value),
+        )}`
     )
-    ->appendIfNotEmpty(update.set, "SET", ((id, operand)) =>
-      `${toString(id, register)} = ${operandToString(operand, register)}`
+    pushIfNotEmpty(update.set, "SET", ((id, operand)) =>
+      `${Identifier.toString(id, register)} = ${operandToString(operand, register)}`
     )
-    ->appendIfNotEmpty(update.remove, "REMOVE", toString(_, register))
-    ->String.trim
+    pushIfNotEmpty(update.remove, "REMOVE", Identifier.toString(_, register))
+
+    if acc->length === 0 {
+      throwError("EmptyUpdate")
+    }
+
+    acc->join(" ")->String.trim
   }
 }
 @genType

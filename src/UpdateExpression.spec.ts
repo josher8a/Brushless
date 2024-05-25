@@ -181,4 +181,9 @@ describe('UpdateExpression', () => {
         });
     });
 
+    it("should throw an error if no clauses are provided", () => {
+        const attributes = Register.make();
+        expect(() => Update.build({}, attributes)).toThrow();
+    })
+
 });
