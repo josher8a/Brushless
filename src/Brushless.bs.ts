@@ -28,8 +28,6 @@ export type AttributePath_sub =
 export type AttributePath_t = 
     { TAG: "AttributePath"; readonly name: string; readonly subpath: AttributePath_sub[] };
 
-export type AttributePath_parseState = "Name" | "Index";
-
 export type Register_t = { names: Undefinable_t<Dict_t<string>>; values: Undefinable_t<Dict_t<attributeValue>> };
 
 export abstract class Register_uint8Array { protected opaque!: any }; /* simulate opaque types */
@@ -150,7 +148,7 @@ export const AttributeName_toString: (name:AttributeName_t) => string = Brushles
 
 export const AttributeValue_make: (x:AttributeValue_from<attributeValue>) => AttributeValue_t = BrushlessJS.AttributeValue.make as any;
 
-export const AttributeValue_toString: (value:AttributeValue_t) => string = BrushlessJS.AttributeValue.toString as any;
+export const AttributeValue_toString: (param:AttributeValue_t) => string = BrushlessJS.AttributeValue.toString as any;
 
 export const AttributePath_fromString: (str:string) => AttributePath_t = BrushlessJS.AttributePath.fromString as any;
 
@@ -497,6 +495,6 @@ export const C: {
   contains: (_1:Identifier_t, _2:C_operand) => C_condition
 } = BrushlessJS.C as any;
 
-export const AttributeValue: { toString: (value:AttributeValue_t) => string; make: (x:AttributeValue_from<attributeValue>) => AttributeValue_t } = BrushlessJS.AttributeValue as any;
+export const AttributeValue: { toString: (param:AttributeValue_t) => string; make: (x:AttributeValue_from<attributeValue>) => AttributeValue_t } = BrushlessJS.AttributeValue as any;
 
 export const P: { build: (_1:P_projection, _2:Register_t) => string } = BrushlessJS.P as any;

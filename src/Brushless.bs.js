@@ -57,8 +57,8 @@ function make$1(x) {
         };
 }
 
-function toString$1(value) {
-  return ":" + value.alias;
+function toString$1(param) {
+  return ":" + param.alias;
 }
 
 var AttributeValue = {
@@ -66,103 +66,71 @@ var AttributeValue = {
   toString: toString$1
 };
 
-function splitWhen(str, predicate) {
-  var _index = 0;
-  while(true) {
-    var index = _index;
-    var $$char = str[index];
-    if ($$char === undefined) {
-      return [
-              str,
-              "",
-              ""
-            ];
-    }
-    if (predicate($$char)) {
-      return [
-              str.substring(0, index),
-              str.substring(index, index + 1 | 0),
-              str.substring(index + 1 | 0)
-            ];
-    }
-    _index = index + 1 | 0;
-    continue ;
-  };
-}
-
 function fromString(str) {
-  var parse = function (_str, _state, _accOpt) {
-    while(true) {
-      var accOpt = _accOpt;
-      var state = _state;
-      var str = _str;
-      var acc = accOpt !== undefined ? accOpt : [];
-      var match = splitWhen(str, (function ($$char) {
-              if ($$char === "[") {
-                return true;
-              } else {
-                return $$char === ".";
-              }
-            }));
-      var rest = match[2];
-      var name = match[0];
-      if (state === "Name") {
-        if (name === "") {
-          throw new Error("InvalidPath");
-        }
-        acc.push({
+  var start = -1;
+  var inBrackets = -1;
+  var path = [];
+  for(var i = 0 ,i_finish = str.length; i < i_finish; ++i){
+    var $$char = str[i];
+    if ($$char === ".") {
+      if (inBrackets === -1) {
+        path.push({
               TAG: "AttributeName",
-              name: name
+              name: str.substring(start, i)
             });
-      } else if (name !== "") {
+        start = -1;
+      }
+      if (start === -1 && inBrackets === 0) {
+        inBrackets = -1;
+      }
+      
+    } else if ($$char === "[" && inBrackets !== 1) {
+      if (start !== -1) {
+        path.push({
+              TAG: "AttributeName",
+              name: str.substring(start, i)
+            });
+        start = -1;
+      }
+      inBrackets = 1;
+    } else if ($$char === "]" && inBrackets === 1) {
+      var index = str.substring(start, i);
+      var x = parseInt(index);
+      var tmp;
+      if (!isNaN(x) && x >= 0) {
+        tmp = x;
+      } else {
+        throw new Error("InvalidIndex: " + index);
+      }
+      path.push({
+            TAG: "ListIndex",
+            index: tmp
+          });
+      start = -1;
+      inBrackets = 0;
+    } else {
+      if (start === -1 && inBrackets === 0) {
         throw new Error("InvalidPath");
       }
-      switch (match[1]) {
-        case "" :
-            if (rest === "") {
-              return acc;
-            }
-            throw new Error("InvalidPath");
-        case "." :
-            _accOpt = acc;
-            _state = "Name";
-            _str = rest;
-            continue ;
-        case "[" :
-            var match$1 = splitWhen(rest, (function ($$char) {
-                    return $$char === "]";
-                  }));
-            if (match$1[1] === "]") {
-              acc.push({
-                    TAG: "ListIndex",
-                    index: parseIndex(match$1[0])
-                  });
-              _accOpt = acc;
-              _state = "Index";
-              _str = match$1[2];
-              continue ;
-            }
-            throw new Error("InvalidPath");
-        default:
-          throw new Error("InvalidPath");
+      if (start === -1) {
+        start = i;
       }
-    };
-  };
-  var parseIndex = function (index) {
-    var x = parseInt(index);
-    if (isFinite(x) && x >= 0 && index.length === x.toString().length) {
-      return x | 0;
+      
     }
-    throw new Error("InvalidIndex: " + index);
-  };
-  var acc = [];
-  var match = parse(str, "Name", acc).shift();
+  }
+  if (start !== -1) {
+    path.push({
+          TAG: "AttributeName",
+          name: str.slice(start)
+        });
+  }
+  var match = path.shift();
   if (match !== undefined) {
     if (match.TAG === "AttributeName") {
       return {
               TAG: "AttributePath",
               name: match.name,
-              subpath: acc
+              subpath: path
             };
     }
     throw new Error("InvalidPath");

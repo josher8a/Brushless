@@ -73,10 +73,7 @@ module AttributeValue = {
     alias: x.alias,
   })
 
-  let toString = value =>
-    switch value {
-    | AttributeValue({alias}) => ":" ++ alias
-    }
+  let toString = (AttributeValue({alias})) => ":" ++ alias
 }
 
 @genType
@@ -86,63 +83,56 @@ module AttributePath = {
     | ListIndex({index: int})
   type rec t = AttributePath({name: string, subpath: array<sub>})
 
-  type parseState =
-    | Name
-    | Index
-
+  @val external isNaN: int => bool = "isNaN"
+  @val external parseInt: ('a, ~radix: int=?) => int = "parseInt"
   %%private(
-    let splitWhen = (str: string, predicate: string => bool) => {
-      let rec splitWhen = (str: string, index: int) =>
-        switch str->String.get(index) {
-        | Some(char) if predicate(char) => (
-            str->String.substring(~start=0, ~end=index),
-            str->String.substring(~start=index, ~end=index + 1),
-            str->String.substringToEnd(~start=index + 1),
-          )
-        | Some(_) => str->splitWhen(index + 1)
-        | None => (str, "", "")
-        }
-      str->splitWhen(0)
-    }
+    @inline
+    let parseIndex = index =>
+      switch parseInt(index) {
+      | x if !isNaN(x) && x >= 0 => x
+      | _ => throwError("InvalidIndex: " ++ index)
+      }
   )
 
   let fromString = (str: string): t => {
-    let rec parse = (str, state, ~acc=[]) => {
-      let (name, char, rest) = str->splitWhen(char => char == "[" || char == ".")
+    let start = ref(-1)
+    let inBrackets = ref(-1)
+    let path = []
+    let extract = (~start, ~end) => str->String.substring(~start, ~end)
+    for i in 0 to str->String.length - 1 {
+      let char = Obj.magic(str->String.get(i))
 
-      switch state {
-      | Name if name == "" => throwError("InvalidPath")
-      | Name => acc->Array.push(AttributeName({name: name}))
-      | Index if name !== "" => throwError("InvalidPath")
-      | Index => ()
-      }
-      switch (char, rest) {
-      | ("", "") => acc
-      | (".", rest) => parse(rest, Name, ~acc)
-      | ("[", rest) =>
-        switch rest->splitWhen(char => char == "]") {
-        | (index, "]", rest) => {
-            acc->Array.push(ListIndex({index: index->parseIndex}))
-            parse(rest, Index, ~acc)
-          }
-        | _ => throwError("InvalidPath")
+      if char === "." {
+        if inBrackets.contents === -1 {
+          path->Array.push(AttributeName({name: extract(~start=start.contents, ~end=i)}))
+          start := -1
         }
-      | _ => throwError("InvalidPath")
+        if start.contents === -1 && inBrackets.contents === 0 {
+          inBrackets := -1
+        }
+      } else if char === "[" && inBrackets.contents !== 1 {
+        if start.contents !== -1 {
+          path->Array.push(AttributeName({name: extract(~start=start.contents, ~end=i)}))
+          start := -1
+        }
+        inBrackets := 1
+      } else if char === "]" && inBrackets.contents === 1 {
+        path->Array.push(ListIndex({index: extract(~start=start.contents, ~end=i)->parseIndex}))
+        start := -1
+        inBrackets := 0
+      } else if start.contents === -1 && inBrackets.contents === 0 {
+        throwError("InvalidPath")
+      } else if start.contents === -1 {
+        start := i
       }
     }
-    and parseIndex = index =>
-      switch Float.parseInt(index) {
-      | x
-        if Float.isFinite(x) &&
-        x >= 0. &&
-        index->String.length === x->Float.toString->String.length =>
-        x->Float.toInt
-      | _ => throwError("InvalidIndex: " ++ index)
-      }
 
-    let acc = []
-    switch Array.shift(str->parse(Name, ~acc)) {
-    | Some(AttributeName({name})) => AttributePath({name, subpath: acc})
+    if start.contents !== -1 {
+      path->Array.push(AttributeName({name: str->String.sliceToEnd(~start=start.contents)}))
+    }
+
+    switch Array.shift(path) {
+    | Some(AttributeName({name})) => AttributePath({name, subpath: path})
     | _ => throwError("InvalidPath")
     }
   }
@@ -493,7 +483,7 @@ module Update = {
   }
   include Maker
 
-  type rec update = {
+  type update = {
     set?: array<(Identifier.t, operand)>,
     remove?: array<Identifier.t>,
     add?: array<(Identifier.t, AttributeValue.t)>,
