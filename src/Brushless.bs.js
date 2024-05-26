@@ -68,8 +68,8 @@ var AttributeValue = {
 
 function fromString(str) {
   var str$1 = str.trim();
-  var start = -1;
-  var state = -1;
+  var start = 0;
+  var state = 4;
   var path = [];
   var pullPush = function (start, end, isIndex) {
     var word = str$1.slice(start, end);
@@ -102,55 +102,81 @@ function fromString(str) {
   }
   for(var i = 0; i <= max_i; ++i){
     var $$char = str$1[i];
-    if ($$char === ".") {
-      if (start !== -1 && state === -1 && i !== max_i) {
-        pullPush(start, i, undefined);
-        start = -1;
-      } else if (start === -1 && state === 0 && i !== max_i) {
-        state = -1;
-      } else {
-        throw new Error("InvalidPath");
+    var match = state;
+    var exit = 0;
+    switch ($$char) {
+      case "." :
+          switch (match) {
+            case 1 :
+                state = 0;
+                break;
+            case 4 :
+                pullPush(start, i, undefined);
+                state = 0;
+                break;
+            default:
+              exit = 1;
+          }
+          break;
+      case "[" :
+          switch (match) {
+            case 1 :
+                state = 2;
+                break;
+            case 4 :
+                pullPush(start, i, undefined);
+                state = 2;
+                break;
+            default:
+              exit = 1;
+          }
+          break;
+      case "]" :
+          if (match === 3) {
+            pullPush(start, i, true);
+            state = 1;
+          } else {
+            throw new Error("InvalidPath");
+          }
+          break;
+      default:
+        exit = 1;
+    }
+    if (exit === 1) {
+      switch (match) {
+        case 0 :
+            start = i;
+            state = 4;
+            break;
+        case 1 :
+            if ($$char.trim().length !== 0) {
+              throw new Error("InvalidPath");
+            }
+            break;
+        case 2 :
+            start = i;
+            state = 3;
+            break;
+        case 3 :
+        case 4 :
+            break;
+        
       }
-    } else if ($$char === "[") {
-      if (start !== -1 && state === -1 && i !== max_i) {
-        pullPush(start, i, undefined);
-        start = -1;
-        state = 1;
-      } else if (start === -1 && state === 0 && i !== max_i) {
-        state = 1;
-      } else {
-        throw new Error("InvalidPath");
-      }
-    } else if ($$char === "]") {
-      if (start !== 1 && state === 1) {
-        pullPush(start, i, true);
-        start = -1;
-        state = 0;
-      } else {
-        throw new Error("InvalidPath");
-      }
-    } else if (start === -1) {
-      if (state !== 0) {
-        start = i;
-      } else if ($$char.trim().length !== 0) {
-        throw new Error("InvalidPath");
-      }
-      
     }
     
   }
-  if (state === 1) {
+  if (state === 0 || state === 2 || state === 3) {
     throw new Error("InvalidPath");
   }
-  if (start !== -1) {
+  if (state === 4) {
     pullPush(start, undefined, undefined);
   }
-  var match = path.shift();
-  if (match !== undefined) {
-    if (match.TAG === "AttributeName") {
+  var match$1 = path.shift();
+  if (match$1 !== undefined) {
+    if (match$1.TAG === "AttributeName") {
       return {
               TAG: "AttributePath",
-              name: match.name,
+              name: match$1.name,
               subpath: path
             };
     }

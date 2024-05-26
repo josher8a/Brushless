@@ -97,12 +97,16 @@ module AttributePath = {
   @send external slice: (string, ~start: int, ~end: int=?) => string = "slice"
 
   type parserState =
-    | @as(-1) NotInBrackets | @as(0) JustEndedBrackets | @as(1) InBracketsParsingIndex
+    | @as(0) JustAfterDot
+    | @as(1) JustAfterEndBracket
+    | @as(2) JustAfterStartBracket
+    | @as(3) ParsingIndex
+    | @as(4) ParsingName
 
   let fromString = (str: string): t => {
     let str = str->String.trim
-    let start = ref(-1)
-    let state = ref(NotInBrackets)
+    let start = ref(0)
+    let state = ref(ParsingName)
     let path = []
 
     let pullPush = (~start, ~end=?, ~isIndex=?) => {
@@ -124,48 +128,44 @@ module AttributePath = {
     }
     for i in 0 to max_i {
       let char = Obj.magic(str->String.get(i))
-
-      if char === "." {
-        if +start !== -1 && +state === NotInBrackets && i !== max_i {
+      switch (char, +state) {
+      | (".", ParsingName) => {
           pullPush(~start=+start, ~end=i)
-          start := -1
-        } else if +start === -1 && +state === JustEndedBrackets && i !== max_i {
-          state := NotInBrackets
-        } else {
-          throwError("InvalidPath")
+          state := JustAfterDot
         }
-      } else if char === "[" {
-        if +start !== -1 && +state === NotInBrackets && i !== max_i {
+      | (".", JustAfterEndBracket) => state := JustAfterDot
+      | ("[", ParsingName) => {
           pullPush(~start=+start, ~end=i)
-          start := -1
-          state := InBracketsParsingIndex
-        } else if +start === -1 && +state === JustEndedBrackets && i !== max_i {
-          state := InBracketsParsingIndex
-        } else {
-          throwError("InvalidPath")
+          state := JustAfterStartBracket
         }
-      } else if char === "]" {
-        if +start !== 1 && +state === InBracketsParsingIndex {
+      | ("[", JustAfterEndBracket) => state := JustAfterStartBracket
+      | ("]", ParsingIndex) => {
           pullPush(~start=+start, ~end=i, ~isIndex=true)
-          start := -1
-          state := JustEndedBrackets
-        } else {
-          throwError("InvalidPath")
+          state := JustAfterEndBracket
         }
-      } else if +start === -1 {
-        if +state !== JustEndedBrackets {
-          start := i
-        } else if char->String.trim->String.length !== 0 {
-          throwError("InvalidPath")
+      | ("]", _) => throwError("InvalidPath")
+      | (_, s) =>
+        switch s {
+        | JustAfterDot => {
+            start := i
+            state := ParsingName
+          }
+        | JustAfterStartBracket => {
+            start := i
+            state := ParsingIndex
+          }
+        | ParsingName | ParsingIndex => ()
+        | JustAfterEndBracket if char->String.trim->String.length === 0 => ()
+        | _ => throwError("InvalidPath")
         }
       }
     }
 
-    if +state === InBracketsParsingIndex {
+    if +state === JustAfterDot || +state === JustAfterStartBracket || +state === ParsingIndex {
       throwError("InvalidPath")
     }
 
-    if +start !== -1 {
+    if +state === ParsingName {
       pullPush(~start=+start)
     }
 

@@ -26,7 +26,7 @@ export type AttributePath_sub =
 export type AttributePath_t = 
     { TAG: "AttributePath"; readonly name: string; readonly subpath: AttributePath_sub[] };
 
-export type AttributePath_parserState = -1 | 0 | 1;
+export type AttributePath_parserState = 0 | 1 | 2 | 3 | 4;
 
 export type Register_t = { names: Undefinable_t<{[id: string]: string}>; values: Undefinable_t<{[id: string]: attributeValue}> };
 
