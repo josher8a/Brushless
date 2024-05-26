@@ -67,62 +67,83 @@ var AttributeValue = {
 };
 
 function fromString(str) {
+  var str$1 = str.trim();
   var start = -1;
-  var inBrackets = -1;
+  var state = -1;
   var path = [];
-  for(var i = 0 ,i_finish = str.length; i < i_finish; ++i){
-    var $$char = str[i];
-    if ($$char === ".") {
-      if (inBrackets === -1) {
-        path.push({
-              TAG: "AttributeName",
-              name: str.substring(start, i)
-            });
-        start = -1;
-      }
-      if (start === -1 && inBrackets === 0) {
-        inBrackets = -1;
-      }
-      
-    } else if ($$char === "[" && inBrackets !== 1) {
-      if (start !== -1) {
-        path.push({
-              TAG: "AttributeName",
-              name: str.substring(start, i)
-            });
-        start = -1;
-      }
-      inBrackets = 1;
-    } else if ($$char === "]" && inBrackets === 1) {
-      var index = str.substring(start, i);
-      var x = parseInt(index);
+  var pullPush = function (start, end, isIndex) {
+    var word = str$1.slice(start, end);
+    if (isIndex === true) {
+      var x = parseInt(word);
       var tmp;
       if (!isNaN(x) && x >= 0) {
         tmp = x;
       } else {
-        throw new Error("InvalidIndex: " + index);
+        throw new Error("InvalidIndex: " + word);
       }
       path.push({
             TAG: "ListIndex",
             index: tmp
           });
-      start = -1;
-      inBrackets = 0;
-    } else {
-      if (start === -1 && inBrackets === 0) {
+      return ;
+    }
+    var name = word.trim().replaceAll("-", "_");
+    if (name.length === 0 || name.includes(" ") || name.includes(".")) {
+      throw new Error("InvalidPath");
+    }
+    path.push({
+          TAG: "AttributeName",
+          name: name
+        });
+  };
+  var max_i = str$1.length - 1 | 0;
+  if (max_i < 0) {
+    throw new Error("InvalidPath");
+  }
+  for(var i = 0; i <= max_i; ++i){
+    var $$char = str$1[i];
+    if ($$char === ".") {
+      if (start !== -1 && state === -1 && i !== max_i) {
+        pullPush(start, i, undefined);
+        start = -1;
+      } else if (start === -1 && state === 0 && i !== max_i) {
+        state = -1;
+      } else {
         throw new Error("InvalidPath");
       }
-      if (start === -1) {
+    } else if ($$char === "[") {
+      if (start !== -1 && state === -1 && i !== max_i) {
+        pullPush(start, i, undefined);
+        start = -1;
+        state = 1;
+      } else if (start === -1 && state === 0 && i !== max_i) {
+        state = 1;
+      } else {
+        throw new Error("InvalidPath");
+      }
+    } else if ($$char === "]") {
+      if (start !== 1 && state === 1) {
+        pullPush(start, i, true);
+        start = -1;
+        state = 0;
+      } else {
+        throw new Error("InvalidPath");
+      }
+    } else if (start === -1) {
+      if (state !== 0) {
         start = i;
+      } else if ($$char.trim().length !== 0) {
+        throw new Error("InvalidPath");
       }
       
     }
+    
+  }
+  if (state === 1) {
+    throw new Error("InvalidPath");
   }
   if (start !== -1) {
-    path.push({
-          TAG: "AttributeName",
-          name: str.slice(start)
-        });
+    pullPush(start, undefined, undefined);
   }
   var match = path.shift();
   if (match !== undefined) {
@@ -465,7 +486,7 @@ var Maker = {
 var Overload = {
   $amp$amp: and,
   $pipe$pipe: or,
-  $bang: not,
+  not: not,
   $eq$eq: equals,
   $bang$eq: notEquals,
   $less: lessThan,

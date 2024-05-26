@@ -23,7 +23,7 @@
     "res:clean": "rescript clean",
     "res:dev": "rescript build -w",
     "res:format": "rescript format -all",
-    "test": "jest \"src/(.+).spec.ts\""
+    "test": "tsc --noEmit && jest \"src/(.+).spec.ts\""
   },
   "author": {
     "name": "Joshua Hernandez",

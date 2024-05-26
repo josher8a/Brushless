@@ -93,42 +93,80 @@ module AttributePath = {
       | _ => throwError("InvalidIndex: " ++ index)
       }
   )
+  external \"~+": ref<'a> => 'a = "%bs_ref_field0"
+  @send external slice: (string, ~start: int, ~end: int=?) => string = "slice"
+
+  type parserState =
+    | @as(-1) NotInBrackets | @as(0) JustEndedBrackets | @as(1) InBracketsParsingIndex
 
   let fromString = (str: string): t => {
+    let str = str->String.trim
     let start = ref(-1)
-    let inBrackets = ref(-1)
+    let state = ref(NotInBrackets)
     let path = []
-    let extract = (~start, ~end) => str->String.substring(~start, ~end)
-    for i in 0 to str->String.length - 1 {
-      let char = Obj.magic(str->String.get(i))
 
-      if char === "." {
-        if inBrackets.contents === -1 {
-          path->Array.push(AttributeName({name: extract(~start=start.contents, ~end=i)}))
-          start := -1
+    let pullPush = (~start, ~end=?, ~isIndex=?) => {
+      let word = str->String.slice(~start, ~end=Obj.magic(end))
+      if isIndex === Some(true) {
+        path->Array.push(ListIndex({index: word->parseIndex}))
+      } else {
+        let name = word->String.trim->replaceAll("-", "_")
+        if name->String.length === 0 || name->String.includes(" ") || name->String.includes(".") {
+          throwError("InvalidPath")
         }
-        if start.contents === -1 && inBrackets.contents === 0 {
-          inBrackets := -1
-        }
-      } else if char === "[" && inBrackets.contents !== 1 {
-        if start.contents !== -1 {
-          path->Array.push(AttributeName({name: extract(~start=start.contents, ~end=i)}))
-          start := -1
-        }
-        inBrackets := 1
-      } else if char === "]" && inBrackets.contents === 1 {
-        path->Array.push(ListIndex({index: extract(~start=start.contents, ~end=i)->parseIndex}))
-        start := -1
-        inBrackets := 0
-      } else if start.contents === -1 && inBrackets.contents === 0 {
-        throwError("InvalidPath")
-      } else if start.contents === -1 {
-        start := i
+        path->Array.push(AttributeName({name: name}))
       }
     }
 
-    if start.contents !== -1 {
-      path->Array.push(AttributeName({name: str->String.sliceToEnd(~start=start.contents)}))
+    let max_i = str->String.length - 1
+    if max_i < 0 {
+      throwError("InvalidPath")
+    }
+    for i in 0 to max_i {
+      let char = Obj.magic(str->String.get(i))
+
+      if char === "." {
+        if +start !== -1 && +state === NotInBrackets && i !== max_i {
+          pullPush(~start=+start, ~end=i)
+          start := -1
+        } else if +start === -1 && +state === JustEndedBrackets && i !== max_i {
+          state := NotInBrackets
+        } else {
+          throwError("InvalidPath")
+        }
+      } else if char === "[" {
+        if +start !== -1 && +state === NotInBrackets && i !== max_i {
+          pullPush(~start=+start, ~end=i)
+          start := -1
+          state := InBracketsParsingIndex
+        } else if +start === -1 && +state === JustEndedBrackets && i !== max_i {
+          state := InBracketsParsingIndex
+        } else {
+          throwError("InvalidPath")
+        }
+      } else if char === "]" {
+        if +start !== 1 && +state === InBracketsParsingIndex {
+          pullPush(~start=+start, ~end=i, ~isIndex=true)
+          start := -1
+          state := JustEndedBrackets
+        } else {
+          throwError("InvalidPath")
+        }
+      } else if +start === -1 {
+        if +state !== JustEndedBrackets {
+          start := i
+        } else if char->String.trim->String.length !== 0 {
+          throwError("InvalidPath")
+        }
+      }
+    }
+
+    if +state === InBracketsParsingIndex {
+      throwError("InvalidPath")
+    }
+
+    if +start !== -1 {
+      pullPush(~start=+start)
     }
 
     switch Array.shift(path) {
@@ -150,8 +188,8 @@ module AttributePath = {
 @genType
 module Register = {
   type t = {
-    mutable names: Undefinable.t<Dict.t<string>>,
-    mutable values: Undefinable.t<Dict.t<attributeValue>>,
+    mutable names: Undefinable.t<dict<string>>,
+    mutable values: Undefinable.t<dict<attributeValue>>,
   }
 
   let make = () => {names: Undefinable.undefined, values: Undefinable.undefined}
@@ -166,7 +204,7 @@ module Register = {
     "SS": Undefinable.t<array<string>>,
     "NS": Undefinable.t<array<string>>,
     "BS": Undefinable.t<array<uint8Array>>,
-    "M": Undefinable.t<Dict.t<attributeValue_>>,
+    "M": Undefinable.t<dict<attributeValue_>>,
     "L": Undefinable.t<array<attributeValue_>>,
     "NULL": Undefinable.t<bool>,
     "BOOL": Undefinable.t<bool>,
@@ -340,7 +378,7 @@ module Condition = {
     @genType.opaque
     let \"||" = or
     @genType.opaque
-    let \"!" = Maker.not
+    let not = Maker.not
     @genType.opaque
     let \"==" = equals
     @genType.opaque

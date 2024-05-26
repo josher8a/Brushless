@@ -3,7 +3,13 @@ import {AttributePath} from './Brushless.bs';
 describe('AttributePath', () => {
     it('should convert a string path to a list of elements', () => {
         expect(
-            AttributePath.fromString('foo.bar.baz[3][4][2].fizz[0].buzz[1]')
+            AttributePath.fromString(` 
+            foo 
+            .bar
+            .baz[3 ][4][2]
+            .fizz[0]
+            .buzz[1] 
+            `)
         ).toMatchObject({
             name:  'foo',
             subpath:[
@@ -21,19 +27,33 @@ describe('AttributePath', () => {
 
 
     describe('path correctness checking', () => {
+
+        it(
+            'should throw an error when a path is empty',
+            () => {
+                expect(() => AttributePath.fromString(''))
+                    .toThrowError()
+                expect(() => AttributePath.fromString(' '))
+                    .toThrowError()
+            }
+        );
         it(
             'should throw an error when a path begins with a control character',
             () => {
                 expect(() => AttributePath.fromString('[1]'))
-                    .toThrowError()///Invalid control character/);
+                    .toThrowError()
+                expect(() => AttributePath.fromString('.a[1]'))
+                    .toThrowError()
+                expect(() => AttributePath.fromString('].a[1]'))
+                    .toThrowError()
             }
         );
 
         it(
-            'should throw an error when a list index access contains invalid characters',
+            'should throw an error when a list index access contains no numeric',
             () => {
                 expect(() => AttributePath.fromString('foo[a]'))
-                    .toThrowError()///Invalid array index character/);
+                    .toThrowError()
             }
         );
 
@@ -41,7 +61,7 @@ describe('AttributePath', () => {
             'should throw an error when a list index access contains no characters',
             () => {
                 expect(() => AttributePath.fromString('foo[]'))
-                    .toThrowError()///Invalid array index/);
+                    .toThrowError()
             }
         );
 
@@ -49,7 +69,40 @@ describe('AttributePath', () => {
             'should throw an error when an identifier immediately follows a list index access',
             () => {
                 expect(() => AttributePath.fromString('foo[1]a'))
-                    .toThrowError()///Bare identifier encountered/);
+                    .toThrowError()
+            }
+        );
+
+        it(
+            'should throw an error when no identifier is found before next access',
+            () => {
+                expect(() => AttributePath.fromString('foo..a'))
+                    .toThrowError()
+                expect(() => AttributePath.fromString('foo.[1]'))
+                    .toThrowError()
+            }
+        );
+
+        it(
+            'should throw an error when identifier contains spaces',
+            () => {
+                expect(() => AttributePath.fromString('fo o.a'))
+                    .toThrowError()
+            }
+        );
+
+        it(
+            'should throw an error on unterminated string',
+            () => {
+                expect(() => AttributePath.fromString('foo[1'))
+                    .toThrowError()
+                expect(() => AttributePath.fromString('foo['))
+                    .toThrowError()
+
+                expect(() => AttributePath.fromString('foo[1].'))
+                    .toThrowError()
+                expect(() => AttributePath.fromString('foo.'))
+                    .toThrowError()
             }
         );
     });

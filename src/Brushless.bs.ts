@@ -7,8 +7,6 @@ const BrushlessJS = require('./Brushless.bs.js');
 
 import type {AttributeValue as $$attributeValue} from './external';
 
-import type {t as Dict_t} from './Dict.bs';
-
 export type attributeValue = $$attributeValue;
 
 export type Undefinable_t<a> = undefined | a;
@@ -28,7 +26,9 @@ export type AttributePath_sub =
 export type AttributePath_t = 
     { TAG: "AttributePath"; readonly name: string; readonly subpath: AttributePath_sub[] };
 
-export type Register_t = { names: Undefinable_t<Dict_t<string>>; values: Undefinable_t<Dict_t<attributeValue>> };
+export type AttributePath_parserState = -1 | 0 | 1;
+
+export type Register_t = { names: Undefinable_t<{[id: string]: string}>; values: Undefinable_t<{[id: string]: attributeValue}> };
 
 export abstract class Register_uint8Array { protected opaque!: any }; /* simulate opaque types */
 
