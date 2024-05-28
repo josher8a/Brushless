@@ -1,4 +1,4 @@
-import { Condition, AttributePath } from "./Brushless.bs";
+import { Condition, Attribute } from "./Brushless.bs";
 const {
     equals,
     notEquals,
@@ -15,10 +15,10 @@ const {
     contains,
 } = Condition.Maker;
 
-const name = AttributePath.fromString('name');
+const name = Attribute.Path.fromString('name');
 describe('equals', () => {
     it('should return an equality condition predicate', () => {
-        const pred = equals(name, AttributePath.fromString('foo'));
+        const pred = equals(name, Attribute.Path.fromString('foo'));
         // expect(isConditionExpressionPredicate(pred)).toBe(true);
         expect(pred.TAG).toBe('Comparison');
         if(pred.TAG == 'Comparison')  expect(pred.comparator).toBe('=');
@@ -27,7 +27,7 @@ describe('equals', () => {
 
 describe('notEquals', () => {
     it('should return an inequality condition predicate', () => {
-        const pred = notEquals(name, AttributePath.fromString('foo'));
+        const pred = notEquals(name, Attribute.Path.fromString('foo'));
         // expect(isConditionExpressionPredicate(pred)).toBe(true);
         expect(pred.TAG).toBe('Comparison');
         if(pred.TAG == 'Comparison')  expect(pred.comparator).toBe('<>');
@@ -36,7 +36,7 @@ describe('notEquals', () => {
 
 describe('lessThan', () => {
     it('should return an < condition predicate', () => {
-        const pred = lessThan(name,AttributePath.fromString('foo'));
+        const pred = lessThan(name,Attribute.Path.fromString('foo'));
         // expect(isConditionExpressionPredicate(pred)).toBe(true);
         expect(pred.TAG).toBe('Comparison');
         if(pred.TAG == 'Comparison')  expect(pred.comparator).toBe('<');
@@ -45,7 +45,7 @@ describe('lessThan', () => {
 
 describe('lessThanOrEqualTo', () => {
     it('should return an <= condition predicate', () => {
-        const pred = lessThanOrEqualTo(name,AttributePath.fromString('foo'));
+        const pred = lessThanOrEqualTo(name,Attribute.Path.fromString('foo'));
         // expect(isConditionExpressionPredicate(pred)).toBe(true);
         expect(pred.TAG).toBe('Comparison');
         if(pred.TAG == 'Comparison')  expect(pred.comparator).toBe('<=');
@@ -54,7 +54,7 @@ describe('lessThanOrEqualTo', () => {
 
 describe('greaterThan', () => {
     it('should return an > condition predicate', () => {
-        const pred = greaterThan(name,AttributePath.fromString('foo'));
+        const pred = greaterThan(name,Attribute.Path.fromString('foo'));
         // expect(isConditionExpressionPredicate(pred)).toBe(true);
         expect(pred.TAG).toBe('Comparison');
         if(pred.TAG == 'Comparison')  expect(pred.comparator).toBe('>');
@@ -63,7 +63,7 @@ describe('greaterThan', () => {
 
 describe('greaterThanOrEqualTo', () => {
     it('should return an >= condition predicate', () => {
-        const pred = greaterThanOrEqualTo(name,AttributePath.fromString('foo'));
+        const pred = greaterThanOrEqualTo(name,Attribute.Path.fromString('foo'));
         // expect(isConditionExpressionPredicate(pred)).toBe(true);
         expect(pred.TAG).toBe('Comparison');
         if(pred.TAG == 'Comparison')  expect(pred.comparator).toBe('>=');
@@ -171,9 +171,9 @@ describe('greaterThanOrEqualTo', () => {
 //         expect(isConditionExpressionSubject({subject: 'foo'})).toBe(true);
 //     });
 
-//     it('should return true for an AttributePath subject', () => {
+//     it('should return true for an Attribute.Path subject', () => {
 //         expect(isConditionExpressionSubject({
-//             subject: AttributePath.fromString('foo.bar[3]'),
+//             subject: Attribute.Path.fromString('foo.bar[3]'),
 //         })).toBe(true);
 //     });
 
@@ -335,7 +335,7 @@ describe('greaterThanOrEqualTo', () => {
 //             {
 //                 type: 'GreaterThan',
 //                 subject: 'foo',
-//                 object: new FunctionExpression('size', AttributePath.fromString('bar')),
+//                 object: new FunctionExpression('size', Attribute.Path.fromString('bar')),
 //             },
 //             attributes
 //         );
@@ -370,7 +370,7 @@ describe('greaterThanOrEqualTo', () => {
 //             {
 //                 type: 'GreaterThanOrEqualTo',
 //                 subject: 'foo',
-//                 object: AttributePath.fromString('bar'),
+//                 object: Attribute.Path.fromString('bar'),
 //             },
 //             attributes
 //         );
@@ -630,7 +630,7 @@ describe('greaterThanOrEqualTo', () => {
 //         const serialized = serializeConditionExpression(
 //             new FunctionExpression(
 //                 'attribute_type',
-//                 AttributePath.fromString('foo'),
+//                 Attribute.Path.fromString('foo'),
 //                 'S'
 //             ),
 //             attributes

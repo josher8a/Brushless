@@ -45,146 +45,152 @@ module Undefinable = {
 //   let marshallValue = x => marshallValue(marshaller, x)
 // }
 @send external replaceAll: (string, string, string) => string = "replaceAll"
-
 @genType
-module AttributeName = {
-  type t = AttributeName({name: string})
-  let make = name => AttributeName({name: name})
-  let toString = name =>
-    switch name {
-    | AttributeName({name}) => {
-        if name->String.includes(" ") || name->String.includes(".") {
-          throwError("InvalidName")
-        }
-        "#" ++ name->replaceAll("-", "_")
-      }
-    }
-}
-
-@genType
-module AttributeValue = {
-  type t = AttributeValue({value: attributeValue, alias: string})
-  type from<'a> = {
-    value: 'a,
-    alias: string,
-  }
-  let make = x => AttributeValue({
-    value: x.value, // DefaultMarshaller.marshallValue(x.value),
-    alias: x.alias,
-  })
-
-  let toString = (AttributeValue({alias})) => ":" ++ alias
-}
-
-@genType
-module AttributePath = {
-  type sub =
-    | ...AttributeName.t
-    | ListIndex({index: int})
-  type rec t = AttributePath({name: string, subpath: array<sub>})
-
-  @val external isNaN: int => bool = "isNaN"
-  @val external parseInt: ('a, ~radix: int=?) => int = "parseInt"
-  %%private(
-    @inline
-    let parseIndex = index =>
-      switch parseInt(index) {
-      | x if !isNaN(x) && x >= 0 => x
-      | _ => throwError("InvalidIndex: " ++ index)
-      }
-  )
-  external \"~+": ref<'a> => 'a = "%bs_ref_field0"
-  @send external slice: (string, ~start: int, ~end: int=?) => string = "slice"
-
-  type parserState =
-    | @as(0) JustAfterDot
-    | @as(1) JustAfterEndBracket
-    | @as(2) JustAfterStartBracket
-    | @as(3) ParsingIndex
-    | @as(4) ParsingName
-
-  let fromString = (str: string): t => {
-    let str = str->String.trim
-    let start = ref(0)
-    let state = ref(ParsingName)
-    let path = []
-
-    let pullPush = (~start, ~end=?, ~isIndex=?) => {
-      let word = str->String.slice(~start, ~end=Obj.magic(end))
-      if isIndex === Some(true) {
-        path->Array.push(ListIndex({index: word->parseIndex}))
-      } else {
-        let name = word->String.trim->replaceAll("-", "_")
-        if name->String.length === 0 || name->String.includes(" ") || name->String.includes(".") {
-          throwError("InvalidPath")
-        }
-        path->Array.push(AttributeName({name: name}))
-      }
-    }
-
-    let max_i = str->String.length - 1
-    if max_i < 0 {
-      throwError("InvalidPath")
-    }
-    for i in 0 to max_i {
-      let char = Obj.magic(str->String.get(i))
-      switch (char, +state) {
-      | (".", ParsingName) => {
-          pullPush(~start=+start, ~end=i)
-          state := JustAfterDot
-        }
-      | (".", JustAfterEndBracket) => state := JustAfterDot
-      | ("[", ParsingName) => {
-          pullPush(~start=+start, ~end=i)
-          state := JustAfterStartBracket
-        }
-      | ("[", JustAfterEndBracket) => state := JustAfterStartBracket
-      | ("]", ParsingIndex) => {
-          pullPush(~start=+start, ~end=i, ~isIndex=true)
-          state := JustAfterEndBracket
-        }
-      | ("]", _) => throwError("InvalidPath")
-      | (_, s) =>
-        switch s {
-        | JustAfterDot => {
-            start := i
-            state := ParsingName
+module Attribute = {
+  @genType
+  module Name = {
+    type t = AttributeName({name: string})
+    let make = name => AttributeName({name: name})
+    let toString = name =>
+      switch name {
+      | AttributeName({name}) => {
+          if name->String.includes(" ") || name->String.includes(".") {
+            throwError("InvalidName")
           }
-        | JustAfterStartBracket => {
-            start := i
-            state := ParsingIndex
-          }
-        | ParsingName | ParsingIndex => ()
-        | JustAfterEndBracket if char->String.trim->String.length === 0 => ()
-        | _ => throwError("InvalidPath")
+          "#" ++ name->replaceAll("-", "_")
         }
       }
-    }
-
-    if +state === JustAfterDot || +state === JustAfterStartBracket || +state === ParsingIndex {
-      throwError("InvalidPath")
-    }
-
-    if +state === ParsingName {
-      pullPush(~start=+start)
-    }
-
-    switch Array.shift(path) {
-    | Some(AttributeName({name})) => AttributePath({name, subpath: path})
-    | _ => throwError("InvalidPath")
-    }
   }
 
-  let toString = (AttributePath({name, subpath}): t): string => {
-    subpath->reduce((acc, subs) =>
-      switch subs {
-      | AttributeName({name}) => `${acc}.${AttributeName.toString(AttributeName({name: name}))}`
-      | ListIndex({index}) => `${acc}[${string_of_int(index)}]`
+  @genType
+  module Value = {
+    type t = AttributeValue({value: attributeValue, alias: string})
+    type from<'a> = {
+      value: 'a,
+      alias: string,
+    }
+    let make = x => AttributeValue({
+      value: x.value, // DefaultMarshaller.marshallValue(x.value),
+      alias: x.alias,
+    })
+
+    let toString = (AttributeValue({alias})) => ":" ++ alias
+  }
+
+  @genType
+  module Path = {
+    type sub =
+      | ...Name.t
+      | ListIndex({index: int})
+    type rec t = AttributePath({name: string, subpath: array<sub>})
+
+    @val external isNaN: int => bool = "isNaN"
+    @val external parseInt: ('a, ~radix: int=?) => int = "parseInt"
+    %%private(
+      @inline
+      let parseIndex = index =>
+        switch parseInt(index) {
+        | x if !isNaN(x) && x >= 0 => x
+        | _ => throwError("InvalidIndex: " ++ index)
+        }
+    )
+    external \"~+": ref<'a> => 'a = "%bs_ref_field0"
+    @send external slice: (string, ~start: int, ~end: int=?) => string = "slice"
+
+    type parserState =
+      | @as(0) JustAfterDot
+      | @as(1) JustAfterEndBracket
+      | @as(2) JustAfterStartBracket
+      | @as(3) ParsingIndex
+      | @as(4) ParsingName
+
+    let fromString = (str: string): t => {
+      let str = str->String.trim
+      let start = ref(0)
+      let state = ref(ParsingName)
+      let path = []
+
+      let pullPush = (~start, ~end=?, ~isIndex=?) => {
+        let word = str->String.slice(~start, ~end=Obj.magic(end))
+        if isIndex === Some(true) {
+          path->Array.push(ListIndex({index: word->parseIndex}))
+        } else {
+          let name = word->String.trim->replaceAll("-", "_")
+          if name->String.length === 0 || name->String.includes(" ") || name->String.includes(".") {
+            throwError("InvalidPath")
+          }
+          path->Array.push(AttributeName({name: name}))
+        }
       }
-    , AttributeName.toString(AttributeName({name: name})))
-  }
-}
 
+      let max_i = str->String.length - 1
+      if max_i < 0 {
+        throwError("InvalidPath")
+      }
+      for i in 0 to max_i {
+        let char = Obj.magic(str->String.get(i))
+        switch (char, +state) {
+        | (".", ParsingName) => {
+            pullPush(~start=+start, ~end=i)
+            state := JustAfterDot
+          }
+        | (".", JustAfterEndBracket) => state := JustAfterDot
+        | ("[", ParsingName) => {
+            pullPush(~start=+start, ~end=i)
+            state := JustAfterStartBracket
+          }
+        | ("[", JustAfterEndBracket) => state := JustAfterStartBracket
+        | ("]", ParsingIndex) => {
+            pullPush(~start=+start, ~end=i, ~isIndex=true)
+            state := JustAfterEndBracket
+          }
+        | ("]", _) => throwError("InvalidPath")
+        | (_, s) =>
+          switch s {
+          | JustAfterDot => {
+              start := i
+              state := ParsingName
+            }
+          | JustAfterStartBracket => {
+              start := i
+              state := ParsingIndex
+            }
+          | ParsingName | ParsingIndex => ()
+          | JustAfterEndBracket if char->String.trim->String.length === 0 => ()
+          | _ => throwError("InvalidPath")
+          }
+        }
+      }
+
+      if +state === JustAfterDot || +state === JustAfterStartBracket || +state === ParsingIndex {
+        throwError("InvalidPath")
+      }
+
+      if +state === ParsingName {
+        pullPush(~start=+start)
+      }
+
+      switch Array.shift(path) {
+      | Some(AttributeName({name})) => AttributePath({name, subpath: path})
+      | _ => throwError("InvalidPath")
+      }
+    }
+
+    let toString = (AttributePath({name, subpath}): t): string => {
+      subpath->reduce((acc, subs) =>
+        switch subs {
+        | AttributeName({name}) => `${acc}.${Name.toString(AttributeName({name: name}))}`
+        | ListIndex({index}) => `${acc}[${string_of_int(index)}]`
+        }
+      , Name.toString(AttributeName({name: name})))
+    }
+  }
+
+  type t =
+    | ...Name.t
+    | ...Value.t
+    | ...Path.t
+}
 @genType
 module Register = {
   type t = {
@@ -245,7 +251,7 @@ module Register = {
   )
 
   let rec addValue = (register, element) => {
-    open AttributeValue
+    open Attribute.Value
     switch element {
     | AttributeValue({value, alias}) =>
       let key = AttributeValue({value, alias})->toString
@@ -266,7 +272,7 @@ module Register = {
   }
 
   let addName = (register, element) => {
-    open AttributeName
+    open Attribute.Name
     switch element {
     | AttributeName({name}) =>
       let dict = register.names->Undefinable.getOr(Dict.make())
@@ -277,8 +283,8 @@ module Register = {
     element
   }
 
-  let addPath = (register, element: AttributePath.t) => {
-    open AttributeName
+  let addPath = (register, element: Attribute.Path.t) => {
+    open Attribute.Name
     switch element {
     | AttributePath({name, subpath}) => {
         let dict = register.names->Undefinable.getOr(Dict.make())
@@ -312,23 +318,21 @@ external comparatorToString: comparator => string = "%identity"
 module Identifier = {
   @genType
   type rec t =
-    | ...AttributePath.t
-    | ...AttributeName.t
+    | ...Attribute.Path.t
+    | ...Attribute.Name.t
 
   let toString = (identifier: t, register) =>
     switch identifier {
     | AttributePath({name, subpath}) =>
-      AttributePath.toString(Register.addPath(register, AttributePath({name, subpath})))
+      Attribute.Path.toString(Register.addPath(register, AttributePath({name, subpath})))
     | AttributeName({name}) =>
-      AttributeName.toString(Register.addName(register, AttributeName({name: name})))
+      Attribute.Name.toString(Register.addName(register, AttributeName({name: name})))
     }
 }
 @genType
 module Condition = {
   type rec operand =
-    | ...AttributePath.t
-    | ...AttributeName.t
-    | ...AttributeValue.t
+    | ...Attribute.t
     | Size({operand: operand}) // is a function but it is the only one that returns a number
 
   type limits = {lower: operand, upper: operand}
@@ -419,11 +423,11 @@ module Condition = {
     and opString = operand =>
       switch operand {
       | AttributePath({name, subpath}) =>
-        AttributePath.toString(Register.addPath(register, AttributePath({name, subpath})))
+        Attribute.Path.toString(Register.addPath(register, AttributePath({name, subpath})))
       | AttributeName({name}) =>
-        AttributeName.toString(Register.addName(register, AttributeName({name: name})))
+        Attribute.Name.toString(Register.addName(register, AttributeName({name: name})))
       | AttributeValue({value, alias}) =>
-        AttributeValue.toString(Register.addValue(register, AttributeValue({value, alias})))
+        Attribute.Value.toString(Register.addValue(register, AttributeValue({value, alias})))
       | Size({operand}) => `size(${opString(operand)})`
       }
 
@@ -442,15 +446,15 @@ module Projection = {
 @genType
 module KeyCondition = {
   type pkCond = {
-    name: AttributeName.t,
-    value: AttributeValue.t,
+    name: Attribute.Name.t,
+    value: Attribute.Value.t,
   }
-  type limits = {lower: AttributeValue.t, upper: AttributeValue.t}
+  type limits = {lower: Attribute.Value.t, upper: Attribute.Value.t}
 
   type skCondition =
-    | Comparison({name: AttributeName.t, comparator: comparator, value: AttributeValue.t})
-    | Between({name: AttributeName.t, limits: limits})
-    | BeginsWith({name: AttributeName.t, value: AttributeValue.t})
+    | Comparison({name: Attribute.Name.t, comparator: comparator, value: Attribute.Value.t})
+    | Between({name: Attribute.Name.t, limits: limits})
+    | BeginsWith({name: Attribute.Name.t, value: Attribute.Value.t})
     | Any
   type keyCondition = {
     pk: pkCond,
@@ -479,35 +483,33 @@ module KeyCondition = {
       switch skCondition {
       | Any => ""
       | Comparison({name, comparator, value}) =>
-        ` AND ${AttributeName.toString(Register.addName(register, name))} ${comparatorToString(
+        ` AND ${Attribute.Name.toString(Register.addName(register, name))} ${comparatorToString(
             comparator,
-          )} ${AttributeValue.toString(Register.addValue(register, value))}`
+          )} ${Attribute.Value.toString(Register.addValue(register, value))}`
       | Between({name, limits}) =>
-        ` AND ${AttributeName.toString(
+        ` AND ${Attribute.Name.toString(
             Register.addName(register, name),
-          )} BETWEEN ${AttributeValue.toString(limits.lower)} AND ${AttributeValue.toString(
+          )} BETWEEN ${Attribute.Value.toString(limits.lower)} AND ${Attribute.Value.toString(
             limits.upper,
           )}`
       | BeginsWith({name, value}) =>
-        ` AND begins_with(${AttributeName.toString(
+        ` AND begins_with(${Attribute.Name.toString(
             Register.addName(register, name),
-          )}, ${AttributeValue.toString(Register.addValue(register, value))})`
+          )}, ${Attribute.Value.toString(Register.addValue(register, value))})`
       }
   )
 
   let build = (keyCondition: keyCondition, register) =>
-    `${AttributeName.toString(
+    `${Attribute.Name.toString(
         Register.addName(register, keyCondition.pk.name),
-      )} = ${AttributeValue.toString(Register.addValue(register, keyCondition.pk.value))}` ++
+      )} = ${Attribute.Value.toString(Register.addValue(register, keyCondition.pk.value))}` ++
     skConditionToString(keyCondition.sk, register)
 }
 
 @genType
 module Update = {
   type rec operand =
-    | ...AttributePath.t
-    | ...AttributeName.t
-    | ...AttributeValue.t
+    | ...Attribute.t
     | ListAppend({identifier: operand, operand: operand})
     | IfNotExists({identifier: operand, operand: operand})
     | Sum({lhs: operand, rhs: operand})
@@ -524,19 +526,19 @@ module Update = {
   type update = {
     set?: array<(Identifier.t, operand)>,
     remove?: array<Identifier.t>,
-    add?: array<(Identifier.t, AttributeValue.t)>,
-    delete?: array<(Identifier.t, AttributeValue.t)>,
+    add?: array<(Identifier.t, Attribute.Value.t)>,
+    delete?: array<(Identifier.t, Attribute.Value.t)>,
   }
 
   %%private(
     let rec operandToString = (operand: operand, register) =>
       switch operand {
       | AttributePath({name, subpath}) =>
-        AttributePath.toString(Register.addPath(register, AttributePath({name, subpath})))
+        Attribute.Path.toString(Register.addPath(register, AttributePath({name, subpath})))
       | AttributeName({name}) =>
-        AttributeName.toString(Register.addName(register, AttributeName({name: name})))
+        Attribute.Name.toString(Register.addName(register, AttributeName({name: name})))
       | AttributeValue({value, alias}) =>
-        AttributeValue.toString(Register.addValue(register, AttributeValue({value, alias})))
+        Attribute.Value.toString(Register.addValue(register, AttributeValue({value, alias})))
       | ListAppend({identifier, operand}) =>
         `list_append(${operandToString(identifier, register)}, ${operandToString(
             operand,
@@ -565,12 +567,12 @@ module Update = {
     }
 
     pushIfNotEmpty(update.add, "ADD", ((id, value)) =>
-      `${Identifier.toString(id, register)} ${AttributeValue.toString(
+      `${Identifier.toString(id, register)} ${Attribute.Value.toString(
           Register.addValue(register, value),
         )}`
     )
     pushIfNotEmpty(update.delete, "DELETE", ((id, value)) =>
-      `${Identifier.toString(id, register)} ${AttributeValue.toString(
+      `${Identifier.toString(id, register)} ${Attribute.Value.toString(
           Register.addValue(register, value),
         )}`
     )
@@ -601,4 +603,9 @@ module K = {
 @genType
 module P = {
   include Projection
+}
+
+@genType
+module A = {
+  include Attribute
 }

@@ -1,4 +1,4 @@
-import { Register , AttributeName, AttributeValue, Update} from "./Brushless.bs";
+import { Register , Attribute, Update} from "./Brushless.bs";
 import * as Marshaller from "@aws-sdk/util-dynamodb"
 
 const DefaultMarshaller = {
@@ -9,11 +9,11 @@ describe('UpdateExpression', () => {
         const register = Register.make();
         expect(Update.build({
             add: [
-                [AttributeName.make('foo'), AttributeValue.make({
+                [Attribute.Name.make('foo'), Attribute.Value.make({
                     value: DefaultMarshaller.marshallValue(new Set(['bar', 'baz']))!,
                     alias: 'val1'
                 })],
-                [AttributeName.make('fizz'), AttributeValue.make({
+                [Attribute.Name.make('fizz'), Attribute.Value.make({
                     value: DefaultMarshaller.marshallValue(1)!,
                     alias: 'val3'
                 })]
@@ -34,11 +34,11 @@ describe('UpdateExpression', () => {
         const register = Register.make();
         expect(Update.build({
             delete: [
-                [AttributeName.make('foo'), AttributeValue.make({
+                [Attribute.Name.make('foo'), Attribute.Value.make({
                     value: DefaultMarshaller.marshallValue(new Set(['bar', 'baz']))!,
                     alias: 'val1'
                 })],
-                [AttributeName.make('fizz'), AttributeValue.make({
+                [Attribute.Name.make('fizz'), Attribute.Value.make({
                     value: DefaultMarshaller.marshallValue(1)!,
                     alias: 'val3'
                 })]
@@ -59,8 +59,8 @@ describe('UpdateExpression', () => {
         const register = Register.make();
         expect(Update.build({
             remove: [
-                AttributeName.make('foo'),
-                AttributeName.make('fizz')
+                Attribute.Name.make('foo'),
+                Attribute.Name.make('fizz')
             ]
         }, register))
             .toBe('REMOVE #foo, #fizz');
@@ -75,11 +75,11 @@ describe('UpdateExpression', () => {
         const register = Register.make();
         expect(Update.build({
             set: [
-                [AttributeName.make('foo'), AttributeValue.make({
+                [Attribute.Name.make('foo'), Attribute.Value.make({
                     value: DefaultMarshaller.marshallValue(new Set(['bar', 'baz']))!,
                     alias: 'val1'
                 })],
-                [AttributeName.make('fizz'), AttributeValue.make({
+                [Attribute.Name.make('fizz'), Attribute.Value.make({
                     value: DefaultMarshaller.marshallValue(1)!,
                     alias: 'val3'
                 })]
@@ -99,10 +99,10 @@ describe('UpdateExpression', () => {
     it('should serialize SET clauses with function expressions', () => {
         const register = Register.make();
         const {listAppend} = Update.Maker
-        const foo = AttributeName.make('foo')
+        const foo = Attribute.Name.make('foo')
         expect(Update.build({
             set: [
-                [foo,listAppend(foo, AttributeValue.make({
+                [foo,listAppend(foo, Attribute.Value.make({
                     value: {
                         S: 'bar'
                     },
@@ -122,10 +122,10 @@ describe('UpdateExpression', () => {
     it('should serialize SET clauses with mathematical expressions', () => {
         const register = Register.make();
         const {sum} = Update.Maker
-        const foo = AttributeName.make('foo')
+        const foo = Attribute.Name.make('foo')
         expect(Update.build({
             set: [
-                [foo,sum(foo, AttributeValue.make({
+                [foo,sum(foo, Attribute.Value.make({
                     value: {
                         N: '1'
                     },
@@ -146,22 +146,22 @@ describe('UpdateExpression', () => {
         const attributes = Register.make();
         expect( Update.build({
             add: [
-                [AttributeName.make('foo'), AttributeValue.make({
+                [Attribute.Name.make('foo'), Attribute.Value.make({
                     value: DefaultMarshaller.marshallValue(new Set(['baz']))!,
                     alias: 'val1'
                 })]
             ],
             delete: [
-                [AttributeName.make('foo'), AttributeValue.make({
+                [Attribute.Name.make('foo'), Attribute.Value.make({
                     value: DefaultMarshaller.marshallValue(new Set(['quux']))!,
                     alias: 'val2'
                 })]
             ],
             remove: [
-                AttributeName.make('fizz')
+                Attribute.Name.make('fizz')
             ],
             set: [
-                [AttributeName.make('buzz'), AttributeValue.make({
+                [Attribute.Name.make('buzz'), Attribute.Value.make({
                     value: DefaultMarshaller.marshallValue(new Set(['pop']))!,
                     alias: 'val4'
                 })]

@@ -1,11 +1,11 @@
-import { AttributeName, AttributePath, Register, Projection } from "./Brushless.bs";
+import { Attribute, Register, Projection } from "./Brushless.bs";
 
 describe('ProjectionExpression', () => {
     it('should allow the addition of scalar values', () => {
         const attributes = Register.make();
 
         expect(Projection.build(
-            ['foo', 'bar', 'baz', 'quux'].map(AttributeName.make),
+            ['foo', 'bar', 'baz', 'quux'].map(Attribute.Name.make),
             attributes
         )).toBe('#foo, #bar, #baz, #quux');
         expect(attributes.names).toEqual({
@@ -20,7 +20,7 @@ describe('ProjectionExpression', () => {
         const attributes = Register.make();
 
         expect(Projection.build(
-            [AttributePath.fromString('foo[2]')],
+            [Attribute.Path.fromString('foo[2]')],
             attributes
         )).toBe('#foo[2]');
         expect(attributes.names).toEqual({
@@ -32,7 +32,7 @@ describe('ProjectionExpression', () => {
         const attributes = Register.make();
 
         expect(Projection.build(
-            [AttributePath.fromString('foo.bar')],
+            [Attribute.Path.fromString('foo.bar')],
             attributes
         )).toBe('#foo.#bar');
         expect(attributes.names).toEqual({
@@ -46,7 +46,7 @@ describe('ProjectionExpression', () => {
         () => {
             const attributes = Register.make();
             expect(Projection.build(
-                [AttributePath.fromString('snap.foo[2].bar[3].baz[4].quux')],
+                [Attribute.Path.fromString('snap.foo[2].bar[3].baz[4].quux')],
                 attributes
             )).toBe('#snap.#foo[2].#bar[3].#baz[4].#quux');
             expect(attributes.names).toEqual({

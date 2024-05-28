@@ -44,7 +44,7 @@ function toString(name) {
   return "#" + name$1.replaceAll("-", "_");
 }
 
-var AttributeName = {
+var Name = {
   make: make,
   toString: toString
 };
@@ -61,7 +61,7 @@ function toString$1(param) {
   return ":" + param.alias;
 }
 
-var AttributeValue = {
+var Value = {
   make: make$1,
   toString: toString$1
 };
@@ -201,9 +201,15 @@ function toString$2(param) {
                 }));
 }
 
-var AttributePath = {
+var Path = {
   fromString: fromString,
   toString: toString$2
+};
+
+var Attribute = {
+  Name: Name,
+  Value: Value,
+  Path: Path
 };
 
 function make$2() {
@@ -552,12 +558,6 @@ function build(condition, register) {
   };
   var opString = function (operand) {
     switch (operand.TAG) {
-      case "AttributePath" :
-          return toString$2(addPath(register, {
-                          TAG: "AttributePath",
-                          name: operand.name,
-                          subpath: operand.subpath
-                        }));
       case "AttributeName" :
           return toString(addName(register, {
                           TAG: "AttributeName",
@@ -568,6 +568,12 @@ function build(condition, register) {
                           TAG: "AttributeValue",
                           value: operand.value,
                           alias: operand.alias
+                        }));
+      case "AttributePath" :
+          return toString$2(addPath(register, {
+                          TAG: "AttributePath",
+                          name: operand.name,
+                          subpath: operand.subpath
                         }));
       case "Size" :
           return "size(" + opString(operand.operand) + ")";
@@ -767,12 +773,6 @@ var Maker$2 = {
 
 function operandToString(operand, register) {
   switch (operand.TAG) {
-    case "AttributePath" :
-        return toString$2(addPath(register, {
-                        TAG: "AttributePath",
-                        name: operand.name,
-                        subpath: operand.subpath
-                      }));
     case "AttributeName" :
         return toString(addName(register, {
                         TAG: "AttributeName",
@@ -783,6 +783,12 @@ function operandToString(operand, register) {
                         TAG: "AttributeValue",
                         value: operand.value,
                         alias: operand.alias
+                      }));
+    case "AttributePath" :
+        return toString$2(addPath(register, {
+                        TAG: "AttributePath",
+                        name: operand.name,
+                        subpath: operand.subpath
                       }));
     case "ListAppend" :
         return "list_append(" + operandToString(operand.identifier, register) + ", " + operandToString(operand.operand, register) + ")";
@@ -883,10 +889,14 @@ var P = {
   build: build$1
 };
 
+var A = {
+  Name: Name,
+  Value: Value,
+  Path: Path
+};
+
 exports.Undefinable = Undefinable;
-exports.AttributeName = AttributeName;
-exports.AttributeValue = AttributeValue;
-exports.AttributePath = AttributePath;
+exports.Attribute = Attribute;
 exports.Register = Register;
 exports.Identifier = Identifier;
 exports.Condition = Condition;
@@ -897,4 +907,5 @@ exports.U = U;
 exports.C = C;
 exports.K = K;
 exports.P = P;
+exports.A = A;
 /* No side effect */

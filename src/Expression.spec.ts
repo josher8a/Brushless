@@ -1,11 +1,11 @@
-import { AttributeName, AttributePath, AttributeValue, Register, Condition, KeyCondition, C, K, U, P } from './Brushless.bs';
+import { Attribute, Register, Condition, KeyCondition, C, K, U, P } from './Brushless.bs';
 import * as DynamoDB from '@aws-sdk/client-dynamodb'
 
 describe('Expression', () => {
     describe('path', () => {
         it('should return the path of the expression', () => {
-            const expression = AttributePath.fromString('foo.bar.baz');
-            expect(AttributePath.toString(expression)).toEqual('#foo.#bar.#baz');
+            const expression = Attribute.Path.fromString('foo.bar.baz');
+            expect(Attribute.Path.toString(expression)).toEqual('#foo.#bar.#baz');
         }
         )
     })
@@ -14,8 +14,8 @@ describe('Expression', () => {
             const register = Register.make();
             const { equals } = Condition.Maker;
             const expression = Condition.build(equals(
-                AttributePath.fromString('foo.bar.baz'),
-                AttributeValue.make({
+                Attribute.Path.fromString('foo.bar.baz'),
+                Attribute.Value.make({
                     value: {
                         S: 'foo'
                     },
@@ -30,27 +30,27 @@ describe('Expression', () => {
 
             const register = Register.make()
 
-            const pk = AttributeName.make("PK")
-            const sk = AttributeName.make("SK")
+            const pk = Attribute.Name.make("PK")
+            const sk = Attribute.Name.make("SK")
 
-            const pkVal = AttributeValue.make({
+            const pkVal = Attribute.Value.make({
                 value: {
                     S: 'X'
                 },
                 alias: "PK"
             })
 
-            const skVal = AttributeValue.make({
+            const skVal = Attribute.Value.make({
                 value: {
                     S: 'Y'
                 },
                 alias: "SK"
             })
 
-            const foo = AttributeName.make("foo")
-            const bar = AttributeName.make("bar")
-            const baz = AttributeName.make("baz")
-            const fooVal = AttributeValue.make({
+            const foo = Attribute.Name.make("foo")
+            const bar = Attribute.Name.make("bar")
+            const baz = Attribute.Name.make("baz")
+            const fooVal = Attribute.Value.make({
                 value: {
                     M: {
                         foo: {
@@ -70,20 +70,20 @@ describe('Expression', () => {
                 },
                 alias: "foo"
             })
-            const barVal = AttributeValue.make({
+            const barVal = Attribute.Value.make({
                 value: {
                     S: 'bar'
                 },
                 alias: "bar"
             })
-            const bazVal = AttributeValue.make({
+            const bazVal = Attribute.Value.make({
                 value: {
                     S: 'baz'
                 },
                 alias: "baz"
             })
 
-            const path = AttributePath.fromString('foo.bar.baz[0]')
+            const path = Attribute.Path.fromString('foo.bar.baz[0]')
 
 
 
@@ -116,7 +116,7 @@ describe('Expression', () => {
                     set: [
                         [foo, U.ifNotExists(foo, fooVal)],
                         [foo, U.ifNotExists(foo, fooVal)],
-                        [foo, U.ifNotExists(foo, AttributeValue.make({
+                        [foo, U.ifNotExists(foo, Attribute.Value.make({
                             value: {
                                 M: {
                                     foo: {
@@ -136,7 +136,7 @@ describe('Expression', () => {
                             },
                             alias: "foo"
                         }))],
-                        [foo, U.ifNotExists(foo, AttributeValue.make({
+                        [foo, U.ifNotExists(foo, Attribute.Value.make({
                             value: {
                                 M: {
                                     foo: {
@@ -159,7 +159,7 @@ describe('Expression', () => {
                             },
                             alias: "foo"
                         }))],
-                        [foo, U.ifNotExists(foo, AttributeValue.make({
+                        [foo, U.ifNotExists(foo, Attribute.Value.make({
                             value: {
                                 S: 'fi fa fo fum'
                             },
@@ -167,7 +167,7 @@ describe('Expression', () => {
                         }))],
                         [bar, barVal],
                         [baz, U.listAppend(baz, bazVal)],
-                        [path, U.sub(path, AttributeValue.make({
+                        [path, U.sub(path, Attribute.Value.make({
                             value: {
                                 N: '1'
                             },

@@ -1,9 +1,9 @@
-import {AttributePath} from './Brushless.bs';
+import {Attribute} from './Brushless.bs';
 
-describe('AttributePath', () => {
+describe('Attribute.Path', () => {
     it('should convert a string path to a list of elements', () => {
         expect(
-            AttributePath.fromString(` 
+            Attribute.Path.fromString(` 
             foo 
             .bar
             .baz[3 ][4][2]
@@ -31,20 +31,20 @@ describe('AttributePath', () => {
         it(
             'should throw an error when a path is empty',
             () => {
-                expect(() => AttributePath.fromString(''))
+                expect(() => Attribute.Path.fromString(''))
                     .toThrowError()
-                expect(() => AttributePath.fromString(' '))
+                expect(() => Attribute.Path.fromString(' '))
                     .toThrowError()
             }
         );
         it(
             'should throw an error when a path begins with a control character',
             () => {
-                expect(() => AttributePath.fromString('[1]'))
+                expect(() => Attribute.Path.fromString('[1]'))
                     .toThrowError()
-                expect(() => AttributePath.fromString('.a[1]'))
+                expect(() => Attribute.Path.fromString('.a[1]'))
                     .toThrowError()
-                expect(() => AttributePath.fromString('].a[1]'))
+                expect(() => Attribute.Path.fromString('].a[1]'))
                     .toThrowError()
             }
         );
@@ -52,7 +52,7 @@ describe('AttributePath', () => {
         it(
             'should throw an error when a list index access contains no numeric',
             () => {
-                expect(() => AttributePath.fromString('foo[a]'))
+                expect(() => Attribute.Path.fromString('foo[a]'))
                     .toThrowError()
             }
         );
@@ -60,7 +60,7 @@ describe('AttributePath', () => {
         it(
             'should throw an error when a list index access contains no characters',
             () => {
-                expect(() => AttributePath.fromString('foo[]'))
+                expect(() => Attribute.Path.fromString('foo[]'))
                     .toThrowError()
             }
         );
@@ -68,7 +68,7 @@ describe('AttributePath', () => {
         it(
             'should throw an error when an identifier immediately follows a list index access',
             () => {
-                expect(() => AttributePath.fromString('foo[1]a'))
+                expect(() => Attribute.Path.fromString('foo[1]a'))
                     .toThrowError()
             }
         );
@@ -76,9 +76,9 @@ describe('AttributePath', () => {
         it(
             'should throw an error when no identifier is found before next access',
             () => {
-                expect(() => AttributePath.fromString('foo..a'))
+                expect(() => Attribute.Path.fromString('foo..a'))
                     .toThrowError()
-                expect(() => AttributePath.fromString('foo.[1]'))
+                expect(() => Attribute.Path.fromString('foo.[1]'))
                     .toThrowError()
             }
         );
@@ -86,7 +86,7 @@ describe('AttributePath', () => {
         it(
             'should throw an error when identifier contains spaces',
             () => {
-                expect(() => AttributePath.fromString('fo o.a'))
+                expect(() => Attribute.Path.fromString('fo o.a'))
                     .toThrowError()
             }
         );
@@ -94,14 +94,14 @@ describe('AttributePath', () => {
         it(
             'should throw an error on unterminated string',
             () => {
-                expect(() => AttributePath.fromString('foo[1'))
+                expect(() => Attribute.Path.fromString('foo[1'))
                     .toThrowError()
-                expect(() => AttributePath.fromString('foo['))
+                expect(() => Attribute.Path.fromString('foo['))
                     .toThrowError()
 
-                expect(() => AttributePath.fromString('foo[1].'))
+                expect(() => Attribute.Path.fromString('foo[1].'))
                     .toThrowError()
-                expect(() => AttributePath.fromString('foo.'))
+                expect(() => Attribute.Path.fromString('foo.'))
                     .toThrowError()
             }
         );
