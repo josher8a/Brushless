@@ -9,11 +9,11 @@ describe('UpdateExpression', () => {
         const register = Register.make();
         expect(Update.build({
             add: [
-                [Attribute.Name.make('foo'), Attribute.Value.make({
+                [Attribute.Path.fromString('foo'), Attribute.Value.make({
                     value: DefaultMarshaller.marshallValue(new Set(['bar', 'baz']))!,
                     alias: 'val1'
                 })],
-                [Attribute.Name.make('fizz'), Attribute.Value.make({
+                [Attribute.Path.fromString('fizz'), Attribute.Value.make({
                     value: DefaultMarshaller.marshallValue(1)!,
                     alias: 'val3'
                 })]
@@ -34,11 +34,11 @@ describe('UpdateExpression', () => {
         const register = Register.make();
         expect(Update.build({
             delete: [
-                [Attribute.Name.make('foo'), Attribute.Value.make({
+                [Attribute.Path.fromString('foo'), Attribute.Value.make({
                     value: DefaultMarshaller.marshallValue(new Set(['bar', 'baz']))!,
                     alias: 'val1'
                 })],
-                [Attribute.Name.make('fizz'), Attribute.Value.make({
+                [Attribute.Path.fromString('fizz'), Attribute.Value.make({
                     value: DefaultMarshaller.marshallValue(1)!,
                     alias: 'val3'
                 })]
@@ -59,8 +59,8 @@ describe('UpdateExpression', () => {
         const register = Register.make();
         expect(Update.build({
             remove: [
-                Attribute.Name.make('foo'),
-                Attribute.Name.make('fizz')
+                Attribute.Path.fromString('foo'),
+                Attribute.Path.fromString('fizz')
             ]
         }, register))
             .toBe('REMOVE #foo, #fizz');
@@ -75,11 +75,11 @@ describe('UpdateExpression', () => {
         const register = Register.make();
         expect(Update.build({
             set: [
-                [Attribute.Name.make('foo'), Attribute.Value.make({
+                [Attribute.Path.fromString('foo'), Attribute.Value.make({
                     value: DefaultMarshaller.marshallValue(new Set(['bar', 'baz']))!,
                     alias: 'val1'
                 })],
-                [Attribute.Name.make('fizz'), Attribute.Value.make({
+                [Attribute.Path.fromString('fizz'), Attribute.Value.make({
                     value: DefaultMarshaller.marshallValue(1)!,
                     alias: 'val3'
                 })]
@@ -99,7 +99,7 @@ describe('UpdateExpression', () => {
     it('should serialize SET clauses with function expressions', () => {
         const register = Register.make();
         const {listAppend} = Update.Maker
-        const foo = Attribute.Name.make('foo')
+        const foo = Attribute.Path.fromString('foo')
         expect(Update.build({
             set: [
                 [foo,listAppend(foo, Attribute.Value.make({
@@ -122,7 +122,7 @@ describe('UpdateExpression', () => {
     it('should serialize SET clauses with mathematical expressions', () => {
         const register = Register.make();
         const {sum} = Update.Maker
-        const foo = Attribute.Name.make('foo')
+        const foo = Attribute.Path.fromString('foo')
         expect(Update.build({
             set: [
                 [foo,sum(foo, Attribute.Value.make({
@@ -146,22 +146,22 @@ describe('UpdateExpression', () => {
         const attributes = Register.make();
         expect( Update.build({
             add: [
-                [Attribute.Name.make('foo'), Attribute.Value.make({
+                [Attribute.Path.fromString('foo'), Attribute.Value.make({
                     value: DefaultMarshaller.marshallValue(new Set(['baz']))!,
                     alias: 'val1'
                 })]
             ],
             delete: [
-                [Attribute.Name.make('foo'), Attribute.Value.make({
+                [Attribute.Path.fromString('foo'), Attribute.Value.make({
                     value: DefaultMarshaller.marshallValue(new Set(['quux']))!,
                     alias: 'val2'
                 })]
             ],
             remove: [
-                Attribute.Name.make('fizz')
+                Attribute.Path.fromString('fizz')
             ],
             set: [
-                [Attribute.Name.make('buzz'), Attribute.Value.make({
+                [Attribute.Path.fromString('buzz'), Attribute.Value.make({
                     value: DefaultMarshaller.marshallValue(new Set(['pop']))!,
                     alias: 'val4'
                 })]

@@ -3,7 +3,7 @@ describe('ExpressionAttributes', () => {
     describe('#addName', () => {
         it('should provide expression-safe aliases for names', () => {
             for (const reservedWord of DDB_RESERVED_WORDS) {
-                const alias = Attribute.Name.toString(Attribute.Name.make(reservedWord));
+                const alias = Attribute.Path.toString(Attribute.Path.fromString(reservedWord));
                 expect(alias).toMatch(/^#[A-Za-z0-9]+$/);
                 expect(alias).not.toBe(reservedWord);
                 expect(DDB_RESERVED_WORDS.has(alias)).toBe(false);
@@ -14,9 +14,9 @@ describe('ExpressionAttributes', () => {
             'should return the same alias for a name submitted multiple times',
             () => {
                 for (const reservedWord of DDB_RESERVED_WORDS) {
-                    const alias = Attribute.Name.toString(Attribute.Name.make(reservedWord));
+                    const alias = Attribute.Path.toString(Attribute.Path.fromString(reservedWord));
                     for (let i = 0; i < 10; i++) {
-                        expect(Attribute.Name.toString(Attribute.Name.make(reservedWord))).toBe(alias);
+                        expect(Attribute.Path.toString(Attribute.Path.fromString(reservedWord))).toBe(alias);
                     }
                 }
             }
@@ -47,7 +47,7 @@ describe('ExpressionAttributes', () => {
                 const alias = Attribute.Value.make({value: {
                     S: reservedWord,
                 }, alias: reservedWord});
-                expect(Attribute.Value.toString(alias)).toMatch(/^:[A-Za-z0-9]+$/);
+                expect(Attribute.Value.toTagged(alias)).toMatch(/^:[A-Za-z0-9]+$/);
             }
         });
     });

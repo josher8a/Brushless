@@ -5,7 +5,7 @@ describe('ProjectionExpression', () => {
         const attributes = Register.make();
 
         expect(Projection.build(
-            ['foo', 'bar', 'baz', 'quux'].map(Attribute.Name.make),
+            ['foo', 'bar', 'baz', 'quux'].map(Attribute.Path.fromString),
             attributes
         )).toBe('#foo, #bar, #baz, #quux');
         expect(attributes.names).toEqual({

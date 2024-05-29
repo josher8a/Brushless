@@ -29,27 +29,7 @@ var Undefinable = {
   equal: equal
 };
 
-function make(name) {
-  return {
-          TAG: "AttributeName",
-          name: name
-        };
-}
-
-function toString(name) {
-  var name$1 = name.name;
-  if (name$1.includes(" ") || name$1.includes(".")) {
-    throw new Error("InvalidName");
-  }
-  return "#" + name$1.replaceAll("-", "_");
-}
-
-var Name = {
-  make: make,
-  toString: toString
-};
-
-function make$1(x) {
+function make(x) {
   return {
           TAG: "AttributeValue",
           value: x.value,
@@ -57,13 +37,13 @@ function make$1(x) {
         };
 }
 
-function toString$1(param) {
+function toTagged(param) {
   return ":" + param.alias;
 }
 
 var Value = {
-  make: make$1,
-  toString: toString$1
+  make: make,
+  toTagged: toTagged
 };
 
 function fromString(str) {
@@ -82,7 +62,7 @@ function fromString(str) {
         throw new Error("InvalidIndex: " + word);
       }
       path.push({
-            TAG: "ListIndex",
+            TAG: "Index",
             index: tmp
           });
       return ;
@@ -92,7 +72,7 @@ function fromString(str) {
       throw new Error("InvalidPath");
     }
     path.push({
-          TAG: "AttributeName",
+          TAG: "Name",
           name: name
         });
   };
@@ -173,7 +153,7 @@ function fromString(str) {
   }
   var match$1 = path.shift();
   if (match$1 !== undefined) {
-    if (match$1.TAG === "AttributeName") {
+    if (match$1.TAG === "Name") {
       return {
               TAG: "AttributePath",
               name: match$1.name,
@@ -185,34 +165,35 @@ function fromString(str) {
   throw new Error("InvalidPath");
 }
 
-function toString$2(param) {
+function nametoTagged(name) {
+  if (name.includes(" ") || name.includes(".")) {
+    throw new Error("InvalidName");
+  }
+  return "#" + name.replaceAll("-", "_");
+}
+
+function toString(param) {
   return param.subpath.reduce((function (acc, subs) {
-                if (subs.TAG === "AttributeName") {
-                  return acc + "." + toString({
-                              TAG: "AttributeName",
-                              name: subs.name
-                            });
+                if (subs.TAG === "Name") {
+                  return acc + "." + nametoTagged(subs.name);
                 } else {
                   return acc + "[" + String(subs.index) + "]";
                 }
-              }), toString({
-                  TAG: "AttributeName",
-                  name: param.name
-                }));
+              }), nametoTagged(param.name));
 }
 
 var Path = {
   fromString: fromString,
-  toString: toString$2
+  nametoTagged: nametoTagged,
+  toString: toString
 };
 
 var Attribute = {
-  Name: Name,
   Value: Value,
   Path: Path
 };
 
-function make$2() {
+function make$1() {
   return {
           names: undefined,
           values: undefined
@@ -278,7 +259,7 @@ function addValue(register, _element) {
     var element = _element;
     var alias = element.alias;
     var value = element.value;
-    var key = toString$1({
+    var key = toTagged({
           TAG: "AttributeValue",
           value: value,
           alias: alias
@@ -295,66 +276,29 @@ function addValue(register, _element) {
     }
     dict[key] = value;
     register.values = dict;
-    return element;
+    return toTagged(element);
   };
-}
-
-function addName(register, element) {
-  var name = element.name;
-  var dict = getOr(register.names, {});
-  dict[toString({
-            TAG: "AttributeName",
-            name: name
-          })] = name;
-  register.names = dict;
-  return element;
 }
 
 function addPath(register, element) {
   var name = element.name;
   var dict = getOr(register.names, {});
-  dict[toString({
-            TAG: "AttributeName",
-            name: name
-          })] = name;
+  dict[nametoTagged(name)] = name;
   element.subpath.forEach(function (sub) {
-        if (sub.TAG !== "AttributeName") {
+        if (sub.TAG !== "Name") {
           return ;
         }
         var name = sub.name;
-        dict[toString({
-                  TAG: "AttributeName",
-                  name: name
-                })] = name;
+        dict[nametoTagged(name)] = name;
       });
   register.names = dict;
-  return element;
+  return toString(element);
 }
 
 var Register = {
-  make: make$2,
+  make: make$1,
   addValue: addValue,
-  addName: addName,
   addPath: addPath
-};
-
-function toString$3(identifier, register) {
-  if (identifier.TAG === "AttributePath") {
-    return toString$2(addPath(register, {
-                    TAG: "AttributePath",
-                    name: identifier.name,
-                    subpath: identifier.subpath
-                  }));
-  } else {
-    return toString(addName(register, {
-                    TAG: "AttributeName",
-                    name: identifier.name
-                  }));
-  }
-}
-
-var Identifier = {
-  toString: toString$3
 };
 
 function equals(lhs, rhs) {
@@ -427,40 +371,40 @@ function inList(operand, list) {
         };
 }
 
-function attributeExists(identifier) {
+function attributeExists(name) {
   return {
           TAG: "AttributeExists",
-          identifier: identifier
+          name: name
         };
 }
 
-function attributeNotExists(identifier) {
+function attributeNotExists(name) {
   return {
           TAG: "AttributeNotExists",
-          identifier: identifier
+          name: name
         };
 }
 
-function attributeType(identifier, operand) {
+function attributeType(name, operand) {
   return {
           TAG: "AttributeType",
-          identifier: identifier,
+          name: name,
           operand: operand
         };
 }
 
-function beginsWith(identifier, operand) {
+function beginsWith(name, operand) {
   return {
           TAG: "BeginsWith",
-          identifier: identifier,
+          name: name,
           operand: operand
         };
 }
 
-function contains(identifier, operand) {
+function contains(name, operand) {
   return {
           TAG: "Contains",
-          identifier: identifier,
+          name: name,
           operand: operand
         };
 }
@@ -528,7 +472,7 @@ var Overload = {
 };
 
 function build(condition, register) {
-  var toString$4 = function (condition) {
+  var add = function (condition) {
     switch (condition.TAG) {
       case "Comparison" :
           return opString(condition.lhs) + " " + condition.comparator + " " + opString(condition.rhs);
@@ -538,49 +482,44 @@ function build(condition, register) {
       case "In" :
           return opString(condition.operand) + " IN (" + condition.list.map(opString).join(", ") + ")";
       case "And" :
-          return "(" + toString$4(condition.lhs) + ") AND (" + toString$4(condition.rhs) + ")";
+          return "(" + add(condition.lhs) + ") AND (" + add(condition.rhs) + ")";
       case "Or" :
-          return "(" + toString$4(condition.lhs) + ") OR (" + toString$4(condition.rhs) + ")";
+          return "(" + add(condition.lhs) + ") OR (" + add(condition.rhs) + ")";
       case "Not" :
-          return "NOT (" + toString$4(condition.condition) + ")";
+          return "NOT (" + add(condition.condition) + ")";
       case "AttributeExists" :
-          return "attribute_exists(" + toString$3(condition.identifier, register) + ")";
+          return "attribute_exists(" + opString(condition.name) + ")";
       case "AttributeNotExists" :
-          return "attribute_not_exists(" + toString$3(condition.identifier, register) + ")";
+          return "attribute_not_exists(" + opString(condition.name) + ")";
       case "AttributeType" :
-          return "attribute_type(" + toString$3(condition.identifier, register) + ", " + opString(condition.operand) + ")";
+          return "attribute_type(" + opString(condition.name) + ", " + opString(condition.operand) + ")";
       case "BeginsWith" :
-          return "begins_with(" + toString$3(condition.identifier, register) + ", " + opString(condition.operand) + ")";
+          return "begins_with(" + opString(condition.name) + ", " + opString(condition.operand) + ")";
       case "Contains" :
-          return "contains(" + toString$3(condition.identifier, register) + ", " + opString(condition.operand) + ")";
+          return "contains(" + opString(condition.name) + ", " + opString(condition.operand) + ")";
       
     }
   };
   var opString = function (operand) {
     switch (operand.TAG) {
-      case "AttributeName" :
-          return toString(addName(register, {
-                          TAG: "AttributeName",
-                          name: operand.name
-                        }));
       case "AttributeValue" :
-          return toString$1(addValue(register, {
-                          TAG: "AttributeValue",
-                          value: operand.value,
-                          alias: operand.alias
-                        }));
+          return addValue(register, {
+                      TAG: "AttributeValue",
+                      value: operand.value,
+                      alias: operand.alias
+                    });
       case "AttributePath" :
-          return toString$2(addPath(register, {
-                          TAG: "AttributePath",
-                          name: operand.name,
-                          subpath: operand.subpath
-                        }));
+          return addPath(register, {
+                      TAG: "AttributePath",
+                      name: operand.name,
+                      subpath: operand.subpath
+                    });
       case "Size" :
           return "size(" + opString(operand.operand) + ")";
       
     }
   };
-  return toString$4(condition);
+  return add(condition);
 }
 
 var Condition = {
@@ -608,7 +547,7 @@ var Condition = {
 
 function build$1(projection, register) {
   return projection.map(function (__x) {
-                return toString$3(__x, register);
+                return addPath(register, __x);
               }).join(", ");
 }
 
@@ -704,18 +643,18 @@ function skConditionToString(skCondition, register) {
   }
   switch (skCondition.TAG) {
     case "Comparison" :
-        return " AND " + toString(addName(register, skCondition.name)) + " " + skCondition.comparator + " " + toString$1(addValue(register, skCondition.value));
+        return " AND " + addPath(register, skCondition.name) + " " + skCondition.comparator + " " + addValue(register, skCondition.value);
     case "Between" :
         var limits = skCondition.limits;
-        return " AND " + toString(addName(register, skCondition.name)) + " BETWEEN " + toString$1(limits.lower) + " AND " + toString$1(limits.upper);
+        return " AND " + addPath(register, skCondition.name) + " BETWEEN " + addValue(register, limits.lower) + " AND " + addValue(register, limits.upper);
     case "BeginsWith" :
-        return " AND begins_with(" + toString(addName(register, skCondition.name)) + ", " + toString$1(addValue(register, skCondition.value)) + ")";
+        return " AND begins_with(" + addPath(register, skCondition.name) + ", " + addValue(register, skCondition.value) + ")";
     
   }
 }
 
 function build$2(keyCondition, register) {
-  return toString(addName(register, keyCondition.pk.name)) + " = " + toString$1(addValue(register, keyCondition.pk.value)) + skConditionToString(keyCondition.sk, register);
+  return addPath(register, keyCondition.pk.name) + " = " + addValue(register, keyCondition.pk.value) + skConditionToString(keyCondition.sk, register);
 }
 
 var KeyCondition = {
@@ -732,18 +671,18 @@ var KeyCondition = {
   build: build$2
 };
 
-function listAppend(identifier, operand) {
+function listAppend(name, operand) {
   return {
           TAG: "ListAppend",
-          identifier: identifier,
+          name: name,
           operand: operand
         };
 }
 
-function ifNotExists(identifier, operand) {
+function ifNotExists(name, operand) {
   return {
           TAG: "IfNotExists",
-          identifier: identifier,
+          name: name,
           operand: operand
         };
 }
@@ -771,33 +710,20 @@ var Maker$2 = {
   sub: sub
 };
 
-function operandToString(operand, register) {
+function addOperand(operand, register) {
   switch (operand.TAG) {
-    case "AttributeName" :
-        return toString(addName(register, {
-                        TAG: "AttributeName",
-                        name: operand.name
-                      }));
     case "AttributeValue" :
-        return toString$1(addValue(register, {
-                        TAG: "AttributeValue",
-                        value: operand.value,
-                        alias: operand.alias
-                      }));
+        return addValue(register, operand);
     case "AttributePath" :
-        return toString$2(addPath(register, {
-                        TAG: "AttributePath",
-                        name: operand.name,
-                        subpath: operand.subpath
-                      }));
+        return addPath(register, operand);
     case "ListAppend" :
-        return "list_append(" + operandToString(operand.identifier, register) + ", " + operandToString(operand.operand, register) + ")";
+        return "list_append(" + addOperand(operand.name, register) + ", " + addOperand(operand.operand, register) + ")";
     case "IfNotExists" :
-        return "if_not_exists(" + operandToString(operand.identifier, register) + ", " + operandToString(operand.operand, register) + ")";
+        return "if_not_exists(" + addOperand(operand.name, register) + ", " + addOperand(operand.operand, register) + ")";
     case "Sum" :
-        return operandToString(operand.lhs, register) + " + " + operandToString(operand.rhs, register);
+        return addOperand(operand.lhs, register) + " + " + addOperand(operand.rhs, register);
     case "Sub" :
-        return operandToString(operand.lhs, register) + " - " + operandToString(operand.rhs, register);
+        return addOperand(operand.lhs, register) + " - " + addOperand(operand.rhs, register);
     
   }
 }
@@ -813,16 +739,16 @@ function build$3(update, register) {
     
   };
   pushIfNotEmpty(update.add, "ADD", (function (param) {
-          return toString$3(param[0], register) + " " + toString$1(addValue(register, param[1]));
+          return addPath(register, param[0]) + " " + addValue(register, param[1]);
         }));
   pushIfNotEmpty(update.delete, "DELETE", (function (param) {
-          return toString$3(param[0], register) + " " + toString$1(addValue(register, param[1]));
+          return addPath(register, param[0]) + " " + addValue(register, param[1]);
         }));
   pushIfNotEmpty(update.set, "SET", (function (param) {
-          return toString$3(param[0], register) + " = " + operandToString(param[1], register);
+          return addPath(register, param[0]) + " = " + addOperand(param[1], register);
         }));
   pushIfNotEmpty(update.remove, "REMOVE", (function (__x) {
-          return toString$3(__x, register);
+          return addPath(register, __x);
         }));
   if (acc.length === 0) {
     throw new Error("EmptyUpdate");
@@ -890,7 +816,6 @@ var P = {
 };
 
 var A = {
-  Name: Name,
   Value: Value,
   Path: Path
 };
@@ -898,7 +823,6 @@ var A = {
 exports.Undefinable = Undefinable;
 exports.Attribute = Attribute;
 exports.Register = Register;
-exports.Identifier = Identifier;
 exports.Condition = Condition;
 exports.Projection = Projection;
 exports.KeyCondition = KeyCondition;

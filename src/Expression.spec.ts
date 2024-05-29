@@ -30,8 +30,8 @@ describe('Expression', () => {
 
             const register = Register.make()
 
-            const pk = Attribute.Name.make("PK")
-            const sk = Attribute.Name.make("SK")
+            const pk = Attribute.Path.fromString("PK")
+            const sk = Attribute.Path.fromString("SK")
 
             const pkVal = Attribute.Value.make({
                 value: {
@@ -47,9 +47,9 @@ describe('Expression', () => {
                 alias: "SK"
             })
 
-            const foo = Attribute.Name.make("foo")
-            const bar = Attribute.Name.make("bar")
-            const baz = Attribute.Name.make("baz")
+            const foo = Attribute.Path.fromString("foo")
+            const bar = Attribute.Path.fromString("bar")
+            const baz = Attribute.Path.fromString("baz")
             const fooVal = Attribute.Value.make({
                 value: {
                     M: {

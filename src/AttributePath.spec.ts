@@ -13,15 +13,15 @@ describe('Attribute.Path', () => {
         ).toMatchObject({
             name:  'foo',
             subpath:[
-            {TAG: 'AttributeName', name: 'bar'},
-            {TAG: 'AttributeName', name: 'baz'},
-            {TAG: 'ListIndex', index: 3},
-            {TAG: 'ListIndex', index: 4},
-            {TAG: 'ListIndex', index: 2},
-            {TAG: 'AttributeName', name: 'fizz'},
-            {TAG: 'ListIndex', index: 0},
-            {TAG: 'AttributeName', name: 'buzz'},
-            {TAG: 'ListIndex', index: 1},
+            {TAG: 'Name', name: 'bar'},
+            {TAG: 'Name', name: 'baz'},
+            {TAG: 'Index', index: 3},
+            {TAG: 'Index', index: 4},
+            {TAG: 'Index', index: 2},
+            {TAG: 'Name', name: 'fizz'},
+            {TAG: 'Index', index: 0},
+            {TAG: 'Name', name: 'buzz'},
+            {TAG: 'Index', index: 1},
         ]});
     });
 
