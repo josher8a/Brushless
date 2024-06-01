@@ -29,6 +29,8 @@ module Undefinable = {
     | (Undefined, Undefined) => true
     | (Undefined, Value(_)) | (Value(_), Undefined) => false
     }
+  @send
+  external fromOptionUnsafe: option<'a> => t<'a> = "%identity"
 }
 
 // TODO: Move to external binding
@@ -95,8 +97,8 @@ module Attribute = {
       let state = ref(ParsingName)
       let path = []
 
-      let pullPush = (~start, ~end=?, ~isIndex=?) => {
-        let word = str->String.slice(~start, ~end=Obj.magic(end))
+      let pullPush = (~start, ~end, ~isIndex=?) => {
+        let word = str->String.slice(~start, ~end)
         if isIndex === Some(true) {
           path->Array.push(Index({index: word->parseIndex}))
         } else {
@@ -108,29 +110,24 @@ module Attribute = {
         }
       }
 
-      let max_i = str->String.length - 1
-      if max_i < 0 {
-        throwError("InvalidPath")
-      }
-      for i in 0 to max_i {
-        let char = Obj.magic(str->String.get(i))
-        switch (char, +state) {
-        | (".", ParsingName) => {
+      for i in 0 to str->String.length - 1 {
+        switch (str->String.get(i), +state) {
+        | (Some("."), ParsingName) => {
             pullPush(~start=+start, ~end=i)
             state := JustAfterDot
           }
-        | (".", JustAfterEndBracket) => state := JustAfterDot
-        | ("[", ParsingName) => {
+        | (Some("."), JustAfterEndBracket) => state := JustAfterDot
+        | (Some("["), ParsingName) => {
             pullPush(~start=+start, ~end=i)
             state := JustAfterStartBracket
           }
-        | ("[", JustAfterEndBracket) => state := JustAfterStartBracket
-        | ("]", ParsingIndex) => {
+        | (Some("["), JustAfterEndBracket) => state := JustAfterStartBracket
+        | (Some("]"), ParsingIndex) => {
             pullPush(~start=+start, ~end=i, ~isIndex=true)
             state := JustAfterEndBracket
           }
-        | ("]", _) => throwError("InvalidPath")
-        | (_, s) =>
+        | (Some("]"), _) => throwError("InvalidPath")
+        | (Some(char), s) =>
           switch s {
           | JustAfterDot => {
               start := i
@@ -144,6 +141,7 @@ module Attribute = {
           | JustAfterEndBracket if char->String.trim->String.length === 0 => ()
           | _ => throwError("InvalidPath")
           }
+        | (None, _) => throwError("InvalidPath")
         }
       }
 
@@ -152,7 +150,7 @@ module Attribute = {
       }
 
       if +state === ParsingName {
-        pullPush(~start=+start)
+        pullPush(~start=+start, ~end=str->String.length)
       }
 
       switch Array.shift(path) {
@@ -204,6 +202,9 @@ module Register = {
   }
 
   %%private(
+    @send
+    external cast: attributeValue => attributeValue_ = "%identity"
+
     let rec isValueEqual = (a: attributeValue_, b: attributeValue_) =>
       [
         Undefinable.equal(a["S"], b["S"], (x, y) => x === y),
@@ -213,26 +214,22 @@ module Register = {
         Undefinable.equal(a["SS"], b["SS"], (x, y) => Array.every(x, v => Array.includes(y, v))),
         Undefinable.equal(a["NS"], b["NS"], (x, y) => Array.every(x, v => Array.includes(y, v))),
         Undefinable.equal(a["L"], b["L"], (x, y) =>
-          Array.everyWithIndex(x, (v, i) => {
-            let y = Js.Array.unsafe_get(y, i)
-            if Obj.magic(y) !== undefined {
-              isValueEqual(v, Obj.magic(y))
-            } else {
-              false
+          Array.everyWithIndex(x, (v, i) =>
+            switch y[i]->Undefinable.fromOptionUnsafe {
+            | Value(y) => isValueEqual(v, y)
+            | Undefined => false
             }
-          })
+          )
         ),
         Undefinable.equal(a["M"], b["M"], (x, y) => {
           let keys = x->Dict.toArray
           keys->Array.length === y->Dict.keysToArray->Array.length &&
-            keys->Array.every(((key, x)) => {
-              let y = Js.Dict.unsafeGet(y, key)
-              if Obj.magic(y) !== undefined {
-                isValueEqual(x, Obj.magic(y))
-              } else {
-                false
+            keys->Array.every(((key, x)) =>
+              switch Dict.get(y, key)->Undefinable.fromOptionUnsafe {
+              | Value(y) => isValueEqual(x, y)
+              | Undefined => false
               }
-            })
+            )
         }),
       ]->Array.some(x => x)
   )
@@ -241,19 +238,16 @@ module Register = {
     open Attribute.Value
     switch element {
     | AttributeValue({value, alias}) =>
-      let key = AttributeValue({value, alias})->toTagged
+      let key = element->toTagged
       let dict = register.values->Undefinable.getOr(Dict.make())
-      let exist = dict->Js.Dict.unsafeGet(key)
-      if (
-        Obj.magic(exist) !== undefined &&
-        exist !== value &&
-        !isValueEqual(Obj.magic(exist), Obj.magic(value))
-      ) {
+      switch dict->Dict.get(key)->Undefinable.fromOptionUnsafe {
+      | Value(exist) if exist !== value && !isValueEqual(exist->cast, value->cast) =>
         addValue(register, AttributeValue({value, alias: alias ++ "_"}))
-      } else {
-        dict->Dict.set(key, value)
-        register.values = Undefinable.Value(dict)
-        element->toTagged
+      | _ => {
+          dict->Dict.set(key, value)
+          register.values = Undefinable.Value(dict)
+          key
+        }
       }
     }
   }
@@ -370,13 +364,14 @@ module Condition = {
       | And({lhs, rhs}) => `(${add(lhs)}) AND (${add(rhs)})`
       | Or({lhs, rhs}) => `(${add(lhs)}) OR (${add(rhs)})`
       | Not({condition}) => `NOT (${add(condition)})`
-      | AttributeExists({name}) => `attribute_exists(${opString(Obj.magic(name))})`
-      | AttributeNotExists({name}) => `attribute_not_exists(${opString(Obj.magic(name))})`
+      | AttributeExists({name}) => `attribute_exists(${register->Register.addPath(name)})})`
+      | AttributeNotExists({name}) => `attribute_not_exists(${register->Register.addPath(name)})})`
       | AttributeType({name, operand}) =>
-        `attribute_type(${opString(Obj.magic(name))}, ${opString(operand)})`
+        `attribute_type(${register->Register.addPath(name)})}, ${opString(operand)})`
       | BeginsWith({name, operand}) =>
-        `begins_with(${opString(Obj.magic(name))}, ${opString(operand)})`
-      | Contains({name, operand}) => `contains(${opString(Obj.magic(name))}, ${opString(operand)})`
+        `begins_with(${register->Register.addPath(name)})}, ${opString(operand)})`
+      | Contains({name, operand}) =>
+        `contains(${register->Register.addPath(name)})}, ${opString(operand)})`
       }
     and opString = operand =>
       switch operand {
@@ -487,8 +482,8 @@ module Update = {
     let rec addOperand = (operand: operand, register) => {
       open Register
       switch operand {
-      | AttributePath(_) as path => addPath(register, Obj.magic(path))
-      | AttributeValue(_) as value => addValue(register, Obj.magic(value))
+      | AttributePath({name, subpath}) => addPath(register, AttributePath({name, subpath}))
+      | AttributeValue({value, alias}) => addValue(register, AttributeValue({value, alias}))
       | ListAppend({name, operand}) =>
         `list_append(${addOperand(name, register)}, ${addOperand(operand, register)})`
       | IfNotExists({name, operand}) =>

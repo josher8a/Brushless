@@ -76,87 +76,87 @@ function fromString(str) {
           name: name
         });
   };
-  var max_i = str$1.length - 1 | 0;
-  if (max_i < 0) {
-    throw new Error("InvalidPath");
-  }
-  for(var i = 0; i <= max_i; ++i){
-    var $$char = str$1[i];
-    var match = state;
-    var exit = 0;
-    switch ($$char) {
-      case "." :
-          switch (match) {
-            case 1 :
-                state = 0;
-                break;
-            case 4 :
-                pullPush(start, i, undefined);
-                state = 0;
-                break;
-            default:
-              exit = 1;
-          }
-          break;
-      case "[" :
-          switch (match) {
-            case 1 :
-                state = 2;
-                break;
-            case 4 :
-                pullPush(start, i, undefined);
-                state = 2;
-                break;
-            default:
-              exit = 1;
-          }
-          break;
-      case "]" :
-          if (match === 3) {
-            pullPush(start, i, true);
-            state = 1;
-          } else {
-            throw new Error("InvalidPath");
-          }
-          break;
-      default:
-        exit = 1;
-    }
-    if (exit === 1) {
+  for(var i = 0 ,i_finish = str$1.length; i < i_finish; ++i){
+    var match = str$1[i];
+    var match$1 = state;
+    if (match !== undefined) {
+      var exit = 0;
       switch (match) {
-        case 0 :
-            start = i;
-            state = 4;
+        case "." :
+            switch (match$1) {
+              case 1 :
+                  state = 0;
+                  break;
+              case 4 :
+                  pullPush(start, i, undefined);
+                  state = 0;
+                  break;
+              default:
+                exit = 1;
+            }
             break;
-        case 1 :
-            if ($$char.trim().length !== 0) {
+        case "[" :
+            switch (match$1) {
+              case 1 :
+                  state = 2;
+                  break;
+              case 4 :
+                  pullPush(start, i, undefined);
+                  state = 2;
+                  break;
+              default:
+                exit = 1;
+            }
+            break;
+        case "]" :
+            if (match$1 === 3) {
+              pullPush(start, i, true);
+              state = 1;
+            } else {
               throw new Error("InvalidPath");
             }
             break;
-        case 2 :
-            start = i;
-            state = 3;
-            break;
-        case 3 :
-        case 4 :
-            break;
-        
+        default:
+          exit = 1;
       }
+      if (exit === 1) {
+        switch (match$1) {
+          case 0 :
+              start = i;
+              state = 4;
+              break;
+          case 1 :
+              if (match.trim().length !== 0) {
+                throw new Error("InvalidPath");
+              }
+              break;
+          case 2 :
+              start = i;
+              state = 3;
+              break;
+          case 3 :
+          case 4 :
+              break;
+          
+        }
+      }
+      
+    } else {
+      throw new Error("InvalidPath");
     }
-    
   }
   if (state === 0 || state === 2 || state === 3) {
     throw new Error("InvalidPath");
   }
   if (state === 4) {
-    pullPush(start, undefined, undefined);
+    pullPush(start, str$1.length, undefined);
   }
-  var match$1 = path.shift();
-  if (match$1 !== undefined) {
-    if (match$1.TAG === "Name") {
+  var match$2 = path.shift();
+  if (match$2 !== undefined) {
+    if (match$2.TAG === "Name") {
       return {
               TAG: "AttributePath",
-              name: match$1.name,
+              name: match$2.name,
               subpath: path
             };
     }
@@ -227,10 +227,10 @@ function isValueEqual(a, b) {
             equal(a.L, b.L, (function (x, y) {
                     return x.every(function (v, i) {
                                 var y$1 = y[i];
-                                if (y$1 !== undefined) {
-                                  return isValueEqual(v, y$1);
-                                } else {
+                                if (y$1 === undefined) {
                                   return false;
+                                } else {
+                                  return isValueEqual(v, y$1);
                                 }
                               });
                   })),
@@ -239,10 +239,10 @@ function isValueEqual(a, b) {
                     if (keys.length === Object.keys(y).length) {
                       return keys.every(function (param) {
                                   var y$1 = y[param[0]];
-                                  if (y$1 !== undefined) {
-                                    return isValueEqual(param[1], y$1);
-                                  } else {
+                                  if (y$1 === undefined) {
                                     return false;
+                                  } else {
+                                    return isValueEqual(param[1], y$1);
                                   }
                                 });
                     } else {
@@ -257,26 +257,21 @@ function isValueEqual(a, b) {
 function addValue(register, _element) {
   while(true) {
     var element = _element;
-    var alias = element.alias;
     var value = element.value;
-    var key = toTagged({
-          TAG: "AttributeValue",
-          value: value,
-          alias: alias
-        });
+    var key = toTagged(element);
     var dict = getOr(register.values, {});
     var exist = dict[key];
     if (exist !== undefined && exist !== value && !isValueEqual(exist, value)) {
       _element = {
         TAG: "AttributeValue",
         value: value,
-        alias: alias + "_"
+        alias: element.alias + "_"
       };
       continue ;
     }
     dict[key] = value;
     register.values = dict;
-    return toTagged(element);
+    return key;
   };
 }
 
@@ -488,15 +483,15 @@ function build(condition, register) {
       case "Not" :
           return "NOT (" + add(condition.condition) + ")";
       case "AttributeExists" :
-          return "attribute_exists(" + opString(condition.name) + ")";
+          return "attribute_exists(" + addPath(register, condition.name) + ")})";
       case "AttributeNotExists" :
-          return "attribute_not_exists(" + opString(condition.name) + ")";
+          return "attribute_not_exists(" + addPath(register, condition.name) + ")})";
       case "AttributeType" :
-          return "attribute_type(" + opString(condition.name) + ", " + opString(condition.operand) + ")";
+          return "attribute_type(" + addPath(register, condition.name) + ")}, " + opString(condition.operand) + ")";
       case "BeginsWith" :
-          return "begins_with(" + opString(condition.name) + ", " + opString(condition.operand) + ")";
+          return "begins_with(" + addPath(register, condition.name) + ")}, " + opString(condition.operand) + ")";
       case "Contains" :
-          return "contains(" + opString(condition.name) + ", " + opString(condition.operand) + ")";
+          return "contains(" + addPath(register, condition.name) + ")}, " + opString(condition.operand) + ")";
       
     }
   };
@@ -713,9 +708,17 @@ var Maker$2 = {
 function addOperand(operand, register) {
   switch (operand.TAG) {
     case "AttributeValue" :
-        return addValue(register, operand);
+        return addValue(register, {
+                    TAG: "AttributeValue",
+                    value: operand.value,
+                    alias: operand.alias
+                  });
     case "AttributePath" :
-        return addPath(register, operand);
+        return addPath(register, {
+                    TAG: "AttributePath",
+                    name: operand.name,
+                    subpath: operand.subpath
+                  });
     case "ListAppend" :
         return "list_append(" + addOperand(operand.name, register) + ", " + addOperand(operand.operand, register) + ")";
     case "IfNotExists" :
