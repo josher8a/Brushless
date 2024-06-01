@@ -81,7 +81,6 @@ module Attribute = {
         }
     )
     external \"~+": ref<'a> => 'a = "%bs_ref_field0"
-    @send external slice: (string, ~start: int, ~end: int=?) => string = "slice"
 
     type parserState =
       | @as(0) JustAfterDot
