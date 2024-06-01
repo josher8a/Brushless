@@ -29,7 +29,6 @@ module Undefinable = {
     | (Undefined, Undefined) => true
     | (Undefined, Value(_)) | (Value(_), Undefined) => false
     }
-  @send
   external fromOptionUnsafe: option<'a> => t<'a> = "%identity"
 }
 
@@ -202,7 +201,6 @@ module Register = {
   }
 
   %%private(
-    @send
     external cast: attributeValue => attributeValue_ = "%identity"
 
     let rec isValueEqual = (a: attributeValue_, b: attributeValue_) =>
