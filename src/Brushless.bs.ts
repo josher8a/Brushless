@@ -61,7 +61,8 @@ export type Condition_condition =
   | { TAG: "AttributeNotExists"; readonly identifier: Identifier_t }
   | { TAG: "AttributeType"; readonly identifier: Identifier_t; readonly operand: Condition_operand }
   | { TAG: "BeginsWith"; readonly identifier: Identifier_t; readonly operand: Condition_operand }
-  | { TAG: "Contains"; readonly identifier: Identifier_t; readonly operand: Condition_operand };
+  | { TAG: "Contains"; readonly identifier: Identifier_t; readonly operand: Condition_operand }
+  | { TAG: "ToContains"; readonly identifier: Identifier_t; readonly operand: Condition_operand };
 
 export type Projection_projection = Identifier_t[];
 
@@ -128,7 +129,8 @@ export type C_condition =
   | { TAG: "AttributeNotExists"; readonly identifier: Identifier_t }
   | { TAG: "AttributeType"; readonly identifier: Identifier_t; readonly operand: C_operand }
   | { TAG: "BeginsWith"; readonly identifier: Identifier_t; readonly operand: C_operand }
-  | { TAG: "Contains"; readonly identifier: Identifier_t; readonly operand: C_operand };
+  | { TAG: "Contains"; readonly identifier: Identifier_t; readonly operand: C_operand }
+  | { TAG: "ToContains"; readonly identifier: Identifier_t; readonly operand: C_operand };
 
 export type K_pkCond = { readonly name: AttributeName_t; readonly value: AttributeValue_t };
 
@@ -192,6 +194,8 @@ export const Condition_Maker_beginsWith: (identifier:Identifier_t, operand:Condi
 
 export const Condition_Maker_contains: (identifier:Identifier_t, operand:Condition_operand) => Condition_condition = BrushlessJS.Condition.Maker.contains as any;
 
+export const Condition_Maker_toContains: (identifier:Identifier_t, operand:Condition_operand) => Condition_condition = BrushlessJS.Condition.Maker.toContains as any;
+
 export const Condition_Maker_and: (lhs:Condition_condition, rhs:Condition_condition) => Condition_condition = BrushlessJS.Condition.Maker.and as any;
 
 export const Condition_Maker_or: (lhs:Condition_condition, rhs:Condition_condition) => Condition_condition = BrushlessJS.Condition.Maker.or as any;
@@ -225,6 +229,8 @@ export const Condition_attributeType: (_1:Identifier_t, _2:Condition_operand) =>
 export const Condition_beginsWith: (_1:Identifier_t, _2:Condition_operand) => Condition_condition = BrushlessJS.Condition.beginsWith as any;
 
 export const Condition_contains: (_1:Identifier_t, _2:Condition_operand) => Condition_condition = BrushlessJS.Condition.contains as any;
+
+export const Condition_toContains: (_1:Identifier_t, _2:Condition_operand) => Condition_condition = BrushlessJS.Condition.toContains as any;
 
 export const Condition_and: (_1:Condition_condition, _2:Condition_condition) => Condition_condition = BrushlessJS.Condition.and as any;
 
@@ -330,6 +336,8 @@ export const C_beginsWith: (_1:Identifier_t, _2:C_operand) => C_condition = Brus
 
 export const C_contains: (_1:Identifier_t, _2:C_operand) => C_condition = BrushlessJS.C.contains as any;
 
+export const C_toContains: (_1:Identifier_t, _2:C_operand) => C_condition = BrushlessJS.C.toContains as any;
+
 export const C_and: (_1:C_condition, _2:C_condition) => C_condition = BrushlessJS.C.and as any;
 
 export const C_or: (_1:C_condition, _2:C_condition) => C_condition = BrushlessJS.C.or as any;
@@ -381,6 +389,7 @@ export const Identifier: { toString: (identifier:Identifier_t, register:Register
 
 export const Condition: {
   attributeType: (_1:Identifier_t, _2:Condition_operand) => Condition_condition; 
+  toContains: (_1:Identifier_t, _2:Condition_operand) => Condition_condition; 
   notEquals: (_1:Condition_operand, _2:Condition_operand) => Condition_condition; 
   attributeNotExists: (_1:Identifier_t) => Condition_condition; 
   greaterThan: (_1:Condition_operand, _2:Condition_operand) => Condition_condition; 
@@ -396,6 +405,7 @@ export const Condition: {
   equals: (_1:Condition_operand, _2:Condition_operand) => Condition_condition; 
   Maker: {
     attributeType: (identifier:Identifier_t, operand:Condition_operand) => Condition_condition; 
+    toContains: (identifier:Identifier_t, operand:Condition_operand) => Condition_condition; 
     notEquals: (lhs:Condition_operand, rhs:Condition_operand) => Condition_condition; 
     attributeNotExists: (identifier:Identifier_t) => Condition_condition; 
     greaterThan: (lhs:Condition_operand, rhs:Condition_operand) => Condition_condition; 
@@ -478,6 +488,7 @@ export const U: {
 
 export const C: {
   attributeType: (_1:Identifier_t, _2:C_operand) => C_condition; 
+  toContains: (_1:Identifier_t, _2:C_operand) => C_condition; 
   notEquals: (_1:C_operand, _2:C_operand) => C_condition; 
   attributeNotExists: (_1:Identifier_t) => C_condition; 
   greaterThan: (_1:C_operand, _2:C_operand) => C_condition; 
