@@ -303,6 +303,8 @@ module Condition = {
     | AttributeType({name: Attribute.Path.t, operand: operand})
     | BeginsWith({name: Attribute.Path.t, operand: operand})
     | Contains({name: Attribute.Path.t, operand: operand})
+    // alias for contains where the order of the arguments is reversed
+    | ToContains({name: Attribute.Path.t, operand: operand})
 
   module Maker = {
     let equals = (lhs, rhs) => Comparison({lhs, comparator: Equals, rhs})
@@ -322,6 +324,7 @@ module Condition = {
     let attributeType = (name, operand) => AttributeType({name, operand})
     let beginsWith = (name, operand) => BeginsWith({name, operand})
     let contains = (name, operand) => Contains({name, operand})
+    let toContains = (name, operand) => ToContains({name, operand})
     let \"and" = (lhs, rhs) => And({lhs, rhs})
     let or = (lhs, rhs) => Or({lhs, rhs})
     let not = condition => Not({condition: condition})
@@ -369,6 +372,8 @@ module Condition = {
         `begins_with(${register->Register.addPath(name)})}, ${opString(operand)})`
       | Contains({name, operand}) =>
         `contains(${register->Register.addPath(name)})}, ${opString(operand)})`
+      | ToContains({name, operand}) =>
+        `contains(${opString(operand)}, ${register->Register.addPath(name)})})`
       }
     and opString = operand =>
       switch operand {
