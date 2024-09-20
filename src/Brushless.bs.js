@@ -444,6 +444,14 @@ function contains(identifier, operand) {
         };
 }
 
+function toContains(identifier, operand) {
+  return {
+          TAG: "ToContains",
+          identifier: identifier,
+          operand: operand
+        };
+}
+
 function and(lhs, rhs) {
   return {
           TAG: "And",
@@ -488,6 +496,7 @@ var Maker = {
   attributeType: attributeType,
   beginsWith: beginsWith,
   contains: contains,
+  toContains: toContains,
   and: and,
   or: or,
   not: not,
@@ -532,6 +541,8 @@ function build(condition, register) {
           return "begins_with(" + toString$3(condition.identifier, register) + ", " + opString(condition.operand) + ")";
       case "Contains" :
           return "contains(" + toString$3(condition.identifier, register) + ", " + opString(condition.operand) + ")";
+      case "ToContains" :
+          return "contains(" + opString(condition.operand) + ", " + toString$3(condition.identifier, register) + ")";
       
     }
   };
@@ -577,6 +588,7 @@ var Condition = {
   attributeType: attributeType,
   beginsWith: beginsWith,
   contains: contains,
+  toContains: toContains,
   and: and,
   or: or,
   not: not,
@@ -834,6 +846,7 @@ var C = {
   attributeType: attributeType,
   beginsWith: beginsWith,
   contains: contains,
+  toContains: toContains,
   and: and,
   or: or,
   not: not,

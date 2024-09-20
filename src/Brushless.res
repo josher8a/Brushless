@@ -319,6 +319,8 @@ module Condition = {
     | AttributeType({identifier: Identifier.t, operand: operand})
     | BeginsWith({identifier: Identifier.t, operand: operand})
     | Contains({identifier: Identifier.t, operand: operand})
+    // alias for contains where the order of the arguments is reversed
+    | ToContains({identifier: Identifier.t, operand: operand})
 
   module Maker = {
     let equals = (lhs, rhs) => Comparison({lhs, comparator: Equals, rhs})
@@ -338,6 +340,7 @@ module Condition = {
     let attributeType = (identifier, operand) => AttributeType({identifier, operand})
     let beginsWith = (identifier, operand) => BeginsWith({identifier, operand})
     let contains = (identifier, operand) => Contains({identifier, operand})
+    let toContains = (identifier, operand) => ToContains({identifier, operand})
     let \"and" = (lhs, rhs) => And({lhs, rhs})
     let or = (lhs, rhs) => Or({lhs, rhs})
     let not = condition => Not({condition: condition})
@@ -387,6 +390,8 @@ module Condition = {
         `begins_with(${Identifier.toString(identifier, register)}, ${opString(operand)})`
       | Contains({identifier, operand}) =>
         `contains(${Identifier.toString(identifier, register)}, ${opString(operand)})`
+      | ToContains({identifier, operand}) =>
+        `contains(${opString(operand)}, ${Identifier.toString(identifier, register)})`
       }
     and opString = operand =>
       switch operand {
