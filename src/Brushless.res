@@ -462,9 +462,9 @@ module KeyCondition = {
       | Between({name, limits}) =>
         ` AND ${AttributeName.toString(
             Register.addName(register, name),
-          )} BETWEEN ${AttributeValue.toString(limits.lower)} AND ${AttributeValue.toString(
-            limits.upper,
-          )}`
+          )} BETWEEN ${AttributeValue.toString(
+            Register.addValue(register, limits.lower),
+          )} AND ${AttributeValue.toString(Register.addValue(register, limits.upper))}`
       | BeginsWith({name, value}) =>
         ` AND begins_with(${AttributeName.toString(
             Register.addName(register, name),
