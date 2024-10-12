@@ -698,7 +698,7 @@ function skConditionToString(skCondition, register) {
         return " AND " + toString(addName(register, skCondition.name)) + " " + skCondition.comparator + " " + toString$1(addValue(register, skCondition.value));
     case "Between" :
         var limits = skCondition.limits;
-        return " AND " + toString(addName(register, skCondition.name)) + " BETWEEN " + toString$1(limits.lower) + " AND " + toString$1(limits.upper);
+        return " AND " + toString(addName(register, skCondition.name)) + " BETWEEN " + toString$1(addValue(register, limits.lower)) + " AND " + toString$1(addValue(register, limits.upper));
     case "BeginsWith" :
         return " AND begins_with(" + toString(addName(register, skCondition.name)) + ", " + toString$1(addValue(register, skCondition.value)) + ")";
     
