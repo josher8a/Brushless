@@ -2,7 +2,19 @@
   "name": "brushless",
   "version": "0.1.4",
   "description": "DynamoDB utils lib write in Rescript and Typescript",
-  "main": "src/Brushless.bs.js",
+  "main": "dist/index.cjs",
+  "types": "dist/index.d.ts",
+  "module": "dist/index.js",
+  "exports": {
+    "import": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "require": {
+      "types": "./dist/index.d.cts",
+      "require": "./dist/index.cjs"
+    }
+  },
   "keywords": [
     "AWS",
     "Dynamodb",
@@ -19,6 +31,7 @@
   },
   "homepage": "https://github.com/josher8a/brushless",
   "scripts": {
+    "build": "tsup",
     "res:build": "rescript",
     "res:clean": "rescript clean",
     "res:dev": "rescript build -w",
@@ -37,6 +50,7 @@
     "@types/node": "^18.11.9",
     "bun": "^1.1.34",
     "rescript": "12.0.0-alpha.4",
-    "typescript": "^5.6.3"
+    "typescript": "^5.6.3",
+    "tsup": "^8.3.5"
   }
 }
