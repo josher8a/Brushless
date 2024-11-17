@@ -1,3 +1,4 @@
+import {describe, it, expect} from 'bun:test';
 import { Condition, AttributePath } from "./Brushless.bs";
 const {
     equals,
