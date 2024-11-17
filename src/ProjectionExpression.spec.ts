@@ -1,3 +1,4 @@
+import {describe, it, expect} from 'bun:test';
 import { AttributeName, AttributePath, Register, Projection } from "./Brushless.bs";
 
 describe('ProjectionExpression', () => {

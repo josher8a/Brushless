@@ -1,3 +1,4 @@
+import {describe, it, expect} from 'bun:test';
 import { Register , AttributeName, AttributeValue, Update} from "./Brushless.bs";
 import * as Marshaller from "@aws-sdk/util-dynamodb"
 
