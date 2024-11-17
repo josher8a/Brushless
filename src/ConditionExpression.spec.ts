@@ -1,4 +1,6 @@
 import { Condition, Attribute } from "./Brushless.bs";
+import {describe, it, expect} from 'bun:test';
+
 const {
     equals,
     notEquals,

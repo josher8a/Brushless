@@ -1,4 +1,5 @@
 import {Attribute} from './Brushless.bs';
+import {describe, it, expect} from 'bun:test';
 
 describe('Attribute.Path', () => {
     it('should convert a string path to a list of elements', () => {

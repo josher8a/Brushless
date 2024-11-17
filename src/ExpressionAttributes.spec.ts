@@ -1,4 +1,6 @@
 import { Attribute } from './Brushless.bs';
+import {describe, it, expect} from 'bun:test';
+
 describe('ExpressionAttributes', () => {
     describe('#addName', () => {
         it('should provide expression-safe aliases for names', () => {

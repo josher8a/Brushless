@@ -1,4 +1,5 @@
 import { Register , Attribute, Update} from "./Brushless.bs";
+import {describe, it, expect} from 'bun:test';
 import * as Marshaller from "@aws-sdk/util-dynamodb"
 
 const DefaultMarshaller = {

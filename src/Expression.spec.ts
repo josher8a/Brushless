@@ -1,4 +1,5 @@
 import { Attribute, Register, Condition, KeyCondition, C, K, U, P } from './Brushless.bs';
+import {describe, it, expect} from 'bun:test';
 import * as DynamoDB from '@aws-sdk/client-dynamodb'
 
 describe('Expression', () => {

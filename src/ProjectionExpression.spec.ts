@@ -1,4 +1,5 @@
 import { Attribute, Register, Projection } from "./Brushless.bs";
+import {describe, it, expect} from 'bun:test';
 
 describe('ProjectionExpression', () => {
     it('should allow the addition of scalar values', () => {
