@@ -1,3 +1,4 @@
+import {describe, it, expect} from 'bun:test';
 import { AttributeName, AttributePath, AttributeValue, Register, Condition, KeyCondition, C, K, U, P } from './Brushless.bs';
 import * as DynamoDB from '@aws-sdk/client-dynamodb'
 
