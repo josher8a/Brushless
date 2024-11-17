@@ -1,3 +1,4 @@
+import {describe, it, expect} from 'bun:test';
 import { AttributePath, AttributeName, AttributeValue } from './Brushless.bs';
 describe('ExpressionAttributes', () => {
     describe('#addName', () => {
