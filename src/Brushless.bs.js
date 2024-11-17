@@ -24,120 +24,119 @@ function equal(a, b, eq) {
   }
 }
 
-var Undefinable = {
+let Undefinable = {
   getOr: getOr,
   equal: equal
 };
 
 function make(x) {
   return {
-          TAG: "AttributeValue",
-          value: x.value,
-          alias: x.alias
-        };
+    TAG: "AttributeValue",
+    value: x.value,
+    alias: x.alias
+  };
 }
 
 function toTagged(param) {
   return ":" + param.alias;
 }
 
-var Value = {
+let Value = {
   make: make,
   toTagged: toTagged
 };
 
 function fromString(str) {
-  var str$1 = str.trim();
-  var start = 0;
-  var state = 4;
-  var path = [];
-  var pullPush = function (start, end, isIndex) {
-    var word = str$1.slice(start, end);
+  let str$1 = str.trim();
+  let start = 0;
+  let state = 4;
+  let path = [];
+  let pullPush = (start, end, isIndex) => {
+    let word = str$1.slice(start, end);
     if (isIndex === true) {
-      var x = parseInt(word);
-      var tmp;
+      let x = parseInt(word);
+      let tmp;
       if (!isNaN(x) && x >= 0) {
         tmp = x;
       } else {
         throw new Error("InvalidIndex: " + word);
       }
       path.push({
-            TAG: "Index",
-            index: tmp
-          });
-      return ;
+        TAG: "Index",
+        index: tmp
+      });
+      return;
     }
-    var name = word.trim().replaceAll("-", "_");
+    let name = word.trim().replaceAll("-", "_");
     if (name.length === 0 || name.includes(" ") || name.includes(".")) {
       throw new Error("InvalidPath");
     }
     path.push({
-          TAG: "Name",
-          name: name
-        });
+      TAG: "Name",
+      name: name
+    });
   };
-  for(var i = 0 ,i_finish = str$1.length; i < i_finish; ++i){
-    var match = str$1[i];
-    var match$1 = state;
+  for (let i = 0, i_finish = str$1.length; i < i_finish; ++i) {
+    let match = str$1[i];
+    let match$1 = state;
     if (match !== undefined) {
-      var exit = 0;
+      let exit = 0;
       switch (match) {
         case "." :
-            switch (match$1) {
-              case 1 :
-                  state = 0;
-                  break;
-              case 4 :
-                  pullPush(start, i, undefined);
-                  state = 0;
-                  break;
-              default:
-                exit = 1;
-            }
-            break;
+          switch (match$1) {
+            case 1 :
+              state = 0;
+              break;
+            case 4 :
+              pullPush(start, i, undefined);
+              state = 0;
+              break;
+            default:
+              exit = 1;
+          }
+          break;
         case "[" :
-            switch (match$1) {
-              case 1 :
-                  state = 2;
-                  break;
-              case 4 :
-                  pullPush(start, i, undefined);
-                  state = 2;
-                  break;
-              default:
-                exit = 1;
-            }
-            break;
+          switch (match$1) {
+            case 1 :
+              state = 2;
+              break;
+            case 4 :
+              pullPush(start, i, undefined);
+              state = 2;
+              break;
+            default:
+              exit = 1;
+          }
+          break;
         case "]" :
-            if (match$1 === 3) {
-              pullPush(start, i, true);
-              state = 1;
-            } else {
-              throw new Error("InvalidPath");
-            }
-            break;
+          if (match$1 === 3) {
+            pullPush(start, i, true);
+            state = 1;
+          } else {
+            throw new Error("InvalidPath");
+          }
+          break;
         default:
           exit = 1;
       }
       if (exit === 1) {
         switch (match$1) {
           case 0 :
-              start = i;
-              state = 4;
-              break;
+            start = i;
+            state = 4;
+            break;
           case 1 :
-              if (match.trim().length !== 0) {
-                throw new Error("InvalidPath");
-              }
-              break;
+            if (match.trim().length !== 0) {
+              throw new Error("InvalidPath");
+            }
+            break;
           case 2 :
-              start = i;
-              state = 3;
-              break;
+            start = i;
+            state = 3;
+            break;
           case 3 :
           case 4 :
-              break;
-          
+            break;
         }
       }
       
@@ -151,14 +150,14 @@ function fromString(str) {
   if (state === 4) {
     pullPush(start, str$1.length, undefined);
   }
-  var match$2 = path.shift();
+  let match$2 = path.shift();
   if (match$2 !== undefined) {
     if (match$2.TAG === "Name") {
       return {
-              TAG: "AttributePath",
-              name: match$2.name,
-              subpath: path
-            };
+        TAG: "AttributePath",
+        name: match$2.name,
+        subpath: path
+      };
     }
     throw new Error("InvalidPath");
   }
@@ -173,101 +172,81 @@ function nametoTagged(name) {
 }
 
 function toString(param) {
-  return param.subpath.reduce((function (acc, subs) {
-                if (subs.TAG === "Name") {
-                  return acc + "." + nametoTagged(subs.name);
-                } else {
-                  return acc + "[" + String(subs.index) + "]";
-                }
-              }), nametoTagged(param.name));
+  return param.subpath.reduce((acc, subs) => {
+    if (subs.TAG === "Name") {
+      return acc + "." + nametoTagged(subs.name);
+    } else {
+      return acc + "[" + subs.index.toString() + "]";
+    }
+  }, nametoTagged(param.name));
 }
 
-var Path = {
+let Path = {
   fromString: fromString,
   nametoTagged: nametoTagged,
   toString: toString
 };
 
-var Attribute = {
+let Attribute = {
   Value: Value,
   Path: Path
 };
 
 function make$1() {
   return {
-          names: undefined,
-          values: undefined
-        };
+    names: undefined,
+    values: undefined
+  };
 }
 
 function isValueEqual(a, b) {
   return [
-            equal(a.S, b.S, (function (x, y) {
-                    return x === y;
-                  })),
-            equal(a.N, b.N, (function (x, y) {
-                    return x === y;
-                  })),
-            equal(a.NULL, b.NULL, (function (x, y) {
-                    return x === y;
-                  })),
-            equal(a.BOOL, b.BOOL, (function (x, y) {
-                    return x === y;
-                  })),
-            equal(a.SS, b.SS, (function (x, y) {
-                    return x.every(function (v) {
-                                return y.includes(v);
-                              });
-                  })),
-            equal(a.NS, b.NS, (function (x, y) {
-                    return x.every(function (v) {
-                                return y.includes(v);
-                              });
-                  })),
-            equal(a.L, b.L, (function (x, y) {
-                    return x.every(function (v, i) {
-                                var y$1 = y[i];
-                                if (y$1 === undefined) {
-                                  return false;
-                                } else {
-                                  return isValueEqual(v, y$1);
-                                }
-                              });
-                  })),
-            equal(a.M, b.M, (function (x, y) {
-                    var keys = Object.entries(x);
-                    if (keys.length === Object.keys(y).length) {
-                      return keys.every(function (param) {
-                                  var y$1 = y[param[0]];
-                                  if (y$1 === undefined) {
-                                    return false;
-                                  } else {
-                                    return isValueEqual(param[1], y$1);
-                                  }
-                                });
-                    } else {
-                      return false;
-                    }
-                  }))
-          ].some(function (x) {
-              return x;
-            });
+    equal(a.S, b.S, (x, y) => x === y),
+    equal(a.N, b.N, (x, y) => x === y),
+    equal(a.NULL, b.NULL, (x, y) => x === y),
+    equal(a.BOOL, b.BOOL, (x, y) => x === y),
+    equal(a.SS, b.SS, (x, y) => x.every(v => y.includes(v))),
+    equal(a.NS, b.NS, (x, y) => x.every(v => y.includes(v))),
+    equal(a.L, b.L, (x, y) => x.every((v, i) => {
+      let y$1 = y[i];
+      if (y$1 === undefined) {
+        return false;
+      } else {
+        return isValueEqual(v, y$1);
+      }
+    })),
+    equal(a.M, b.M, (x, y) => {
+      let keys = Object.entries(x);
+      if (keys.length === Object.keys(y).length) {
+        return keys.every(param => {
+          let y$1 = y[param[0]];
+          if (y$1 === undefined) {
+            return false;
+          } else {
+            return isValueEqual(param[1], y$1);
+          }
+        });
+      } else {
+        return false;
+      }
+    })
+  ].some(x => x);
 }
 
 function addValue(register, _element) {
-  while(true) {
-    var element = _element;
-    var value = element.value;
-    var key = toTagged(element);
-    var dict = getOr(register.values, {});
-    var exist = dict[key];
+  while (true) {
+    let element = _element;
+    let value = element.value;
+    let key = toTagged(element);
+    let dict = getOr(register.values, {});
+    let exist = dict[key];
     if (exist !== undefined && exist !== value && !isValueEqual(exist, value)) {
       _element = {
         TAG: "AttributeValue",
         value: value,
         alias: element.alias + "_"
       };
-      continue ;
+      continue;
     }
     dict[key] = value;
     register.values = dict;
@@ -276,21 +255,21 @@ function addValue(register, _element) {
 }
 
 function addPath(register, element) {
-  var name = element.name;
-  var dict = getOr(register.names, {});
+  let name = element.name;
+  let dict = getOr(register.names, {});
   dict[nametoTagged(name)] = name;
-  element.subpath.forEach(function (sub) {
-        if (sub.TAG !== "Name") {
-          return ;
-        }
-        var name = sub.name;
-        dict[nametoTagged(name)] = name;
-      });
+  element.subpath.forEach(sub => {
+    if (sub.TAG !== "Name") {
+      return;
+    }
+    let name = sub.name;
+    dict[nametoTagged(name)] = name;
+  });
   register.names = dict;
   return toString(element);
 }
 
-var Register = {
+let Register = {
   make: make$1,
   addValue: addValue,
   addPath: addPath
@@ -298,151 +277,151 @@ var Register = {
 
 function equals(lhs, rhs) {
   return {
-          TAG: "Comparison",
-          lhs: lhs,
-          comparator: "=",
-          rhs: rhs
-        };
+    TAG: "Comparison",
+    lhs: lhs,
+    comparator: "=",
+    rhs: rhs
+  };
 }
 
 function notEquals(lhs, rhs) {
   return {
-          TAG: "Comparison",
-          lhs: lhs,
-          comparator: "<>",
-          rhs: rhs
-        };
+    TAG: "Comparison",
+    lhs: lhs,
+    comparator: "<>",
+    rhs: rhs
+  };
 }
 
 function lessThan(lhs, rhs) {
   return {
-          TAG: "Comparison",
-          lhs: lhs,
-          comparator: "<",
-          rhs: rhs
-        };
+    TAG: "Comparison",
+    lhs: lhs,
+    comparator: "<",
+    rhs: rhs
+  };
 }
 
 function lessThanOrEqualTo(lhs, rhs) {
   return {
-          TAG: "Comparison",
-          lhs: lhs,
-          comparator: "<=",
-          rhs: rhs
-        };
+    TAG: "Comparison",
+    lhs: lhs,
+    comparator: "<=",
+    rhs: rhs
+  };
 }
 
 function greaterThan(lhs, rhs) {
   return {
-          TAG: "Comparison",
-          lhs: lhs,
-          comparator: ">",
-          rhs: rhs
-        };
+    TAG: "Comparison",
+    lhs: lhs,
+    comparator: ">",
+    rhs: rhs
+  };
 }
 
 function greaterThanOrEqualTo(lhs, rhs) {
   return {
-          TAG: "Comparison",
-          lhs: lhs,
-          comparator: ">=",
-          rhs: rhs
-        };
+    TAG: "Comparison",
+    lhs: lhs,
+    comparator: ">=",
+    rhs: rhs
+  };
 }
 
 function between(operand, limits) {
   return {
-          TAG: "Between",
-          operand: operand,
-          limits: limits
-        };
+    TAG: "Between",
+    operand: operand,
+    limits: limits
+  };
 }
 
 function inList(operand, list) {
   return {
-          TAG: "In",
-          operand: operand,
-          list: list
-        };
+    TAG: "In",
+    operand: operand,
+    list: list
+  };
 }
 
 function attributeExists(name) {
   return {
-          TAG: "AttributeExists",
-          name: name
-        };
+    TAG: "AttributeExists",
+    name: name
+  };
 }
 
 function attributeNotExists(name) {
   return {
-          TAG: "AttributeNotExists",
-          name: name
-        };
+    TAG: "AttributeNotExists",
+    name: name
+  };
 }
 
 function attributeType(name, operand) {
   return {
-          TAG: "AttributeType",
-          name: name,
-          operand: operand
-        };
+    TAG: "AttributeType",
+    name: name,
+    operand: operand
+  };
 }
 
 function beginsWith(name, operand) {
   return {
-          TAG: "BeginsWith",
-          name: name,
-          operand: operand
-        };
+    TAG: "BeginsWith",
+    name: name,
+    operand: operand
+  };
 }
 
 function contains(name, operand) {
   return {
-          TAG: "Contains",
-          name: name,
-          operand: operand
-        };
+    TAG: "Contains",
+    name: name,
+    operand: operand
+  };
 }
 
 function toContains(name, operand) {
   return {
-          TAG: "ToContains",
-          name: name,
-          operand: operand
-        };
+    TAG: "ToContains",
+    name: name,
+    operand: operand
+  };
 }
 
 function and(lhs, rhs) {
   return {
-          TAG: "And",
-          lhs: lhs,
-          rhs: rhs
-        };
+    TAG: "And",
+    lhs: lhs,
+    rhs: rhs
+  };
 }
 
 function or(lhs, rhs) {
   return {
-          TAG: "Or",
-          lhs: lhs,
-          rhs: rhs
-        };
+    TAG: "Or",
+    lhs: lhs,
+    rhs: rhs
+  };
 }
 
 function not(condition) {
   return {
-          TAG: "Not",
-          condition: condition
-        };
+    TAG: "Not",
+    condition: condition
+  };
 }
 
 function size(operand) {
   return {
-          TAG: "Size",
-          operand: operand
-        };
+    TAG: "Size",
+    operand: operand
+  };
 }
 
-var Maker = {
+let Maker = {
   equals: equals,
   notEquals: notEquals,
   lessThan: lessThan,
@@ -463,7 +442,7 @@ var Maker = {
   size: size
 };
 
-var Overload = {
+let Overload = {
   $amp$amp: and,
   $pipe$pipe: or,
   not: not,
@@ -476,59 +455,57 @@ var Overload = {
 };
 
 function build(condition, register) {
-  var add = function (condition) {
+  let add = condition => {
     switch (condition.TAG) {
       case "Comparison" :
-          return opString(condition.lhs) + " " + condition.comparator + " " + opString(condition.rhs);
+        return opString(condition.lhs) + " " + condition.comparator + " " + opString(condition.rhs);
       case "Between" :
-          var limits = condition.limits;
-          return opString(condition.operand) + " BETWEEN " + opString(limits.lower) + " AND " + opString(limits.upper);
+        let limits = condition.limits;
+        return opString(condition.operand) + " BETWEEN " + opString(limits.lower) + " AND " + opString(limits.upper);
       case "In" :
-          return opString(condition.operand) + " IN (" + condition.list.map(opString).join(", ") + ")";
+        return opString(condition.operand) + " IN (" + condition.list.map(opString).join(", ") + ")";
       case "And" :
-          return "(" + add(condition.lhs) + ") AND (" + add(condition.rhs) + ")";
+        return "(" + add(condition.lhs) + ") AND (" + add(condition.rhs) + ")";
       case "Or" :
-          return "(" + add(condition.lhs) + ") OR (" + add(condition.rhs) + ")";
+        return "(" + add(condition.lhs) + ") OR (" + add(condition.rhs) + ")";
       case "Not" :
-          return "NOT (" + add(condition.condition) + ")";
+        return "NOT (" + add(condition.condition) + ")";
       case "AttributeExists" :
-          return "attribute_exists(" + addPath(register, condition.name) + ")})";
+        return "attribute_exists(" + addPath(register, condition.name) + ")})";
       case "AttributeNotExists" :
-          return "attribute_not_exists(" + addPath(register, condition.name) + ")})";
+        return "attribute_not_exists(" + addPath(register, condition.name) + ")})";
       case "AttributeType" :
-          return "attribute_type(" + addPath(register, condition.name) + ")}, " + opString(condition.operand) + ")";
+        return "attribute_type(" + addPath(register, condition.name) + ")}, " + opString(condition.operand) + ")";
       case "BeginsWith" :
-          return "begins_with(" + addPath(register, condition.name) + ")}, " + opString(condition.operand) + ")";
+        return "begins_with(" + addPath(register, condition.name) + ")}, " + opString(condition.operand) + ")";
       case "Contains" :
-          return "contains(" + addPath(register, condition.name) + ")}, " + opString(condition.operand) + ")";
+        return "contains(" + addPath(register, condition.name) + ")}, " + opString(condition.operand) + ")";
       case "ToContains" :
-          return "contains(" + opString(condition.operand) + ", " + addPath(register, condition.name) + ")})";
-      
+        return "contains(" + opString(condition.operand) + ", " + addPath(register, condition.name) + ")})";
     }
   };
-  var opString = function (operand) {
+  let opString = operand => {
     switch (operand.TAG) {
       case "AttributeValue" :
-          return addValue(register, {
-                      TAG: "AttributeValue",
-                      value: operand.value,
-                      alias: operand.alias
-                    });
+        return addValue(register, {
+          TAG: "AttributeValue",
+          value: operand.value,
+          alias: operand.alias
+        });
       case "AttributePath" :
-          return addPath(register, {
-                      TAG: "AttributePath",
-                      name: operand.name,
-                      subpath: operand.subpath
-                    });
+        return addPath(register, {
+          TAG: "AttributePath",
+          name: operand.name,
+          subpath: operand.subpath
+        });
       case "Size" :
-          return "size(" + opString(operand.operand) + ")";
-      
+        return "size(" + opString(operand.operand) + ")";
     }
   };
   return add(condition);
 }
 
-var Condition = {
+let Condition = {
   Maker: Maker,
   equals: equals,
   notEquals: notEquals,
@@ -553,86 +530,84 @@ var Condition = {
 };
 
 function build$1(projection, register) {
-  return projection.map(function (__x) {
-                return addPath(register, __x);
-              }).join(", ");
+  return projection.map(__x => addPath(register, __x)).join(", ");
 }
 
-var Projection = {
+let Projection = {
   build: build$1
 };
 
 function equals$1(name, value) {
   return {
-          TAG: "Comparison",
-          name: name,
-          comparator: "=",
-          value: value
-        };
+    TAG: "Comparison",
+    name: name,
+    comparator: "=",
+    value: value
+  };
 }
 
 function notEquals$1(name, value) {
   return {
-          TAG: "Comparison",
-          name: name,
-          comparator: "<>",
-          value: value
-        };
+    TAG: "Comparison",
+    name: name,
+    comparator: "<>",
+    value: value
+  };
 }
 
 function lessThan$1(name, value) {
   return {
-          TAG: "Comparison",
-          name: name,
-          comparator: "<",
-          value: value
-        };
+    TAG: "Comparison",
+    name: name,
+    comparator: "<",
+    value: value
+  };
 }
 
 function lessThanOrEqualTo$1(name, value) {
   return {
-          TAG: "Comparison",
-          name: name,
-          comparator: "<=",
-          value: value
-        };
+    TAG: "Comparison",
+    name: name,
+    comparator: "<=",
+    value: value
+  };
 }
 
 function greaterThan$1(name, value) {
   return {
-          TAG: "Comparison",
-          name: name,
-          comparator: ">",
-          value: value
-        };
+    TAG: "Comparison",
+    name: name,
+    comparator: ">",
+    value: value
+  };
 }
 
 function greaterThanOrEqualTo$1(name, value) {
   return {
-          TAG: "Comparison",
-          name: name,
-          comparator: ">=",
-          value: value
-        };
+    TAG: "Comparison",
+    name: name,
+    comparator: ">=",
+    value: value
+  };
 }
 
 function between$1(name, limits) {
   return {
-          TAG: "Between",
-          name: name,
-          limits: limits
-        };
+    TAG: "Between",
+    name: name,
+    limits: limits
+  };
 }
 
 function beginsWith$1(name, value) {
   return {
-          TAG: "BeginsWith",
-          name: name,
-          value: value
-        };
+    TAG: "BeginsWith",
+    name: name,
+    value: value
+  };
 }
 
-var Maker$1 = {
+let Maker$1 = {
   equals: equals$1,
   notEquals: notEquals$1,
   lessThan: lessThan$1,
@@ -650,13 +625,12 @@ function skConditionToString(skCondition, register) {
   }
   switch (skCondition.TAG) {
     case "Comparison" :
-        return " AND " + addPath(register, skCondition.name) + " " + skCondition.comparator + " " + addValue(register, skCondition.value);
+      return " AND " + addPath(register, skCondition.name) + " " + skCondition.comparator + " " + addValue(register, skCondition.value);
     case "Between" :
-        var limits = skCondition.limits;
-        return " AND " + addPath(register, skCondition.name) + " BETWEEN " + addValue(register, limits.lower) + " AND " + addValue(register, limits.upper);
+      let limits = skCondition.limits;
+      return " AND " + addPath(register, skCondition.name) + " BETWEEN " + addValue(register, limits.lower) + " AND " + addValue(register, limits.upper);
     case "BeginsWith" :
-        return " AND begins_with(" + addPath(register, skCondition.name) + ", " + addValue(register, skCondition.value) + ")";
-    
+      return " AND begins_with(" + addPath(register, skCondition.name) + ", " + addValue(register, skCondition.value) + ")";
   }
 }
 
@@ -664,7 +638,7 @@ function build$2(keyCondition, register) {
   return addPath(register, keyCondition.pk.name) + " = " + addValue(register, keyCondition.pk.value) + skConditionToString(keyCondition.sk, register);
 }
 
-var KeyCondition = {
+let KeyCondition = {
   Maker: Maker$1,
   equals: equals$1,
   notEquals: notEquals$1,
@@ -680,37 +654,37 @@ var KeyCondition = {
 
 function listAppend(name, operand) {
   return {
-          TAG: "ListAppend",
-          name: name,
-          operand: operand
-        };
+    TAG: "ListAppend",
+    name: name,
+    operand: operand
+  };
 }
 
 function ifNotExists(name, operand) {
   return {
-          TAG: "IfNotExists",
-          name: name,
-          operand: operand
-        };
+    TAG: "IfNotExists",
+    name: name,
+    operand: operand
+  };
 }
 
 function sum(lhs, rhs) {
   return {
-          TAG: "Sum",
-          lhs: lhs,
-          rhs: rhs
-        };
+    TAG: "Sum",
+    lhs: lhs,
+    rhs: rhs
+  };
 }
 
 function sub(lhs, rhs) {
   return {
-          TAG: "Sub",
-          lhs: lhs,
-          rhs: rhs
-        };
+    TAG: "Sub",
+    lhs: lhs,
+    rhs: rhs
+  };
 }
 
-var Maker$2 = {
+let Maker$2 = {
   listAppend: listAppend,
   ifNotExists: ifNotExists,
   sum: sum,
@@ -720,58 +694,49 @@ var Maker$2 = {
 function addOperand(operand, register) {
   switch (operand.TAG) {
     case "AttributeValue" :
-        return addValue(register, {
-                    TAG: "AttributeValue",
-                    value: operand.value,
-                    alias: operand.alias
-                  });
+      return addValue(register, {
+        TAG: "AttributeValue",
+        value: operand.value,
+        alias: operand.alias
+      });
     case "AttributePath" :
-        return addPath(register, {
-                    TAG: "AttributePath",
-                    name: operand.name,
-                    subpath: operand.subpath
-                  });
+      return addPath(register, {
+        TAG: "AttributePath",
+        name: operand.name,
+        subpath: operand.subpath
+      });
     case "ListAppend" :
-        return "list_append(" + addOperand(operand.name, register) + ", " + addOperand(operand.operand, register) + ")";
+      return "list_append(" + addOperand(operand.name, register) + ", " + addOperand(operand.operand, register) + ")";
     case "IfNotExists" :
-        return "if_not_exists(" + addOperand(operand.name, register) + ", " + addOperand(operand.operand, register) + ")";
+      return "if_not_exists(" + addOperand(operand.name, register) + ", " + addOperand(operand.operand, register) + ")";
     case "Sum" :
-        return addOperand(operand.lhs, register) + " + " + addOperand(operand.rhs, register);
+      return addOperand(operand.lhs, register) + " + " + addOperand(operand.rhs, register);
     case "Sub" :
-        return addOperand(operand.lhs, register) + " - " + addOperand(operand.rhs, register);
-    
+      return addOperand(operand.lhs, register) + " - " + addOperand(operand.rhs, register);
   }
 }
 
 function build$3(update, register) {
-  var acc = [];
-  var pushIfNotEmpty = function (arr, tag, fn) {
+  let acc = [];
+  let pushIfNotEmpty = (arr, tag, fn) => {
     if (arr !== undefined && arr.length > 0) {
       acc.push(tag);
       acc.push(arr.map(fn).join(", "));
-      return ;
+      return;
     }
     
   };
-  pushIfNotEmpty(update.add, "ADD", (function (param) {
-          return addPath(register, param[0]) + " " + addValue(register, param[1]);
-        }));
-  pushIfNotEmpty(update.delete, "DELETE", (function (param) {
-          return addPath(register, param[0]) + " " + addValue(register, param[1]);
-        }));
-  pushIfNotEmpty(update.set, "SET", (function (param) {
-          return addPath(register, param[0]) + " = " + addOperand(param[1], register);
-        }));
-  pushIfNotEmpty(update.remove, "REMOVE", (function (__x) {
-          return addPath(register, __x);
-        }));
+  pushIfNotEmpty(update.add, "ADD", param => addPath(register, param[0]) + " " + addValue(register, param[1]));
+  pushIfNotEmpty(update.delete, "DELETE", param => addPath(register, param[0]) + " " + addValue(register, param[1]));
+  pushIfNotEmpty(update.set, "SET", param => addPath(register, param[0]) + " = " + addOperand(param[1], register));
+  pushIfNotEmpty(update.remove, "REMOVE", __x => addPath(register, __x));
   if (acc.length === 0) {
     throw new Error("EmptyUpdate");
   }
   return acc.join(" ").trim();
 }
 
-var Update = {
+let Update = {
   Maker: Maker$2,
   listAppend: listAppend,
   ifNotExists: ifNotExists,
@@ -780,7 +745,7 @@ var Update = {
   build: build$3
 };
 
-var U = {
+let U = {
   Maker: Maker$2,
   listAppend: listAppend,
   ifNotExists: ifNotExists,
@@ -789,7 +754,7 @@ var U = {
   build: build$3
 };
 
-var C = {
+let C = {
   Maker: Maker,
   equals: equals,
   notEquals: notEquals,
@@ -813,7 +778,7 @@ var C = {
   build: build
 };
 
-var K = {
+let K = {
   Maker: Maker$1,
   equals: equals$1,
   notEquals: notEquals$1,
@@ -827,11 +792,11 @@ var K = {
   build: build$2
 };
 
-var P = {
+let P = {
   build: build$1
 };
 
-var A = {
+let A = {
   Value: Value,
   Path: Path
 };

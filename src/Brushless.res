@@ -80,7 +80,7 @@ module Attribute = {
         | _ => throwError("InvalidIndex: " ++ index)
         }
     )
-    external \"~+": ref<'a> => 'a = "%bs_ref_field0"
+    external \"~+": ref<'a> => 'a = "%refget"
 
     type parserState =
       | @as(0) JustAfterDot
@@ -168,7 +168,7 @@ module Attribute = {
       subpath->reduce((acc, subs) =>
         switch subs {
         | Name({name}) => `${acc}.${nametoTagged(name)}`
-        | Index({index}) => `${acc}[${string_of_int(index)}]`
+        | Index({index}) => `${acc}[${Int.toString(index)}]`
         }
       , nametoTagged(name))
     }
