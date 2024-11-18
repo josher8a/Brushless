@@ -15,21 +15,7 @@ module Undefinable = {
     | @as(undefined) Undefined
 
   external undefined: t<'a> = "#undefined"
-
-  external make: 'a => t<'a> = "%identity"
-
-  let getOr = (value, default) =>
-    switch value {
-    | Value(x) => x
-    | Undefined => default
-    }
-  let equal = (a, b, eq) =>
-    switch (a, b) {
-    | (Value(a), Value(b)) => eq(a, b)
-    | (Undefined, Undefined) => true
-    | (Undefined, Value(_)) | (Value(_), Undefined) => false
-    }
-  external fromOptionUnsafe: option<'a> => t<'a> = "%identity"
+  external castOption: option<'a> => t<'a> = "%identity"
 }
 
 // TODO: Move to external binding
@@ -177,58 +163,87 @@ module Attribute = {
 @genType
 module Register = {
   type t = {
-    mutable names: Undefinable.t<dict<string>>,
-    mutable values: Undefinable.t<dict<attributeValue>>,
+    mutable names: option<dict<string>>,
+    mutable values: option<dict<attributeValue>>,
   }
 
-  let make = () => {names: Undefinable.undefined, values: Undefinable.undefined}
+  let make = () => {names: None, values: None}
 
   @genType.opaque
   type uint8Array = Js_typed_array2.Uint8Array.t
   @genType.opaque
   type rec attributeValue_ = {
-    "S": Undefinable.t<string>,
-    "N": Undefinable.t<string>,
-    "B": Undefinable.t<uint8Array>,
-    "SS": Undefinable.t<array<string>>,
-    "NS": Undefinable.t<array<string>>,
-    "BS": Undefinable.t<array<uint8Array>>,
-    "M": Undefinable.t<dict<attributeValue_>>,
-    "L": Undefinable.t<array<attributeValue_>>,
-    "NULL": Undefinable.t<bool>,
-    "BOOL": Undefinable.t<bool>,
+    "S": option<string>,
+    "N": option<string>,
+    "B": option<uint8Array>,
+    "SS": option<array<string>>,
+    "NS": option<array<string>>,
+    "BS": option<array<uint8Array>>,
+    "M": option<dict<attributeValue_>>,
+    "L": option<array<attributeValue_>>,
+    "NULL": option<bool>,
+    "BOOL": option<bool>,
   }
 
   %%private(
     external cast: attributeValue => attributeValue_ = "%identity"
 
-    let rec isValueEqual = (a: attributeValue_, b: attributeValue_) =>
-      [
-        Undefinable.equal(a["S"], b["S"], (x, y) => x === y),
-        Undefinable.equal(a["N"], b["N"], (x, y) => x === y),
-        Undefinable.equal(a["NULL"], b["NULL"], (x, y) => x === y),
-        Undefinable.equal(a["BOOL"], b["BOOL"], (x, y) => x === y),
-        Undefinable.equal(a["SS"], b["SS"], (x, y) => Array.every(x, v => Array.includes(y, v))),
-        Undefinable.equal(a["NS"], b["NS"], (x, y) => Array.every(x, v => Array.includes(y, v))),
-        Undefinable.equal(a["L"], b["L"], (x, y) =>
+    let rec isValueEqual = (a: attributeValue_, b: attributeValue_) => {
+      if a["S"] === b["S"] {
+        true
+      } else if a["N"] === b["N"] {
+        true
+      } else if a["NULL"] === b["NULL"] {
+        true
+      } else if a["BOOL"] === b["BOOL"] {
+        true
+      } else if (
+        switch (a["SS"], b["SS"]) {
+        | (Some(a), Some(b)) => Array.every(a, v => Array.includes(b, v))
+        | (a, b) => a === b
+        }
+      ) {
+        true
+      } else if (
+        switch (a["NS"], b["NS"]) {
+        | (Some(a), Some(b)) => Array.every(a, v => Array.includes(b, v))
+        | (a, b) => a === b
+        }
+      ) {
+        true
+      } else if (
+        switch (a["L"], b["L"]) {
+        | (Some(x), Some(y)) =>
           Array.everyWithIndex(x, (v, i) =>
-            switch y[i]->Undefinable.fromOptionUnsafe {
+            switch y[i]->Undefinable.castOption {
             | Value(y) => isValueEqual(v, y)
             | Undefined => false
             }
           )
-        ),
-        Undefinable.equal(a["M"], b["M"], (x, y) => {
-          let keys = x->Dict.toArray
-          keys->Array.length === y->Dict.keysToArray->Array.length &&
-            keys->Array.every(((key, x)) =>
-              switch Dict.get(y, key)->Undefinable.fromOptionUnsafe {
-              | Value(y) => isValueEqual(x, y)
-              | Undefined => false
-              }
-            )
-        }),
-      ]->Array.some(x => x)
+        | (a, b) => a === b
+        }
+      ) {
+        true
+      } else if (
+        switch (a["M"], b["M"]) {
+        | (Some(x), Some(y)) => {
+            let keys = x->Dict.toArray
+            keys->Array.length === y->Dict.keysToArray->Array.length &&
+              keys->Array.every(((key, x)) =>
+                switch Dict.get(y, key)->Undefinable.castOption {
+                | Value(y) => isValueEqual(x, y)
+                | Undefined => false
+                }
+              )
+          }
+        | (a, b) => a === b
+        }
+      ) {
+        true
+      } else {
+        false
+      }
+    }
   )
 
   let rec addValue = (register, element) => {
@@ -236,13 +251,16 @@ module Register = {
     switch element {
     | AttributeValue({value, alias}) =>
       let key = element->toTagged
-      let dict = register.values->Undefinable.getOr(Dict.make())
-      switch dict->Dict.get(key)->Undefinable.fromOptionUnsafe {
+      let dict = switch register.values {
+      | Some(x) => x
+      | None => Dict.make()
+      }
+      switch dict->Dict.get(key)->Undefinable.castOption {
       | Value(exist) if exist !== value && !isValueEqual(exist->cast, value->cast) =>
         addValue(register, AttributeValue({value, alias: alias ++ "_"}))
       | _ => {
           dict->Dict.set(key, value)
-          register.values = Undefinable.Value(dict)
+          register.values = Some(dict)
           key
         }
       }
@@ -253,7 +271,10 @@ module Register = {
     open Attribute.Path
     switch element {
     | AttributePath({name, subpath}) => {
-        let dict = register.names->Undefinable.getOr(Dict.make())
+        let dict = switch register.names {
+        | Some(x) => x
+        | None => Dict.make()
+        }
         dict->Dict.set(nametoTagged(name), name)
 
         subpath->Array.forEach(sub =>
@@ -262,7 +283,7 @@ module Register = {
           | Index(_) => ()
           }
         )
-        register.names = Undefinable.Value(dict)
+        register.names = Some(dict)
       }
     }
 

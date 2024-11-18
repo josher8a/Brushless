@@ -9,8 +9,6 @@ import type {AttributeValue as $$attributeValue} from './external';
 
 export type attributeValue = $$attributeValue;
 
-export type Undefinable_t<a> = undefined | a;
-
 export type Attribute_Value_t = 
     { TAG: "AttributeValue"; readonly value: attributeValue; readonly alias: string };
 
@@ -25,7 +23,7 @@ export type Attribute_Path_sub =
 
 export type Attribute_Path_parserState = 0 | 1 | 2 | 3 | 4;
 
-export type Register_t = { names: Undefinable_t<{[id: string]: string}>; values: Undefinable_t<{[id: string]: attributeValue}> };
+export type Register_t = { names: (undefined | {[id: string]: string}); values: (undefined | {[id: string]: attributeValue}) };
 
 export abstract class Register_uint8Array { protected opaque!: any }; /* simulate opaque types */
 

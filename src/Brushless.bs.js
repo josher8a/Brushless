@@ -2,32 +2,7 @@
 'use strict';
 
 
-function getOr(value, $$default) {
-  if (value === undefined) {
-    return $$default;
-  } else {
-    return value;
-  }
-}
-
-function equal(a, b, eq) {
-  if (a === undefined) {
-    if (b === undefined) {
-      return true;
-    } else {
-      return false;
-    }
-  } else if (b === undefined) {
-    return false;
-  } else {
-    return eq(a, b);
-  }
-}
-
-let Undefinable = {
-  getOr: getOr,
-  equal: equal
-};
+let Undefinable = {};
 
 function make(x) {
   return {
@@ -200,37 +175,61 @@ function make$1() {
 }
 
 function isValueEqual(a, b) {
-  return [
-    equal(a.S, b.S, (x, y) => x === y),
-    equal(a.N, b.N, (x, y) => x === y),
-    equal(a.NULL, b.NULL, (x, y) => x === y),
-    equal(a.BOOL, b.BOOL, (x, y) => x === y),
-    equal(a.SS, b.SS, (x, y) => x.every(v => y.includes(v))),
-    equal(a.NS, b.NS, (x, y) => x.every(v => y.includes(v))),
-    equal(a.L, b.L, (x, y) => x.every((v, i) => {
-      let y$1 = y[i];
-      if (y$1 === undefined) {
+  if (a.S === b.S) {
+    return true;
+  }
+  if (a.N === b.N) {
+    return true;
+  }
+  if (a.NULL === b.NULL) {
+    return true;
+  }
+  if (a.BOOL === b.BOOL) {
+    return true;
+  }
+  let match = a.SS;
+  let match$1 = b.SS;
+  if (match !== undefined && match$1 !== undefined ? match.every(v => match$1.includes(v)) : match === match$1) {
+    return true;
+  }
+  let match$2 = a.NS;
+  let match$3 = b.NS;
+  if (match$2 !== undefined && match$3 !== undefined ? match$2.every(v => match$3.includes(v)) : match$2 === match$3) {
+    return true;
+  }
+  let match$4 = a.L;
+  let match$5 = b.L;
+  if (match$4 !== undefined && match$5 !== undefined ? match$4.every((v, i) => {
+        let y = match$5[i];
+        if (y === undefined) {
+          return false;
+        } else {
+          return isValueEqual(v, y);
+        }
+      }) : match$4 === match$5) {
+    return true;
+  }
+  let match$6 = a.M;
+  let match$7 = b.M;
+  let tmp;
+  if (match$6 !== undefined && match$7 !== undefined) {
+    let keys = Object.entries(match$6);
+    tmp = keys.length === Object.keys(match$7).length && keys.every(param => {
+      let y = match$7[param[0]];
+      if (y === undefined) {
         return false;
       } else {
-        return isValueEqual(v, y$1);
+        return isValueEqual(param[1], y);
       }
-    })),
-    equal(a.M, b.M, (x, y) => {
-      let keys = Object.entries(x);
-      if (keys.length === Object.keys(y).length) {
-        return keys.every(param => {
-          let y$1 = y[param[0]];
-          if (y$1 === undefined) {
-            return false;
-          } else {
-            return isValueEqual(param[1], y$1);
-          }
-        });
-      } else {
-        return false;
-      }
-    })
-  ].some(x => x);
+    });
+  } else {
+    tmp = match$6 === match$7;
+  }
+  if (tmp) {
+    return true;
+  } else {
+    return false;
+  }
 }
 
 function addValue(register, _element) {
@@ -238,7 +237,8 @@ function addValue(register, _element) {
     let element = _element;
     let value = element.value;
     let key = toTagged(element);
-    let dict = getOr(register.values, {});
+    let x = register.values;
+    let dict = x !== undefined ? x : ({});
     let exist = dict[key];
     if (exist !== undefined && exist !== value && !isValueEqual(exist, value)) {
       _element = {
@@ -256,7 +256,8 @@ function addValue(register, _element) {
 
 function addPath(register, element) {
   let name = element.name;
-  let dict = getOr(register.names, {});
+  let x = register.names;
+  let dict = x !== undefined ? x : ({});
   dict[nametoTagged(name)] = name;
   element.subpath.forEach(sub => {
     if (sub.TAG !== "Name") {
