@@ -36,7 +36,8 @@
     "@types/bun": "^1.1.13",
     "@types/node": "^18.11.9",
     "bun": "^1.1.34",
-    "rescript": "12.0.0-alpha.4",
+    "rescript": "11.1.4",
+    "@rescript/core": "^1.6.1",
     "typescript": "^5.6.3"
   }
 }

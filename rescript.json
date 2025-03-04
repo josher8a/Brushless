@@ -17,5 +17,8 @@
       "module": "commonjs",
       "in-source": true
     },
-    "suffix": ".bs.js"
+    "suffix": ".bs.js",
+    "bsc-flags": ["-open RescriptCore"],
+    "bs-dependencies": ["@rescript/core"]
+
   }
