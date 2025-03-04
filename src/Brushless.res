@@ -166,9 +166,9 @@ module Register = {
 
   let make = () => {names: Undefinable.undefined, values: Undefinable.undefined}
 
-  @genType.opaque
+  // @genType.opaque
   type uint8Array = Js_typed_array2.Uint8Array.t
-  @genType.opaque
+  // @genType.opaque
   type rec attributeValue_ = {
     "S": Undefinable.t<string>,
     "N": Undefinable.t<string>,
@@ -182,16 +182,16 @@ module Register = {
     "BOOL": Undefinable.t<bool>,
   }
 
-  %%private(
-    let rec isValueEqual = (a: attributeValue_, b: attributeValue_) =>
-      [
-        Undefinable.equal(a["S"], b["S"], (x, y) => x === y),
-        Undefinable.equal(a["N"], b["N"], (x, y) => x === y),
-        Undefinable.equal(a["NULL"], b["NULL"], (x, y) => x === y),
-        Undefinable.equal(a["BOOL"], b["BOOL"], (x, y) => x === y),
-        Undefinable.equal(a["SS"], b["SS"], (x, y) => Array.every(x, v => Array.includes(y, v))),
-        Undefinable.equal(a["NS"], b["NS"], (x, y) => Array.every(x, v => Array.includes(y, v))),
-        Undefinable.equal(a["L"], b["L"], (x, y) =>
+  let rec isValueEqual = (a: attributeValue_, b: attributeValue_) =>
+    [
+      Undefinable.equal(a["S"], b["S"], (x, y) => x === y),
+      Undefinable.equal(a["N"], b["N"], (x, y) => x === y),
+      Undefinable.equal(a["NULL"], b["NULL"], (x, y) => x === y),
+      Undefinable.equal(a["BOOL"], b["BOOL"], (x, y) => x === y),
+      Undefinable.equal(a["SS"], b["SS"], (x, y) => Array.every(x, v => Array.includes(y, v))),
+      Undefinable.equal(a["NS"], b["NS"], (x, y) => Array.every(x, v => Array.includes(y, v))),
+      Undefinable.equal(a["L"], b["L"], (x, y) =>
+        Array.length(x) === Array.length(y) &&
           Array.everyWithIndex(x, (v, i) => {
             let y = Js.Array.unsafe_get(y, i)
             if Obj.magic(y) !== undefined {
@@ -200,21 +200,34 @@ module Register = {
               false
             }
           })
-        ),
-        Undefinable.equal(a["M"], b["M"], (x, y) => {
-          let keys = x->Dict.toArray
-          keys->Array.length === y->Dict.keysToArray->Array.length &&
-            keys->Array.every(((key, x)) => {
-              let y = Js.Dict.unsafeGet(y, key)
-              if Obj.magic(y) !== undefined {
-                isValueEqual(x, Obj.magic(y))
-              } else {
-                false
-              }
-            })
-        }),
-      ]->Array.some(x => x)
-  )
+      ),
+      Undefinable.equal(a["M"], b["M"], (x, y) => {
+        let keys = x->Dict.toArray
+        keys->Array.length === y->Dict.keysToArray->Array.length &&
+          keys->Array.every(((key, x)) => {
+            let y = Js.Dict.unsafeGet(y, key)
+            if Obj.magic(y) !== undefined {
+              isValueEqual(x, Obj.magic(y))
+            } else {
+              false
+            }
+          })
+      }),
+      Undefinable.equal(a["B"], b["B"], (x, y) =>
+        x->Js_typed_array2.Uint8Array.toString === y->Js_typed_array2.Uint8Array.toString
+      ),
+      Undefinable.equal(a["BS"], b["BS"], (x, y) =>
+        Array.length(x) === Array.length(y) &&
+          Array.everyWithIndex(x, (v, i) => {
+            let y = Js.Array.unsafe_get(y, i)
+            if Obj.magic(y) !== undefined {
+              v->Js_typed_array2.Uint8Array.toString === y->Js_typed_array2.Uint8Array.toString
+            } else {
+              false
+            }
+          })
+      ),
+    ]->Array.every(x => x)
 
   let rec addValue = (register, element) => {
     open AttributeValue
