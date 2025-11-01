@@ -1,5 +1,21 @@
-@genType.import(("./external", "AttributeValue"))
-type attributeValue
+@genType.import(("./external", "AtLeastOne"))
+type atLeastOne<'a> = 'a
+
+// @genType.opaque
+type rec attributeValue_ = {
+  @as("S") s?: string,
+  @as("N") n?: string,
+  @as("B") b?: Uint8Array.t,
+  @as("SS") ss?: array<string>,
+  @as("NS") ns?: array<string>,
+  @as("BS") bs?: array<Uint8Array.t>,
+  @as("M") m?: Dict.t<atLeastOne<attributeValue_>>,
+  @as("L") l?: array<atLeastOne<attributeValue_>>,
+  @as("NULL") null?: bool,
+  @as("BOOL") bool?: bool,
+}
+
+type attributeValue = atLeastOne<attributeValue_>
 
 %%private(
   let throwError = message => JsError.throw(JsError.make(message))
@@ -164,22 +180,7 @@ module Register = {
 
   let make = () => {names: Undefinable.undefined, values: Undefinable.undefined}
 
-  // @genType.opaque
-  type uint8Array = Uint8Array.t
-  // @genType.opaque
-  type rec attributeValue_ = {
-    @as("S") s?: string,
-    @as("N") n?: string,
-    @as("B") b?: uint8Array,
-    @as("SS") ss?: array<string>,
-    @as("NS") ns?: array<string>,
-    @as("BS") bs?: array<uint8Array>,
-    @as("M") m?: Dict.t<attributeValue_>,
-    @as("L") l?: array<attributeValue_>,
-    @as("NULL") null?: bool,
-    @as("BOOL") bool?: bool,
-  }
-  let rec isValueEqual = (a: attributeValue_, b: attributeValue_) =>
+  let rec isValueEqual = (a: attributeValue, b: attributeValue) =>
     switch (a, b) {
     | ({s: x}, {s: y}) => x === y
     | ({n: x}, {n: y}) => x === y
