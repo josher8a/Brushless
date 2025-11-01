@@ -1,7 +1,6 @@
 @genType.import(("./external", "AtLeastOne"))
 type atLeastOne<'a> = 'a
 
-// @genType.opaque
 type rec attributeValue_ = {
   @as("S") s?: string,
   @as("N") n?: string,
@@ -180,39 +179,33 @@ module Register = {
     | ({ns: x}, {ns: y}) => Array.every(x, v => Array.includes(y, v))
     | ({l: x}, {l: y}) =>
       Array.length(x) === Array.length(y) &&
-        Array.everyWithIndex(x, (v, i) => {
-          let y = Array.getUnsafe(y, i)
-          if Obj.magic(y) !== undefined {
-            isValueEqual(v, Obj.magic(y))
-          } else {
-            false
+        Array.everyWithIndex(x, (v, i) =>
+          switch y[i] {
+          | Some(y) => isValueEqual(v, y)
+          | _ => false
           }
-        })
+        )
 
     | ({m: x}, {m: y}) => {
         let keys = x->Dict.toArray
         keys->Array.length === y->Dict.keysToArray->Array.length &&
-          keys->Array.every(((key, x)) => {
-            let y = Dict.getUnsafe(y, key)
-            if Obj.magic(y) !== undefined {
-              isValueEqual(x, Obj.magic(y))
-            } else {
-              false
+          keys->Array.every(((key, v)) =>
+            switch Dict.get(y, key) {
+            | Some(y) => isValueEqual(v, y)
+            | _ => false
             }
-          })
+          )
       }
     | ({b: x}, {b: y}) => x->TypedArray.toString === y->TypedArray.toString
 
     | ({bs: x}, {bs: y}) =>
       Array.length(x) === Array.length(y) &&
-        Array.everyWithIndex(x, (v, i) => {
-          let y = Array.getUnsafe(y, i)
-          if Obj.magic(y) !== undefined {
-            v->TypedArray.toString === y->TypedArray.toString
-          } else {
-            false
+        Array.everyWithIndex(x, (v, i) =>
+          switch y[i] {
+          | Some(y) => v->TypedArray.toString === y->TypedArray.toString
+          | _ => false
           }
-        })
+        )
 
     | (_, _) => false
     }
@@ -223,17 +216,14 @@ module Register = {
     | AttributeValue({value, alias}) =>
       let key = AttributeValue({value, alias})->toString
       let dict = getValues(register)
-      let exist = dict->Dict.getUnsafe(key)
-      if (
-        Obj.magic(exist) !== undefined &&
-        exist !== value &&
-        !isValueEqual(Obj.magic(exist), Obj.magic(value))
-      ) {
+      switch dict->Dict.get(key) {
+      | Some(exist) if exist !== value && !isValueEqual(exist, value) =>
         addValue(register, AttributeValue({value, alias: alias ++ "_"}))
-      } else {
-        dict->Dict.set(key, value)
-        register.values = Some(dict)
-        element
+      | _ => {
+          dict->Dict.set(key, value)
+          register.values = Some(dict)
+          element
+        }
       }
     }
   }
