@@ -9,12 +9,12 @@ function make(name) {
   };
 }
 
-function toString(name) {
-  let name$1 = name.name;
-  if (name$1.includes(" ") || name$1.includes(".")) {
+function toString(param) {
+  let name = param.name;
+  if (name.includes(" ") || name.includes(".")) {
     throw new Error("InvalidName");
   }
-  return "#" + name$1.replaceAll("-", "_");
+  return "#" + name.replaceAll("-", "_");
 }
 
 let AttributeName = {
@@ -30,8 +30,8 @@ function make$1(x) {
   };
 }
 
-function toString$1(value) {
-  return ":" + value.alias;
+function toString$1(param) {
+  return ":" + param.alias;
 }
 
 let AttributeValue = {
