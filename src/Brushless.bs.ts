@@ -33,16 +33,16 @@ export type Register_t = { names: Undefinable_t<{[id: string]: string}>; values:
 export type Register_uint8Array = Uint8Array;
 
 export type Register_attributeValue_ = {
-  readonly S: Undefinable_t<string>; 
-  readonly N: Undefinable_t<string>; 
-  readonly B: Undefinable_t<Register_uint8Array>; 
-  readonly SS: Undefinable_t<string[]>; 
-  readonly NS: Undefinable_t<string[]>; 
-  readonly BS: Undefinable_t<Register_uint8Array[]>; 
-  readonly M: Undefinable_t<{[id: string]: Register_attributeValue_}>; 
-  readonly L: Undefinable_t<Register_attributeValue_[]>; 
-  readonly NULL: Undefinable_t<boolean>; 
-  readonly BOOL: Undefinable_t<boolean>
+  readonly S?: string; 
+  readonly N?: string; 
+  readonly B?: Register_uint8Array; 
+  readonly SS?: string[]; 
+  readonly NS?: string[]; 
+  readonly BS?: Register_uint8Array[]; 
+  readonly M?: {[id: string]: Register_attributeValue_}; 
+  readonly L?: Register_attributeValue_[]; 
+  readonly NULL?: boolean; 
+  readonly BOOL?: boolean
 };
 
 export type comparator = "=" | "<>" | "<" | "<=" | ">" | ">=";
