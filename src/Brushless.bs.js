@@ -2,29 +2,6 @@
 'use strict';
 
 
-function getOr(value, $$default) {
-  if (value === undefined) {
-    return $$default;
-  } else {
-    return value;
-  }
-}
-
-function equal(a, b, eq) {
-  if (a === undefined) {
-    return b === undefined;
-  } else if (b === undefined) {
-    return false;
-  } else {
-    return eq(a, b);
-  }
-}
-
-let Undefinable = {
-  getOr: getOr,
-  equal: equal
-};
-
 function make(name) {
   return {
     TAG: "AttributeName",
@@ -186,10 +163,7 @@ let AttributePath = {
 };
 
 function make$2() {
-  return {
-    names: undefined,
-    values: undefined
-  };
+  return {};
 }
 
 function isValueEqual(a, b) {
@@ -362,7 +336,8 @@ function addValue(register, _element) {
       value: value,
       alias: alias
     });
-    let dict = getOr(register.values, {});
+    let x = register.values;
+    let dict = x !== undefined ? x : ({});
     let exist = dict[key];
     if (exist !== undefined && exist !== value && !isValueEqual(exist, value)) {
       _element = {
@@ -380,7 +355,8 @@ function addValue(register, _element) {
 
 function addName(register, element) {
   let name = element.name;
-  let dict = getOr(register.names, {});
+  let x = register.names;
+  let dict = x !== undefined ? x : ({});
   dict[toString({
         TAG: "AttributeName",
         name: name
@@ -391,7 +367,8 @@ function addName(register, element) {
 
 function addPath(register, element) {
   let name = element.name;
-  let dict = getOr(register.names, {});
+  let x = register.names;
+  let dict = x !== undefined ? x : ({});
   dict[toString({
         TAG: "AttributeName",
         name: name
@@ -960,7 +937,6 @@ let P = {
   build: build$1
 };
 
-exports.Undefinable = Undefinable;
 exports.AttributeName = AttributeName;
 exports.AttributeValue = AttributeValue;
 exports.AttributePath = AttributePath;
