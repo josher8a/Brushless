@@ -168,38 +168,37 @@ module Register = {
   type uint8Array = Uint8Array.t
   // @genType.opaque
   type rec attributeValue_ = {
-    "S": Undefinable.t<string>,
-    "N": Undefinable.t<string>,
-    "B": Undefinable.t<uint8Array>,
-    "SS": Undefinable.t<array<string>>,
-    "NS": Undefinable.t<array<string>>,
-    "BS": Undefinable.t<array<uint8Array>>,
-    "M": Undefinable.t<Dict.t<attributeValue_>>,
-    "L": Undefinable.t<array<attributeValue_>>,
-    "NULL": Undefinable.t<bool>,
-    "BOOL": Undefinable.t<bool>,
+    @as("S") s?: string,
+    @as("N") n?: string,
+    @as("B") b?: uint8Array,
+    @as("SS") ss?: array<string>,
+    @as("NS") ns?: array<string>,
+    @as("BS") bs?: array<uint8Array>,
+    @as("M") m?: Dict.t<attributeValue_>,
+    @as("L") l?: array<attributeValue_>,
+    @as("NULL") null?: bool,
+    @as("BOOL") bool?: bool,
   }
-
   let rec isValueEqual = (a: attributeValue_, b: attributeValue_) =>
-    [
-      Undefinable.equal(a["S"], b["S"], (x, y) => x === y),
-      Undefinable.equal(a["N"], b["N"], (x, y) => x === y),
-      Undefinable.equal(a["NULL"], b["NULL"], (x, y) => x === y),
-      Undefinable.equal(a["BOOL"], b["BOOL"], (x, y) => x === y),
-      Undefinable.equal(a["SS"], b["SS"], (x, y) => Array.every(x, v => Array.includes(y, v))),
-      Undefinable.equal(a["NS"], b["NS"], (x, y) => Array.every(x, v => Array.includes(y, v))),
-      Undefinable.equal(a["L"], b["L"], (x, y) =>
-        Array.length(x) === Array.length(y) &&
-          Array.everyWithIndex(x, (v, i) => {
-            let y = Array.getUnsafe(y, i)
-            if Obj.magic(y) !== undefined {
-              isValueEqual(v, Obj.magic(y))
-            } else {
-              false
-            }
-          })
-      ),
-      Undefinable.equal(a["M"], b["M"], (x, y) => {
+    switch (a, b) {
+    | ({s: x}, {s: y}) => x === y
+    | ({n: x}, {n: y}) => x === y
+    | ({null: x}, {null: y}) => x === y
+    | ({bool: x}, {bool: y}) => x === y
+    | ({ss: x}, {ss: y}) => Array.every(x, v => Array.includes(y, v))
+    | ({ns: x}, {ns: y}) => Array.every(x, v => Array.includes(y, v))
+    | ({l: x}, {l: y}) =>
+      Array.length(x) === Array.length(y) &&
+        Array.everyWithIndex(x, (v, i) => {
+          let y = Array.getUnsafe(y, i)
+          if Obj.magic(y) !== undefined {
+            isValueEqual(v, Obj.magic(y))
+          } else {
+            false
+          }
+        })
+
+    | ({m: x}, {m: y}) => {
         let keys = x->Dict.toArray
         keys->Array.length === y->Dict.keysToArray->Array.length &&
           keys->Array.every(((key, x)) => {
@@ -210,22 +209,22 @@ module Register = {
               false
             }
           })
-      }),
-      Undefinable.equal(a["B"], b["B"], (x, y) =>
-        x->TypedArray.toString === y->TypedArray.toString
-      ),
-      Undefinable.equal(a["BS"], b["BS"], (x, y) =>
-        Array.length(x) === Array.length(y) &&
-          Array.everyWithIndex(x, (v, i) => {
-            let y = Array.getUnsafe(y, i)
-            if Obj.magic(y) !== undefined {
-              v->TypedArray.toString === y->TypedArray.toString
-            } else {
-              false
-            }
-          })
-      ),
-    ]->Array.every(x => x)
+      }
+    | ({b: x}, {b: y}) => x->TypedArray.toString === y->TypedArray.toString
+
+    | ({bs: x}, {bs: y}) =>
+      Array.length(x) === Array.length(y) &&
+        Array.everyWithIndex(x, (v, i) => {
+          let y = Array.getUnsafe(y, i)
+          if Obj.magic(y) !== undefined {
+            v->TypedArray.toString === y->TypedArray.toString
+          } else {
+            false
+          }
+        })
+
+    | (_, _) => false
+    }
 
   let rec addValue = (register, element) => {
     open AttributeValue

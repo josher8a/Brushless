@@ -193,58 +193,163 @@ function make$2() {
 }
 
 function isValueEqual(a, b) {
-  return [
-    equal(a.S, b.S, (x, y) => x === y),
-    equal(a.N, b.N, (x, y) => x === y),
-    equal(a.NULL, b.NULL, (x, y) => x === y),
-    equal(a.BOOL, b.BOOL, (x, y) => x === y),
-    equal(a.SS, b.SS, (x, y) => x.every(v => y.includes(v))),
-    equal(a.NS, b.NS, (x, y) => x.every(v => y.includes(v))),
-    equal(a.L, b.L, (x, y) => {
-      if (x.length === y.length) {
-        return x.every((v, i) => {
-          let y$1 = y[i];
-          if (y$1 !== undefined) {
-            return isValueEqual(v, y$1);
-          } else {
-            return false;
-          }
-        });
-      } else {
-        return false;
+  let x = a.S;
+  let exit = 0;
+  if (x !== undefined) {
+    let y = b.S;
+    if (y !== undefined) {
+      return x === y;
+    }
+    exit = 1;
+  } else {
+    exit = 1;
+  }
+  if (exit === 1) {
+    let x$1 = a.N;
+    let exit$1 = 0;
+    if (x$1 !== undefined) {
+      let y$1 = b.N;
+      if (y$1 !== undefined) {
+        return x$1 === y$1;
       }
-    }),
-    equal(a.M, b.M, (x, y) => {
-      let keys = Object.entries(x);
-      if (keys.length === Object.keys(y).length) {
-        return keys.every(param => {
-          let y$1 = y[param[0]];
-          if (y$1 !== undefined) {
-            return isValueEqual(param[1], y$1);
-          } else {
-            return false;
-          }
-        });
+      exit$1 = 2;
+    } else {
+      exit$1 = 2;
+    }
+    if (exit$1 === 2) {
+      let x$2 = a.B;
+      let exit$2 = 0;
+      let exit$3 = 0;
+      let x$3 = a.SS;
+      let exit$4 = 0;
+      let exit$5 = 0;
+      let x$4 = a.NULL;
+      let exit$6 = 0;
+      if (x$4 !== undefined) {
+        let y$2 = b.NULL;
+        if (y$2 !== undefined) {
+          return x$4 === y$2;
+        }
+        exit$6 = 7;
       } else {
-        return false;
+        exit$6 = 7;
       }
-    }),
-    equal(a.B, b.B, (x, y) => x.toString() === y.toString()),
-    equal(a.BS, b.BS, (x, y) => {
-      if (x.length === y.length) {
-        return x.every((v, i) => {
-          let y$1 = y[i];
-          if (y$1 !== undefined) {
-            return v.toString() === y$1.toString();
-          } else {
-            return false;
+      if (exit$6 === 7) {
+        let x$5 = a.BOOL;
+        if (x$5 !== undefined) {
+          let y$3 = b.BOOL;
+          if (y$3 !== undefined) {
+            return x$5 === y$3;
           }
-        });
-      } else {
-        return false;
+          exit$5 = 6;
+        } else {
+          exit$5 = 6;
+        }
       }
-    })
-  ].every(x => x);
+      if (exit$5 === 6) {
+        if (x$3 !== undefined) {
+          let y$4 = b.SS;
+          if (y$4 !== undefined) {
+            return x$3.every(v => y$4.includes(v));
+          }
+          exit$4 = 5;
+        } else {
+          exit$4 = 5;
+        }
+      }
+      if (exit$4 === 5) {
+        let x$6 = a.NS;
+        let exit$7 = 0;
+        if (x$6 !== undefined) {
+          let y$5 = b.NS;
+          if (y$5 !== undefined) {
+            return x$6.every(v => y$5.includes(v));
+          }
+          exit$7 = 6;
+        } else {
+          exit$7 = 6;
+        }
+        if (exit$7 === 6) {
+          let x$7 = a.M;
+          let exit$8 = 0;
+          let x$8 = a.L;
+          if (x$8 !== undefined) {
+            let y$6 = b.L;
+            if (y$6 !== undefined) {
+              if (x$8.length === y$6.length) {
+                return x$8.every((v, i) => {
+                  let y$7 = y$6[i];
+                  if (y$7 !== undefined) {
+                    return isValueEqual(v, y$7);
+                  } else {
+                    return false;
+                  }
+                });
+              } else {
+                return false;
+              }
+            }
+            exit$8 = 7;
+          } else {
+            exit$8 = 7;
+          }
+          if (exit$8 === 7) {
+            if (x$7 !== undefined) {
+              let y$7 = b.M;
+              if (y$7 !== undefined) {
+                let keys = Object.entries(x$7);
+                if (keys.length === Object.keys(y$7).length) {
+                  return keys.every(param => {
+                    let y$8 = y$7[param[0]];
+                    if (y$8 !== undefined) {
+                      return isValueEqual(param[1], y$8);
+                    } else {
+                      return false;
+                    }
+                  });
+                } else {
+                  return false;
+                }
+              }
+              exit$3 = 4;
+            } else {
+              exit$3 = 4;
+            }
+          }
+        }
+      }
+      if (exit$3 === 4) {
+        if (x$2 !== undefined) {
+          let y$8 = b.B;
+          if (y$8 !== undefined) {
+            return x$2.toString() === y$8.toString();
+          }
+          exit$2 = 3;
+        } else {
+          exit$2 = 3;
+        }
+      }
+      if (exit$2 === 3) {
+        let x$9 = a.BS;
+        if (x$9 === undefined) {
+          return false;
+        }
+        let y$9 = b.BS;
+        if (y$9 !== undefined && x$9.length === y$9.length) {
+          return x$9.every((v, i) => {
+            let y$10 = y$9[i];
+            if (y$10 !== undefined) {
+              return v.toString() === y$10.toString();
+            } else {
+              return false;
+            }
+          });
+        } else {
+          return false;
+        }
+      }
+    }
+  }
 }
 
 function addValue(register, _element) {
