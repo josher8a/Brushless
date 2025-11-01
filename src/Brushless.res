@@ -60,7 +60,7 @@ module AttributeValue = {
     alias: x.alias,
   })
 
-  let toString = (AttributeValue({alias})) => ":" ++ alias
+  let toString = (AttributeValue({alias, _})) => ":" ++ alias
 }
 
 @genType
@@ -126,7 +126,7 @@ module AttributePath = {
     let acc = []
     switch Array.shift(str->parse(Name, ~acc)) {
     | Some(AttributeName({name})) => AttributePath({name, subpath: acc})
-    | _ => throwError("InvalidPath")
+    | Some(ListIndex(_)) | None => throwError("InvalidPath")
     }
   }
 
@@ -152,25 +152,25 @@ module Register = {
     @inline
     let getValues = (t): dict<attributeValue> =>
       switch t {
-      | {values: x} => x
+      | {values: x, _} => x
       | _ => dict{}
       }
     @inline
     let getNames = (t): dict<string> =>
       switch t {
-      | {names: x} => x
+      | {names: x, _} => x
       | _ => dict{}
       }
   )
   let rec isValueEqual = (a: attributeValue, b: attributeValue) =>
     switch (a, b) {
-    | ({s: x}, {s: y}) => x === y
-    | ({n: x}, {n: y}) => x === y
-    | ({null: x}, {null: y}) => x === y
-    | ({bool: x}, {bool: y}) => x === y
-    | ({ss: x}, {ss: y}) => Array.every(x, v => Array.includes(y, v))
-    | ({ns: x}, {ns: y}) => Array.every(x, v => Array.includes(y, v))
-    | ({l: x}, {l: y}) =>
+    | ({s: x, _}, {s: y, _}) => x === y
+    | ({n: x, _}, {n: y, _}) => x === y
+    | ({null: x, _}, {null: y, _}) => x === y
+    | ({bool: x, _}, {bool: y, _}) => x === y
+    | ({ss: x, _}, {ss: y, _}) => Array.every(x, v => Array.includes(y, v))
+    | ({ns: x, _}, {ns: y, _}) => Array.every(x, v => Array.includes(y, v))
+    | ({l: x, _}, {l: y, _}) =>
       Array.length(x) === Array.length(y) &&
         Array.everyWithIndex(x, (v, i) =>
           switch y[i] {
@@ -179,7 +179,7 @@ module Register = {
           }
         )
 
-    | ({m: x}, {m: y}) => {
+    | ({m: x, _}, {m: y, _}) => {
         let keys = x->Dict.toArray
         keys->Array.length === y->Dict.keysToArray->Array.length &&
           keys->Array.every(((key, v)) =>
@@ -189,9 +189,9 @@ module Register = {
             }
           )
       }
-    | ({b: x}, {b: y}) => x->TypedArray.toString === y->TypedArray.toString
+    | ({b: x, _}, {b: y, _}) => x->TypedArray.toString === y->TypedArray.toString
 
-    | ({bs: x}, {bs: y}) =>
+    | ({bs: x, _}, {bs: y, _}) =>
       Array.length(x) === Array.length(y) &&
         Array.everyWithIndex(x, (v, i) =>
           switch y[i] {
