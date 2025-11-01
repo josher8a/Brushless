@@ -5,9 +5,24 @@
 
 const BrushlessJS = require('./Brushless.bs.js');
 
-import type {AttributeValue as $$attributeValue} from './external';
+import type {AtLeastOne as $$atLeastOne} from './external';
 
-export type attributeValue = $$attributeValue;
+export type atLeastOne<a> = $$atLeastOne<a>;
+
+export type attributeValue_ = {
+  readonly S?: string; 
+  readonly N?: string; 
+  readonly B?: Uint8Array; 
+  readonly SS?: string[]; 
+  readonly NS?: string[]; 
+  readonly BS?: Uint8Array[]; 
+  readonly M?: {[id: string]: atLeastOne<attributeValue_>}; 
+  readonly L?: atLeastOne<attributeValue_>[]; 
+  readonly NULL?: boolean; 
+  readonly BOOL?: boolean
+};
+
+export type attributeValue = atLeastOne<attributeValue_>;
 
 export type Undefinable_t<a> = undefined | a;
 
@@ -29,21 +44,6 @@ export type AttributePath_t =
 export type AttributePath_parseState = "Name" | "Index";
 
 export type Register_t = { names: Undefinable_t<{[id: string]: string}>; values: Undefinable_t<{[id: string]: attributeValue}> };
-
-export type Register_uint8Array = Uint8Array;
-
-export type Register_attributeValue_ = {
-  readonly S?: string; 
-  readonly N?: string; 
-  readonly B?: Register_uint8Array; 
-  readonly SS?: string[]; 
-  readonly NS?: string[]; 
-  readonly BS?: Register_uint8Array[]; 
-  readonly M?: {[id: string]: Register_attributeValue_}; 
-  readonly L?: Register_attributeValue_[]; 
-  readonly NULL?: boolean; 
-  readonly BOOL?: boolean
-};
 
 export type comparator = "=" | "<>" | "<" | "<=" | ">" | ">=";
 
@@ -169,7 +169,7 @@ export const AttributePath_toString: (param:AttributePath_t) => string = Brushle
 
 export const Register_make: () => Register_t = BrushlessJS.Register.make as any;
 
-export const Register_isValueEqual: (a:Register_attributeValue_, b:Register_attributeValue_) => boolean = BrushlessJS.Register.isValueEqual as any;
+export const Register_isValueEqual: (a:attributeValue, b:attributeValue) => boolean = BrushlessJS.Register.isValueEqual as any;
 
 export const Register_addValue: (register:Register_t, element:AttributeValue_t) => AttributeValue_t = BrushlessJS.Register.addValue as any;
 
@@ -482,7 +482,7 @@ export const Register: {
   addValue: (register:Register_t, element:AttributeValue_t) => AttributeValue_t; 
   addPath: (register:Register_t, element:AttributePath_t) => AttributePath_t; 
   addName: (register:Register_t, element:AttributeName_t) => AttributeName_t; 
-  isValueEqual: (a:Register_attributeValue_, b:Register_attributeValue_) => boolean; 
+  isValueEqual: (a:attributeValue, b:attributeValue) => boolean; 
   make: () => Register_t
 } = BrushlessJS.Register as any;
 
