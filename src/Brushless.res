@@ -2,8 +2,7 @@
 type attributeValue
 
 %%private(
-  @new external makeError: string => 'a = "Error"
-  let throwError = message => raise(Obj.magic(makeError(message)))
+  let throwError = message => JsError.throw(JsError.make(message))
 
   @send external reduce: (array<'b>, ('a, 'b) => 'a, 'a) => 'a = "reduce"
 )
@@ -44,7 +43,6 @@ module Undefinable = {
 //   let marshaller = init()
 //   let marshallValue = x => marshallValue(marshaller, x)
 // }
-@send external replaceAll: (string, string, string) => string = "replaceAll"
 
 @genType
 module AttributeName = {
@@ -56,7 +54,7 @@ module AttributeName = {
         if name->String.includes(" ") || name->String.includes(".") {
           throwError("InvalidName")
         }
-        "#" ++ name->replaceAll("-", "_")
+        "#" ++ name->String.replaceAll("-", "_")
       }
     }
 }
@@ -97,7 +95,7 @@ module AttributePath = {
         | Some(char) if predicate(char) => (
             str->String.substring(~start=0, ~end=index),
             str->String.substring(~start=index, ~end=index + 1),
-            str->String.substringToEnd(~start=index + 1),
+            str->String.substring(~start=index + 1),
           )
         | Some(_) => str->splitWhen(index + 1)
         | None => (str, "", "")
@@ -151,7 +149,7 @@ module AttributePath = {
     subpath->reduce((acc, subs) =>
       switch subs {
       | AttributeName({name}) => `${acc}.${AttributeName.toString(AttributeName({name: name}))}`
-      | ListIndex({index}) => `${acc}[${string_of_int(index)}]`
+      | ListIndex({index}) => `${acc}[${Int.toString(index)}]`
       }
     , AttributeName.toString(AttributeName({name: name})))
   }
@@ -167,7 +165,7 @@ module Register = {
   let make = () => {names: Undefinable.undefined, values: Undefinable.undefined}
 
   // @genType.opaque
-  type uint8Array = Js_typed_array2.Uint8Array.t
+  type uint8Array = Uint8Array.t
   // @genType.opaque
   type rec attributeValue_ = {
     "S": Undefinable.t<string>,
@@ -193,7 +191,7 @@ module Register = {
       Undefinable.equal(a["L"], b["L"], (x, y) =>
         Array.length(x) === Array.length(y) &&
           Array.everyWithIndex(x, (v, i) => {
-            let y = Js.Array.unsafe_get(y, i)
+            let y = Array.getUnsafe(y, i)
             if Obj.magic(y) !== undefined {
               isValueEqual(v, Obj.magic(y))
             } else {
@@ -205,7 +203,7 @@ module Register = {
         let keys = x->Dict.toArray
         keys->Array.length === y->Dict.keysToArray->Array.length &&
           keys->Array.every(((key, x)) => {
-            let y = Js.Dict.unsafeGet(y, key)
+            let y = Dict.getUnsafe(y, key)
             if Obj.magic(y) !== undefined {
               isValueEqual(x, Obj.magic(y))
             } else {
@@ -214,14 +212,14 @@ module Register = {
           })
       }),
       Undefinable.equal(a["B"], b["B"], (x, y) =>
-        x->Js_typed_array2.Uint8Array.toString === y->Js_typed_array2.Uint8Array.toString
+        x->TypedArray.toString === y->TypedArray.toString
       ),
       Undefinable.equal(a["BS"], b["BS"], (x, y) =>
         Array.length(x) === Array.length(y) &&
           Array.everyWithIndex(x, (v, i) => {
-            let y = Js.Array.unsafe_get(y, i)
+            let y = Array.getUnsafe(y, i)
             if Obj.magic(y) !== undefined {
-              v->Js_typed_array2.Uint8Array.toString === y->Js_typed_array2.Uint8Array.toString
+              v->TypedArray.toString === y->TypedArray.toString
             } else {
               false
             }
@@ -235,7 +233,7 @@ module Register = {
     | AttributeValue({value, alias}) =>
       let key = AttributeValue({value, alias})->toString
       let dict = register.values->Undefinable.getOr(Dict.make())
-      let exist = dict->Js.Dict.unsafeGet(key)
+      let exist = dict->Dict.getUnsafe(key)
       if (
         Obj.magic(exist) !== undefined &&
         exist !== value &&

@@ -7,10 +7,6 @@ const BrushlessJS = require('./Brushless.bs.js');
 
 import type {AttributeValue as $$attributeValue} from './external';
 
-import type {Uint8Array_t as Js_typed_array2_Uint8Array_t} from './Js_typed_array2.bs';
-
-import type {t as Dict_t} from './Dict.bs';
-
 export type attributeValue = $$attributeValue;
 
 export type Undefinable_t<a> = undefined | a;
@@ -32,9 +28,9 @@ export type AttributePath_t =
 
 export type AttributePath_parseState = "Name" | "Index";
 
-export type Register_t = { names: Undefinable_t<Dict_t<string>>; values: Undefinable_t<Dict_t<attributeValue>> };
+export type Register_t = { names: Undefinable_t<{[id: string]: string}>; values: Undefinable_t<{[id: string]: attributeValue}> };
 
-export type Register_uint8Array = Js_typed_array2_Uint8Array_t;
+export type Register_uint8Array = Uint8Array;
 
 export type Register_attributeValue_ = {
   readonly S: Undefinable_t<string>; 
@@ -43,7 +39,7 @@ export type Register_attributeValue_ = {
   readonly SS: Undefinable_t<string[]>; 
   readonly NS: Undefinable_t<string[]>; 
   readonly BS: Undefinable_t<Register_uint8Array[]>; 
-  readonly M: Undefinable_t<Dict_t<Register_attributeValue_>>; 
+  readonly M: Undefinable_t<{[id: string]: Register_attributeValue_}>; 
   readonly L: Undefinable_t<Register_attributeValue_[]>; 
   readonly NULL: Undefinable_t<boolean>; 
   readonly BOOL: Undefinable_t<boolean>
