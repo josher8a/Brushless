@@ -155,11 +155,11 @@ export type P_projection = Identifier_t[];
 
 export const AttributeName_make: (name:string) => AttributeName_t = BrushlessJS.AttributeName.make as any;
 
-export const AttributeName_toString: (name:AttributeName_t) => string = BrushlessJS.AttributeName.toString as any;
+export const AttributeName_toString: (param:AttributeName_t) => string = BrushlessJS.AttributeName.toString as any;
 
 export const AttributeValue_make: (x:AttributeValue_from<attributeValue>) => AttributeValue_t = BrushlessJS.AttributeValue.make as any;
 
-export const AttributeValue_toString: (value:AttributeValue_t) => string = BrushlessJS.AttributeValue.toString as any;
+export const AttributeValue_toString: (param:AttributeValue_t) => string = BrushlessJS.AttributeValue.toString as any;
 
 export const AttributePath_fromString: (str:string) => AttributePath_t = BrushlessJS.AttributePath.fromString as any;
 
@@ -379,7 +379,7 @@ export const K_build: (_1:K_keyCondition, _2:Register_t) => string = BrushlessJS
 
 export const P_build: (_1:P_projection, _2:Register_t) => string = BrushlessJS.P.build as any;
 
-export const AttributeName: { toString: (name:AttributeName_t) => string; make: (name:string) => AttributeName_t } = BrushlessJS.AttributeName as any;
+export const AttributeName: { toString: (param:AttributeName_t) => string; make: (name:string) => AttributeName_t } = BrushlessJS.AttributeName as any;
 
 export const K: {
   notEquals: (_1:AttributeName_t, _2:AttributeValue_t) => K_skCondition; 
@@ -518,6 +518,6 @@ export const C: {
   contains: (_1:Identifier_t, _2:C_operand) => C_condition
 } = BrushlessJS.C as any;
 
-export const AttributeValue: { toString: (value:AttributeValue_t) => string; make: (x:AttributeValue_from<attributeValue>) => AttributeValue_t } = BrushlessJS.AttributeValue as any;
+export const AttributeValue: { toString: (param:AttributeValue_t) => string; make: (x:AttributeValue_from<attributeValue>) => AttributeValue_t } = BrushlessJS.AttributeValue as any;
 
 export const P: { build: (_1:P_projection, _2:Register_t) => string } = BrushlessJS.P as any;

@@ -8,7 +8,7 @@ type rec attributeValue_ = {
   @as("SS") ss?: array<string>,
   @as("NS") ns?: array<string>,
   @as("BS") bs?: array<Uint8Array.t>,
-  @as("M") m?: Dict.t<atLeastOne<attributeValue_>>,
+  @as("M") m?: dict<atLeastOne<attributeValue_>>,
   @as("L") l?: array<atLeastOne<attributeValue_>>,
   @as("NULL") null?: bool,
   @as("BOOL") bool?: bool,
@@ -40,15 +40,12 @@ type attributeValue = atLeastOne<attributeValue_>
 module AttributeName = {
   type t = AttributeName({name: string})
   let make = name => AttributeName({name: name})
-  let toString = name =>
-    switch name {
-    | AttributeName({name}) => {
-        if name->String.includes(" ") || name->String.includes(".") {
-          throwError("InvalidName")
-        }
-        "#" ++ name->String.replaceAll("-", "_")
-      }
+  let toString = (AttributeName({name})) => {
+    if name->String.includes(" ") || name->String.includes(".") {
+      throwError("InvalidName")
     }
+    "#" ++ name->String.replaceAll("-", "_")
+  }
 }
 
 @genType
@@ -63,10 +60,7 @@ module AttributeValue = {
     alias: x.alias,
   })
 
-  let toString = value =>
-    switch value {
-    | AttributeValue({alias}) => ":" ++ alias
-    }
+  let toString = (AttributeValue({alias})) => ":" ++ alias
 }
 
 @genType
@@ -120,15 +114,14 @@ module AttributePath = {
       | _ => throwError("InvalidPath")
       }
     }
-    and parseIndex = index =>
-      switch Float.parseInt(index) {
-      | x
-        if Float.isFinite(x) &&
-        x >= 0. &&
-        index->String.length === x->Float.toString->String.length =>
+    and parseIndex = index => {
+      let x = Float.parseInt(index)
+      if Float.isFinite(x) && x >= 0. && index->String.length === x->Float.toString->String.length {
         x->Float.toInt
-      | _ => throwError("InvalidIndex: " ++ index)
+      } else {
+        throwError("InvalidIndex: " ++ index)
       }
+    }
 
     let acc = []
     switch Array.shift(str->parse(Name, ~acc)) {
@@ -137,7 +130,7 @@ module AttributePath = {
     }
   }
 
-  let toString = (AttributePath({name, subpath}): t): string => {
+  let toString = (AttributePath({name, subpath})) => {
     subpath->reduce((acc, subs) =>
       switch subs {
       | AttributeName({name}) => `${acc}.${AttributeName.toString(AttributeName({name: name}))}`
@@ -150,20 +143,20 @@ module AttributePath = {
 @genType
 module Register = {
   type t = {
-    mutable names?: Dict.t<string>,
-    mutable values?: Dict.t<attributeValue>,
+    mutable names?: dict<string>,
+    mutable values?: dict<attributeValue>,
   }
 
   let make = (): t => {}
   %%private(
     @inline
-    let getValues = (t): Dict.t<attributeValue> =>
+    let getValues = (t): dict<attributeValue> =>
       switch t {
       | {values: x} => x
       | _ => dict{}
       }
     @inline
-    let getNames = (t): Dict.t<string> =>
+    let getNames = (t): dict<string> =>
       switch t {
       | {names: x} => x
       | _ => dict{}
@@ -228,34 +221,26 @@ module Register = {
     }
   }
 
-  let addName = (register, element) => {
+  let addName = (register, AttributeName({name}) as element: AttributeName.t) => {
     open AttributeName
-    switch element {
-    | AttributeName({name}) =>
-      let dict = register->getNames
-      dict->Dict.set(AttributeName({name: name})->toString, name)
-      register.names = Some(dict)
-    }
-
+    let dict = register->getNames
+    dict->Dict.set(AttributeName({name: name})->toString, name)
+    register.names = Some(dict)
     element
   }
 
-  let addPath = (register, element: AttributePath.t) => {
+  let addPath = (register, AttributePath({name, subpath}) as element: AttributePath.t) => {
     open AttributeName
-    switch element {
-    | AttributePath({name, subpath}) => {
-        let dict = register->getNames
-        dict->Dict.set(toString(AttributeName({name: name})), name)
+    let dict = register->getNames
+    dict->Dict.set(AttributeName({name: name})->toString, name)
 
-        subpath->Array.forEach(sub =>
-          switch sub {
-          | AttributeName({name}) => dict->Dict.set(toString(AttributeName({name: name})), name)
-          | ListIndex(_) => ()
-          }
-        )
-        register.names = Some(dict)
+    subpath->Array.forEach(sub =>
+      switch sub {
+      | AttributeName({name}) => dict->Dict.set(AttributeName({name: name})->toString, name)
+      | ListIndex(_) => ()
       }
-    }
+    )
+    register.names = Some(dict)
 
     element
   }
