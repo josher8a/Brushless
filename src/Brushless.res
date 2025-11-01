@@ -107,20 +107,21 @@ module AttributePath = {
       | ("[", rest) =>
         switch rest->splitWhen(char => char == "]") {
         | (index, "]", rest) => {
-            acc->Array.push(ListIndex({index: index->parseIndex}))
+            let x = Float.parseInt(index)
+            if (
+              !Float.isFinite(x) ||
+              x < 0. ||
+              index->String.length !== x->Float.toString->String.length
+            ) {
+              throwError("InvalidIndex: " ++ index)
+            }
+
+            acc->Array.push(ListIndex({index: x->Float.toInt}))
             parse(rest, Index, ~acc)
           }
         | _ => throwError("InvalidPath")
         }
       | _ => throwError("InvalidPath")
-      }
-    }
-    and parseIndex = index => {
-      let x = Float.parseInt(index)
-      if Float.isFinite(x) && x >= 0. && index->String.length === x->Float.toString->String.length {
-        x->Float.toInt
-      } else {
-        throwError("InvalidIndex: " ++ index)
       }
     }
 

@@ -103,10 +103,15 @@ function fromString(str) {
           continue;
         case "[" :
           let match$1 = splitWhen(rest, char => char === "]");
+          let index = match$1[0];
           if (match$1[1] === "]") {
+            let x = parseInt(index);
+            if (!isFinite(x) || x < 0 || index.length !== x.toString().length) {
+              throw new Error("InvalidIndex: " + index);
+            }
             acc.push({
               TAG: "ListIndex",
-              index: parseIndex(match$1[0])
+              index: x | 0
             });
             _accOpt = acc;
             _state = "Index";
@@ -118,13 +123,6 @@ function fromString(str) {
           throw new Error("InvalidPath");
       }
     };
-  };
-  let parseIndex = index => {
-    let x = parseInt(index);
-    if (isFinite(x) && x >= 0 && index.length === x.toString().length) {
-      return x | 0;
-    }
-    throw new Error("InvalidIndex: " + index);
   };
   let acc = [];
   let match = parse(str, "Name", acc).shift();
