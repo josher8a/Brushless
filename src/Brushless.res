@@ -300,38 +300,36 @@ module Condition = {
     // alias for contains where the order of the arguments is reversed
     | ToContains({identifier: Identifier.t, operand: operand})
 
-  module Maker = {
-    let equals = (lhs, rhs) => Comparison({lhs, comparator: Equals, rhs})
-    let notEquals = (lhs, rhs) => Comparison({lhs, comparator: NotEquals, rhs})
-    let lessThan = (lhs, rhs) => Comparison({lhs, comparator: LessThan, rhs})
-    let lessThanOrEqualTo = (lhs, rhs) => Comparison({lhs, comparator: LessThanOrEqual, rhs})
-    let greaterThan = (lhs, rhs) => Comparison({lhs, comparator: GreaterThan, rhs})
-    let greaterThanOrEqualTo = (lhs, rhs) => Comparison({
-      lhs,
-      comparator: GreaterThanOrEqual,
-      rhs,
-    })
-    let between = (operand, limits) => Between({operand, limits})
-    let inList = (operand, list) => In({operand, list})
-    let attributeExists = identifier => AttributeExists({identifier: identifier})
-    let attributeNotExists = identifier => AttributeNotExists({identifier: identifier})
-    let attributeType = (identifier, operand) => AttributeType({identifier, operand})
-    let beginsWith = (identifier, operand) => BeginsWith({identifier, operand})
-    let contains = (identifier, operand) => Contains({identifier, operand})
-    let toContains = (identifier, operand) => ToContains({identifier, operand})
-    let \"and" = (lhs, rhs) => And({lhs, rhs})
-    let or = (lhs, rhs) => Or({lhs, rhs})
-    let not = condition => Not({condition: condition})
-    let size = operand => Size({operand: operand})
-  }
-  include Maker
+  let equals = (lhs, rhs) => Comparison({lhs, comparator: Equals, rhs})
+  let notEquals = (lhs, rhs) => Comparison({lhs, comparator: NotEquals, rhs})
+  let lessThan = (lhs, rhs) => Comparison({lhs, comparator: LessThan, rhs})
+  let lessThanOrEqualTo = (lhs, rhs) => Comparison({lhs, comparator: LessThanOrEqual, rhs})
+  let greaterThan = (lhs, rhs) => Comparison({lhs, comparator: GreaterThan, rhs})
+  let greaterThanOrEqualTo = (lhs, rhs) => Comparison({
+    lhs,
+    comparator: GreaterThanOrEqual,
+    rhs,
+  })
+  let between = (operand, limits) => Between({operand, limits})
+  let inList = (operand, list) => In({operand, list})
+  let attributeExists = identifier => AttributeExists({identifier: identifier})
+  let attributeNotExists = identifier => AttributeNotExists({identifier: identifier})
+  let attributeType = (identifier, operand) => AttributeType({identifier, operand})
+  let beginsWith = (identifier, operand) => BeginsWith({identifier, operand})
+  let contains = (identifier, operand) => Contains({identifier, operand})
+  let toContains = (identifier, operand) => ToContains({identifier, operand})
+  let \"and" = (lhs, rhs) => And({lhs, rhs})
+  let or = (lhs, rhs) => Or({lhs, rhs})
+  let not = condition => Not({condition: condition})
+  let size = operand => Size({operand: operand})
+
   module Overload = {
     @genType.opaque
     let \"&&" = \"and"
     @genType.opaque
     let \"||" = or
     @genType.opaque
-    let \"!" = Maker.not
+    let \"!" = not
     @genType.opaque
     let \"==" = equals
     @genType.opaque
@@ -412,22 +410,19 @@ module KeyCondition = {
     sk: skCondition,
   }
 
-  module Maker = {
-    let equals = (name, value) => Comparison({name, comparator: Equals, value})
-    let notEquals = (name, value) => Comparison({name, comparator: NotEquals, value})
-    let lessThan = (name, value) => Comparison({name, comparator: LessThan, value})
-    let lessThanOrEqualTo = (name, value) => Comparison({name, comparator: LessThanOrEqual, value})
-    let greaterThan = (name, value) => Comparison({name, comparator: GreaterThan, value})
-    let greaterThanOrEqualTo = (name, value) => Comparison({
-      name,
-      comparator: GreaterThanOrEqual,
-      value,
-    })
-    let between = (name, limits) => Between({name, limits})
-    let beginsWith = (name, value) => BeginsWith({name, value})
-    let any = Any
-  }
-  include Maker
+  let equals = (name, value) => Comparison({name, comparator: Equals, value})
+  let notEquals = (name, value) => Comparison({name, comparator: NotEquals, value})
+  let lessThan = (name, value) => Comparison({name, comparator: LessThan, value})
+  let lessThanOrEqualTo = (name, value) => Comparison({name, comparator: LessThanOrEqual, value})
+  let greaterThan = (name, value) => Comparison({name, comparator: GreaterThan, value})
+  let greaterThanOrEqualTo = (name, value) => Comparison({
+    name,
+    comparator: GreaterThanOrEqual,
+    value,
+  })
+  let between = (name, limits) => Between({name, limits})
+  let beginsWith = (name, value) => BeginsWith({name, value})
+  let any = Any
 
   %%private(
     let skConditionToString = (skCondition: skCondition, register) =>
@@ -468,13 +463,10 @@ module Update = {
     | Sum({lhs: operand, rhs: operand})
     | Sub({lhs: operand, rhs: operand})
 
-  module Maker = {
-    let listAppend = (identifier, operand) => ListAppend({identifier, operand})
-    let ifNotExists = (identifier, operand) => IfNotExists({identifier, operand})
-    let sum = (lhs, rhs) => Sum({lhs, rhs})
-    let sub = (lhs, rhs) => Sub({lhs, rhs})
-  }
-  include Maker
+  let listAppend = (identifier, operand) => ListAppend({identifier, operand})
+  let ifNotExists = (identifier, operand) => IfNotExists({identifier, operand})
+  let sum = (lhs, rhs) => Sum({lhs, rhs})
+  let sub = (lhs, rhs) => Sub({lhs, rhs})
 
   type rec update = {
     set?: array<(Identifier.t, operand)>,

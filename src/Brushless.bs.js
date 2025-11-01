@@ -558,27 +558,6 @@ function size(operand) {
   };
 }
 
-let Maker = {
-  equals: equals,
-  notEquals: notEquals,
-  lessThan: lessThan,
-  lessThanOrEqualTo: lessThanOrEqualTo,
-  greaterThan: greaterThan,
-  greaterThanOrEqualTo: greaterThanOrEqualTo,
-  between: between,
-  inList: inList,
-  attributeExists: attributeExists,
-  attributeNotExists: attributeNotExists,
-  attributeType: attributeType,
-  beginsWith: beginsWith,
-  contains: contains,
-  toContains: toContains,
-  and: and,
-  or: or,
-  not: not,
-  size: size
-};
-
 let Overload = {
   $amp$amp: and,
   $pipe$pipe: or,
@@ -648,7 +627,6 @@ function build(condition, register) {
 }
 
 let Condition = {
-  Maker: Maker,
   equals: equals,
   notEquals: notEquals,
   lessThan: lessThan,
@@ -749,18 +727,6 @@ function beginsWith$1(name, value) {
   };
 }
 
-let Maker$1 = {
-  equals: equals$1,
-  notEquals: notEquals$1,
-  lessThan: lessThan$1,
-  lessThanOrEqualTo: lessThanOrEqualTo$1,
-  greaterThan: greaterThan$1,
-  greaterThanOrEqualTo: greaterThanOrEqualTo$1,
-  between: between$1,
-  beginsWith: beginsWith$1,
-  any: "Any"
-};
-
 function skConditionToString(skCondition, register) {
   if (typeof skCondition !== "object") {
     return "";
@@ -781,7 +747,6 @@ function build$2(keyCondition, register) {
 }
 
 let KeyCondition = {
-  Maker: Maker$1,
   equals: equals$1,
   notEquals: notEquals$1,
   lessThan: lessThan$1,
@@ -826,13 +791,6 @@ function sub(lhs, rhs) {
   };
 }
 
-let Maker$2 = {
-  listAppend: listAppend,
-  ifNotExists: ifNotExists,
-  sum: sum,
-  sub: sub
-};
-
 function operandToString(operand, register) {
   switch (operand.TAG) {
     case "AttributePath" :
@@ -876,7 +834,6 @@ function build$3(update, register) {
 }
 
 let Update = {
-  Maker: Maker$2,
   listAppend: listAppend,
   ifNotExists: ifNotExists,
   sum: sum,
@@ -885,7 +842,6 @@ let Update = {
 };
 
 let U = {
-  Maker: Maker$2,
   listAppend: listAppend,
   ifNotExists: ifNotExists,
   sum: sum,
@@ -894,7 +850,6 @@ let U = {
 };
 
 let C = {
-  Maker: Maker,
   equals: equals,
   notEquals: notEquals,
   lessThan: lessThan,
@@ -918,7 +873,6 @@ let C = {
 };
 
 let K = {
-  Maker: Maker$1,
   equals: equals$1,
   notEquals: notEquals$1,
   lessThan: lessThan$1,
