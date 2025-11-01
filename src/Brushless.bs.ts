@@ -19,7 +19,8 @@ export type attributeValue_ = {
   readonly M?: {[id: string]: atLeastOne<attributeValue_>}; 
   readonly L?: atLeastOne<attributeValue_>[]; 
   readonly NULL?: boolean; 
-  readonly BOOL?: boolean
+  readonly BOOL?: boolean; 
+  readonly "$unknown": [string, unknown]
 };
 
 export type attributeValue = atLeastOne<attributeValue_>;

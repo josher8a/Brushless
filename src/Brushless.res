@@ -12,6 +12,7 @@ type rec attributeValue_ = {
   @as("L") l?: array<atLeastOne<attributeValue_>>,
   @as("NULL") null?: bool,
   @as("BOOL") bool?: bool,
+  @as("$unknown") unknown: (string, unknown),
 }
 
 type attributeValue = atLeastOne<attributeValue_>
