@@ -24,8 +24,6 @@ export type attributeValue_ = {
 
 export type attributeValue = atLeastOne<attributeValue_>;
 
-export type Undefinable_t<a> = undefined | a;
-
 export type AttributeName_t = 
     { TAG: "AttributeName"; readonly name: string };
 
@@ -43,7 +41,7 @@ export type AttributePath_t =
 
 export type AttributePath_parseState = "Name" | "Index";
 
-export type Register_t = { names: Undefinable_t<{[id: string]: string}>; values: Undefinable_t<{[id: string]: attributeValue}> };
+export type Register_t = { names?: {[id: string]: string}; values?: {[id: string]: attributeValue} };
 
 export type comparator = "=" | "<>" | "<" | "<=" | ">" | ">=";
 

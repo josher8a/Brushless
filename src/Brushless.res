@@ -23,29 +23,6 @@ type attributeValue = atLeastOne<attributeValue_>
   @send external reduce: (array<'b>, ('a, 'b) => 'a, 'a) => 'a = "reduce"
 )
 
-module Undefinable = {
-  @unboxed
-  type t<'a> =
-    | Value('a)
-    | @as(undefined) Undefined
-
-  external undefined: t<'a> = "#undefined"
-
-  external make: 'a => t<'a> = "%identity"
-
-  let getOr = (value, default) =>
-    switch value {
-    | Value(x) => x
-    | Undefined => default
-    }
-  let equal = (a, b, eq) =>
-    switch (a, b) {
-    | (Value(a), Value(b)) => eq(a, b)
-    | (Undefined, Undefined) => true
-    | (Undefined, Value(_)) | (Value(_), Undefined) => false
-    }
-}
-
 // TODO: Move to external binding
 // @genType
 // module DefaultMarshaller = {
@@ -174,12 +151,25 @@ module AttributePath = {
 @genType
 module Register = {
   type t = {
-    mutable names: Undefinable.t<Dict.t<string>>,
-    mutable values: Undefinable.t<Dict.t<attributeValue>>,
+    mutable names?: Dict.t<string>,
+    mutable values?: Dict.t<attributeValue>,
   }
 
-  let make = () => {names: Undefinable.undefined, values: Undefinable.undefined}
-
+  let make = (): t => {}
+  %%private(
+    @inline
+    let getValues = (t): Dict.t<attributeValue> =>
+      switch t {
+      | {values: x} => x
+      | _ => dict{}
+      }
+    @inline
+    let getNames = (t): Dict.t<string> =>
+      switch t {
+      | {names: x} => x
+      | _ => dict{}
+      }
+  )
   let rec isValueEqual = (a: attributeValue, b: attributeValue) =>
     switch (a, b) {
     | ({s: x}, {s: y}) => x === y
@@ -232,7 +222,7 @@ module Register = {
     switch element {
     | AttributeValue({value, alias}) =>
       let key = AttributeValue({value, alias})->toString
-      let dict = register.values->Undefinable.getOr(Dict.make())
+      let dict = getValues(register)
       let exist = dict->Dict.getUnsafe(key)
       if (
         Obj.magic(exist) !== undefined &&
@@ -242,7 +232,7 @@ module Register = {
         addValue(register, AttributeValue({value, alias: alias ++ "_"}))
       } else {
         dict->Dict.set(key, value)
-        register.values = Undefinable.Value(dict)
+        register.values = Some(dict)
         element
       }
     }
@@ -252,9 +242,9 @@ module Register = {
     open AttributeName
     switch element {
     | AttributeName({name}) =>
-      let dict = register.names->Undefinable.getOr(Dict.make())
+      let dict = register->getNames
       dict->Dict.set(AttributeName({name: name})->toString, name)
-      register.names = Undefinable.Value(dict)
+      register.names = Some(dict)
     }
 
     element
@@ -264,7 +254,7 @@ module Register = {
     open AttributeName
     switch element {
     | AttributePath({name, subpath}) => {
-        let dict = register.names->Undefinable.getOr(Dict.make())
+        let dict = register->getNames
         dict->Dict.set(toString(AttributeName({name: name})), name)
 
         subpath->Array.forEach(sub =>
@@ -273,7 +263,7 @@ module Register = {
           | ListIndex(_) => ()
           }
         )
-        register.names = Undefinable.Value(dict)
+        register.names = Some(dict)
       }
     }
 
