@@ -1,1 +1,0 @@
-export type Uint8Array_t = Uint8Array
