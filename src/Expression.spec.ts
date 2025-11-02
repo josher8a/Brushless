@@ -13,7 +13,7 @@ describe('Expression', () => {
     describe('ConditionExpression', () => {
         it('should return the condition expression', () => {
             const register = Register.make();
-            const { equals } = Condition.Maker;
+            const { equals } = Condition;
             const expression = Condition.build(equals(
                 AttributePath.fromString('foo.bar.baz'),
                 AttributeValue.make({

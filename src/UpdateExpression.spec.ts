@@ -99,7 +99,7 @@ describe('UpdateExpression', () => {
 
     it('should serialize SET clauses with function expressions', () => {
         const register = Register.make();
-        const {listAppend} = Update.Maker
+        const {listAppend} = Update
         const foo = AttributeName.make('foo')
         expect(Update.build({
             set: [
@@ -122,7 +122,7 @@ describe('UpdateExpression', () => {
 
     it('should serialize SET clauses with mathematical expressions', () => {
         const register = Register.make();
-        const {sum} = Update.Maker
+        const {sum} = Update
         const foo = AttributeName.make('foo')
         expect(Update.build({
             set: [
