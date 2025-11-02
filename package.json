@@ -1,6 +1,6 @@
 {
   "name": "brushless",
-  "version": "0.2.1-0",
+  "version": "0.2.1-alpha.1",
   "description": "DynamoDB utils lib write in Rescript and Typescript",
   "main": "src/Brushless.bs.js",
   "keywords": [
@@ -21,7 +21,7 @@
   "scripts": {
     "res:build": "rescript",
     "res:clean": "rescript clean",
-    "res:dev": "rescript build -w",
+    "res:dev": "rescript watch",
     "res:format": "rescript format -all",
     "test": "bun test \"src/\""
   },
