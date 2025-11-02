@@ -14,7 +14,7 @@ const {
     attributeType,
     beginsWith,
     contains,
-} = Condition.Maker;
+} = Condition;
 
 const name = AttributePath.fromString('name');
 describe('equals', () => {
