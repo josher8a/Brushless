@@ -1,6 +1,25 @@
 @genType.import(("./external", "AtLeastOne"))
 type atLeastOne<'a> = 'a
 
+// @unboxed
+// type nativeAttributeBinary =
+// | ArrayBuffer(ArrayBuffer.t)
+// | Blob(Js.Blob.t)
+// | Buffer(Buffer.t)
+// | DataView(DataView.t)
+// | File(Js.File.t)
+// | Int8Array(Int8Array.t)
+// | Uint8Array(Uint8Array.t)
+// | Uint8ClampedArray(Uint8ClampedArray.t)
+// | Int16Array(Int16Array.t)
+// | Uint16Array(Uint16Array.t)
+// | Int32Array(Int32Array.t)
+// | Uint32Array(Uint32Array.t)
+// | Float32Array(Float32Array.t)
+// | Float64Array(Float64Array.t)
+// | BigInt64Array(BigInt64Array.t)
+// | BigUint64Array(BigUint64Array.t)
+
 type rec attributeValue_ = {
   @as("S") s?: string,
   @as("N") n?: string,
@@ -22,6 +41,49 @@ type attributeValue = atLeastOne<attributeValue_>
 
   @send external reduce: (array<'b>, ('a, 'b) => 'a, 'a) => 'a = "reduce"
 )
+module M = {
+  @unboxed
+  type rec t =
+    | Uint8Array(Uint8Array.t)
+    | Boolean(bool)
+    | @as(null) Null
+    | String(string)
+    | Number(float)
+    | Object(dict<t>)
+    | Array(array<t>)
+    | Sets(Set.t<t>)
+    | BigInt(BigInt.t)
+  // More concise approach using pattern matching
+  let rec marshallValue = (value: t) => {
+    switch value {
+    | Boolean(v) => Some({bool: v})
+    | Null => Some({null: true})
+    | String(v) => Some({s: v})
+    | Number(v) => Some({n: v->Float.toString})
+    | BigInt(v) => Some({n: v->BigInt.toString})
+    | Array(v) => Some({l: v->Array.map(x => marshallValue(x)->Option.getUnsafe)})
+    | Uint8Array(v) => Some({b: v})
+    | Sets(v) => {
+        let r = v->Set.values->Iterator.toArray->Array.map(x => x->marshallValue->Option.getUnsafe)
+        switch r->Array.getUnsafe(0) {
+        | {b: _, _} => Some({bs: r->Array.map(v => v.b->Option.getUnsafe)})
+        | {s: _, _} => Some({ss: r->Array.map(v => v.s->Option.getUnsafe)})
+        | {n: _, _} => Some({ns: r->Array.map(v => v.n->Option.getUnsafe)})
+        | _ =>
+          Some({
+            unknown: ("x", Obj.magic(value)),
+          })
+        }
+      }
+    | Object(x) =>
+      Some({
+        m: Dict.fromArray(
+          x->Dict.toArray->Array.map(((k, v)) => (k, marshallValue(v)->Option.getUnsafe)),
+        ),
+      })
+    }
+  }
+}
 
 // TODO: Move to external binding
 // @genType
