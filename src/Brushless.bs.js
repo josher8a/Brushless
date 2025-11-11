@@ -2,6 +2,75 @@
 'use strict';
 
 
+function marshallValue(value) {
+  if (value === null) {
+    return {
+      NULL: true
+    };
+  }
+  if (value instanceof Uint8Array) {
+    return {
+      B: value
+    };
+  }
+  if (Array.isArray(value)) {
+    return {
+      L: value.map(marshallValue)
+    };
+  }
+  if (value instanceof Set) {
+    let r = value.values().toArray().map(marshallValue);
+    let match = r[0];
+    if (match.B !== undefined) {
+      return {
+        BS: r.map(v => v.B)
+      };
+    } else if (match.S !== undefined) {
+      return {
+        SS: r.map(v => v.S)
+      };
+    } else if (match.N !== undefined) {
+      return {
+        NS: r.map(v => v.N)
+      };
+    } else {
+      return {
+        $unknown: [
+          "x",
+          value
+        ]
+      };
+    }
+  }
+  switch (typeof value) {
+    case "boolean" :
+      return {
+        BOOL: value
+      };
+    case "string" :
+      return {
+        S: value
+      };
+    case "object" :
+      return {
+        M: Object.fromEntries(Object.entries(value).map(param => [
+          param[0],
+          marshallValue(param[1])
+        ]))
+      };
+    case "number" :
+    case "bigint" :
+      break;
+  }
+  return {
+    N: value.toString()
+  };
+}
+
+let M = {
+  marshallValue: marshallValue
+};
+
 function make(name) {
   return {
     TAG: "AttributeName",
@@ -889,6 +958,7 @@ let P = {
   build: build$1
 };
 
+exports.M = M;
 exports.AttributeName = AttributeName;
 exports.AttributeValue = AttributeValue;
 exports.AttributePath = AttributePath;
