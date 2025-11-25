@@ -39,46 +39,14 @@ let AttributeValue = {
   toString: toString$1
 };
 
-function splitWhen(str, predicate) {
-  let _index = 0;
-  while (true) {
-    let index = _index;
-    let char = str[index];
-    if (char === undefined) {
-      return [
-        str,
-        "",
-        ""
-      ];
-    }
-    if (predicate(char)) {
-      return [
-        str.substring(0, index),
-        str.substring(index, index + 1 | 0),
-        str.substring(index + 1 | 0)
-      ];
-    }
-    _index = index + 1 | 0;
-    continue;
-  };
-}
-
 function fromString(str) {
-  let parse = (_str, _state, _accOpt) => {
+  let acc = [];
+  let parse = (_str, _state) => {
     while (true) {
-      let accOpt = _accOpt;
       let state = _state;
       let str = _str;
-      let acc = accOpt !== undefined ? accOpt : [];
-      let match = splitWhen(str, char => {
-        if (char === "[") {
-          return true;
-        } else {
-          return char === ".";
-        }
-      });
-      let rest = match[2];
-      let name = match[0];
+      let i = str.search(/\[|\./);
+      let name = i === -1 ? str : str.substring(0, i);
       if (state === "Name") {
         if (name === "") {
           throw new Error("InvalidPath");
@@ -90,42 +58,34 @@ function fromString(str) {
       } else if (name !== "") {
         throw new Error("InvalidPath");
       }
-      switch (match[1]) {
-        case "" :
-          if (rest === "") {
-            return acc;
-          }
-          throw new Error("InvalidPath");
-        case "." :
-          _accOpt = acc;
-          _state = "Name";
-          _str = rest;
-          continue;
-        case "[" :
-          let match$1 = splitWhen(rest, char => char === "]");
-          let index = match$1[0];
-          if (match$1[1] === "]") {
-            let x = parseInt(index);
-            if (!isFinite(x) || x < 0 || index.length !== x.toString().length) {
-              throw new Error("InvalidIndex: " + index);
-            }
-            acc.push({
-              TAG: "ListIndex",
-              index: x | 0
-            });
-            _accOpt = acc;
-            _state = "Index";
-            _str = match$1[2];
-            continue;
-          }
-          throw new Error("InvalidPath");
-        default:
-          throw new Error("InvalidPath");
+      if (i === -1) {
+        return;
       }
+      let next = str.charAt(i) === "." ? "Name" : "Index";
+      let rest = str.substring(i + 1 | 0);
+      if (next === "Name") {
+        _state = "Name";
+        _str = rest;
+        continue;
+      }
+      let i$1 = rest.indexOf("]");
+      let index = rest.substring(0, i$1);
+      let rest$1 = rest.substring(i$1 + 1 | 0);
+      let x = parseInt(index);
+      if (!isFinite(x) || x < 0 || index.length !== x.toString().length) {
+        throw new Error("InvalidIndex: " + index);
+      }
+      acc.push({
+        TAG: "ListIndex",
+        index: x | 0
+      });
+      _state = "Index";
+      _str = rest$1;
+      continue;
     };
   };
-  let acc = [];
-  let match = parse(str, "Name", acc).shift();
+  parse(str, "Name");
+  let match = acc.shift();
   if (match !== undefined) {
     if (match.TAG === "AttributeName") {
       return {

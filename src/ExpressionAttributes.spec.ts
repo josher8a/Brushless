@@ -40,6 +40,10 @@ describe('ExpressionAttributes', () => {
                 );
             }
         );
+
+         it('should allow the addition of nested attributes', () => {
+            expect(()=>AttributePath.toString(AttributePath.fromString('foo[]'))).toThrowError('InvalidIndex');
+        });
     });
 
     describe('#addValue', () => {
