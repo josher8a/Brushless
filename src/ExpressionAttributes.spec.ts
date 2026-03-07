@@ -1,5 +1,5 @@
 import {describe, it, expect} from 'bun:test';
-import { AttributePath, AttributeName, AttributeValue } from './Brushless.bs';
+import { AttributePath, AttributeName, AttributeValue } from './index';
 describe('ExpressionAttributes', () => {
     describe('#addName', () => {
         it('should provide expression-safe aliases for names', () => {
@@ -40,6 +40,32 @@ describe('ExpressionAttributes', () => {
                 );
             }
         );
+
+         it('should allow the addition of nested attributes', () => {
+            expect(()=>AttributePath.toString(AttributePath.fromString('foo[]'))).toThrowError('InvalidIndex');
+        });
+
+        it('should reject names containing reserved expression characters', () => {
+            for (const bad of ['foo[0', 'bar]', '#baz', ':qux']) {
+                expect(() => AttributeName.toString(AttributeName.make(bad))).toThrowError('InvalidName');
+            }
+        });
+
+        it('should reject names containing spaces or dots', () => {
+            expect(() => AttributeName.toString(AttributeName.make('foo bar'))).toThrowError('InvalidName');
+            expect(() => AttributeName.toString(AttributeName.make('foo.bar'))).toThrowError('InvalidName');
+        });
+
+        it('should escape hyphens in names', () => {
+            expect(AttributeName.toString(AttributeName.make('foo-bar'))).toBe('#foo_dash_bar');
+        });
+
+        it('should not collide hyphenated and underscored names', () => {
+            expect(AttributeName.toString(AttributeName.make('foo-bar'))).not.toBe(
+                AttributeName.toString(AttributeName.make('foo_bar'))
+            );
+            expect(AttributeName.toString(AttributeName.make('foo_bar'))).toBe('#foo__bar');
+        });
     });
 
     describe('#addValue', () => {

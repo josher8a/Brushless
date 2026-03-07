@@ -7,18 +7,18 @@
     "gentypeconfig": {
       "language": "typescript",
       "generatedFileExtension": ".bs.ts",
-      "module": "commonjs",
+      "module": "esmodule",
       "debug": {
         "all": false,
         "basic": false
       }
   },
     "package-specs": {
-      "module": "commonjs",
+      "module": "esmodule",
       "in-source": true
     },
     "suffix": ".bs.js",
-    "bsc-flags": ["-open RescriptCore"],
-    "bs-dependencies": ["@rescript/core"]
-
+    "warnings": {
+        "number": "+A"
+      }
   }

@@ -1,35 +1,27 @@
-@genType.import(("./external", "AttributeValue"))
-type attributeValue
+@genType.import(("./external", "AtLeastOne"))
+type atLeastOne<'a> = 'a
+
+type rec attributeValue_ = {
+  @as("S") s?: string,
+  @as("N") n?: string,
+  @as("B") b?: Uint8Array.t,
+  @as("SS") ss?: array<string>,
+  @as("NS") ns?: array<string>,
+  @as("BS") bs?: array<Uint8Array.t>,
+  @as("M") m?: dict<atLeastOne<attributeValue_>>,
+  @as("L") l?: array<atLeastOne<attributeValue_>>,
+  @as("NULL") null?: bool,
+  @as("BOOL") bool?: bool,
+  @as("$unknown") unknown?: (string, unknown),
+}
+
+type attributeValue = atLeastOne<attributeValue_>
 
 %%private(
-  @new external makeError: string => 'a = "Error"
-  let throwError = message => raise(Obj.magic(makeError(message)))
+  let throwError = message => JsError.throw(JsError.make(message))
 
   @send external reduce: (array<'b>, ('a, 'b) => 'a, 'a) => 'a = "reduce"
 )
-
-module Undefinable = {
-  @unboxed
-  type t<'a> =
-    | Value('a)
-    | @as(undefined) Undefined
-
-  external undefined: t<'a> = "#undefined"
-
-  external make: 'a => t<'a> = "%identity"
-
-  let getOr = (value, default) =>
-    switch value {
-    | Value(x) => x
-    | Undefined => default
-    }
-  let equal = (a, b, eq) =>
-    switch (a, b) {
-    | (Value(a), Value(b)) => eq(a, b)
-    | (Undefined, Undefined) => true
-    | (Undefined, Value(_)) | (Value(_), Undefined) => false
-    }
-}
 
 // TODO: Move to external binding
 // @genType
@@ -44,21 +36,24 @@ module Undefinable = {
 //   let marshaller = init()
 //   let marshallValue = x => marshallValue(marshaller, x)
 // }
-@send external replaceAll: (string, string, string) => string = "replaceAll"
 
 @genType
 module AttributeName = {
   type t = AttributeName({name: string})
   let make = name => AttributeName({name: name})
-  let toString = name =>
-    switch name {
-    | AttributeName({name}) => {
-        if name->String.includes(" ") || name->String.includes(".") {
-          throwError("InvalidName")
-        }
-        "#" ++ name->replaceAll("-", "_")
-      }
+  let toString = (AttributeName({name})) => {
+    if (
+      name->String.includes(" ") ||
+      name->String.includes(".") ||
+      name->String.includes("[") ||
+      name->String.includes("]") ||
+      name->String.includes("#") ||
+      name->String.includes(":")
+    ) {
+      throwError("InvalidName: " ++ name)
     }
+    "#" ++ name->String.replaceAll("_", "__")->String.replaceAll("-", "_dash_")
+  }
 }
 
 @genType
@@ -73,10 +68,7 @@ module AttributeValue = {
     alias: x.alias,
   })
 
-  let toString = value =>
-    switch value {
-    | AttributeValue({alias}) => ":" ++ alias
-    }
+  let toString = (AttributeValue({alias, _})) => ":" ++ alias
 }
 
 @genType
@@ -90,194 +82,171 @@ module AttributePath = {
     | Name
     | Index
 
-  %%private(
-    let splitWhen = (str: string, predicate: string => bool) => {
-      let rec splitWhen = (str: string, index: int) =>
-        switch str->String.get(index) {
-        | Some(char) if predicate(char) => (
-            str->String.substring(~start=0, ~end=index),
-            str->String.substring(~start=index, ~end=index + 1),
-            str->String.substringToEnd(~start=index + 1),
-          )
-        | Some(_) => str->splitWhen(index + 1)
-        | None => (str, "", "")
-        }
-      str->splitWhen(0)
-    }
-  )
-
   let fromString = (str: string): t => {
-    let rec parse = (str, state, ~acc=[]) => {
-      let (name, char, rest) = str->splitWhen(char => char == "[" || char == ".")
+    let acc = []
+    let rec parse = (str, state) => {
+      let i = str->String.search(/\[|\./)
+      let name = i === -1 ? str : str->String.substring(~start=0, ~end=i)
 
       switch state {
-      | Name if name == "" => throwError("InvalidPath")
-      | Name => acc->Array.push(AttributeName({name: name}))
-      | Index if name !== "" => throwError("InvalidPath")
+      | Name =>
+        name == "" ? throwError("InvalidPath") : acc->Array.push(AttributeName({name: name}))
+      | _ if name !== "" => throwError("InvalidPath")
       | Index => ()
       }
-      switch (char, rest) {
-      | ("", "") => acc
-      | (".", rest) => parse(rest, Name, ~acc)
-      | ("[", rest) =>
-        switch rest->splitWhen(char => char == "]") {
-        | (index, "]", rest) => {
-            acc->Array.push(ListIndex({index: index->parseIndex}))
-            parse(rest, Index, ~acc)
+
+      if i !== -1 {
+        let next = str->String.charAt(i) === "." ? Name : Index
+        let rest = str->String.substring(~start=i + 1)
+
+        switch next {
+        | Name => rest->parse(Name)
+        | Index => {
+            let i = rest->String.indexOf("]")
+            let index = rest->String.substring(~start=0, ~end=i)
+            let rest = rest->String.substring(~start=i + 1)
+            let x = Float.parseInt(index)
+            if (
+              !Float.isFinite(x) ||
+              x < 0. ||
+              index->String.length !== x->Float.toString->String.length
+            ) {
+              throwError("InvalidIndex: " ++ index)
+            }
+
+            acc->Array.push(ListIndex({index: x->Float.toInt}))
+            rest->parse(Index)
           }
-        | _ => throwError("InvalidPath")
         }
-      | _ => throwError("InvalidPath")
       }
     }
-    and parseIndex = index =>
-      switch Float.parseInt(index) {
-      | x
-        if Float.isFinite(x) &&
-        x >= 0. &&
-        index->String.length === x->Float.toString->String.length =>
-        x->Float.toInt
-      | _ => throwError("InvalidIndex: " ++ index)
-      }
 
-    let acc = []
-    switch Array.shift(str->parse(Name, ~acc)) {
+    str->parse(Name)
+    switch Array.shift(acc) {
     | Some(AttributeName({name})) => AttributePath({name, subpath: acc})
-    | _ => throwError("InvalidPath")
+    | Some(ListIndex(_)) | None => throwError("InvalidPath")
     }
   }
 
-  let toString = (AttributePath({name, subpath}): t): string => {
+  let toString = (AttributePath({name, subpath})) => {
     subpath->reduce((acc, subs) =>
       switch subs {
       | AttributeName({name}) => `${acc}.${AttributeName.toString(AttributeName({name: name}))}`
-      | ListIndex({index}) => `${acc}[${string_of_int(index)}]`
+      | ListIndex({index}) => `${acc}[${Int.toString(index)}]`
       }
     , AttributeName.toString(AttributeName({name: name})))
   }
 }
 
+/**
+ * Mutable accumulator for ExpressionAttributeNames and ExpressionAttributeValues.
+ * Create one Register per DynamoDB command and pass it to all `build()` calls
+ * (Condition, KeyCondition, Update, Projection) for that command.
+ * Do not reuse a Register across independent commands.
+ */
 @genType
 module Register = {
   type t = {
-    mutable names: Undefinable.t<Dict.t<string>>,
-    mutable values: Undefinable.t<Dict.t<attributeValue>>,
+    mutable names?: dict<string>,
+    mutable values?: dict<attributeValue>,
   }
 
-  let make = () => {names: Undefinable.undefined, values: Undefinable.undefined}
+  let make = (): t => {}
+  %%private(
+    @inline
+    let getValues = (t): dict<attributeValue> =>
+      switch t {
+      | {values: x, _} => x
+      | _ => dict{}
+      }
+    @inline
+    let getNames = (t): dict<string> =>
+      switch t {
+      | {names: x, _} => x
+      | _ => dict{}
+      }
+  )
+  let rec isValueEqual = (a: attributeValue, b: attributeValue) =>
+    switch (a, b) {
+    | ({s: x, _}, {s: y, _}) => x === y
+    | ({n: x, _}, {n: y, _}) => x === y
+    | ({null: x, _}, {null: y, _}) => x === y
+    | ({bool: x, _}, {bool: y, _}) => x === y
+    | ({ss: x, _}, {ss: y, _}) =>
+      Array.length(x) === Array.length(y) && Array.every(x, v => Array.includes(y, v))
+    | ({ns: x, _}, {ns: y, _}) =>
+      Array.length(x) === Array.length(y) && Array.every(x, v => Array.includes(y, v))
+    | ({l: x, _}, {l: y, _}) =>
+      Array.length(x) === Array.length(y) &&
+        Array.everyWithIndex(x, (v, i) =>
+          switch y[i] {
+          | Some(y) => isValueEqual(v, y)
+          | _ => false
+          }
+        )
 
-  // @genType.opaque
-  type uint8Array = Js_typed_array2.Uint8Array.t
-  // @genType.opaque
-  type rec attributeValue_ = {
-    "S": Undefinable.t<string>,
-    "N": Undefinable.t<string>,
-    "B": Undefinable.t<uint8Array>,
-    "SS": Undefinable.t<array<string>>,
-    "NS": Undefinable.t<array<string>>,
-    "BS": Undefinable.t<array<uint8Array>>,
-    "M": Undefinable.t<Dict.t<attributeValue_>>,
-    "L": Undefinable.t<array<attributeValue_>>,
-    "NULL": Undefinable.t<bool>,
-    "BOOL": Undefinable.t<bool>,
-  }
-
-  let rec isValueEqual = (a: attributeValue_, b: attributeValue_) =>
-    [
-      Undefinable.equal(a["S"], b["S"], (x, y) => x === y),
-      Undefinable.equal(a["N"], b["N"], (x, y) => x === y),
-      Undefinable.equal(a["NULL"], b["NULL"], (x, y) => x === y),
-      Undefinable.equal(a["BOOL"], b["BOOL"], (x, y) => x === y),
-      Undefinable.equal(a["SS"], b["SS"], (x, y) => Array.every(x, v => Array.includes(y, v))),
-      Undefinable.equal(a["NS"], b["NS"], (x, y) => Array.every(x, v => Array.includes(y, v))),
-      Undefinable.equal(a["L"], b["L"], (x, y) =>
-        Array.length(x) === Array.length(y) &&
-          Array.everyWithIndex(x, (v, i) => {
-            let y = Js.Array.unsafe_get(y, i)
-            if Obj.magic(y) !== undefined {
-              isValueEqual(v, Obj.magic(y))
-            } else {
-              false
-            }
-          })
-      ),
-      Undefinable.equal(a["M"], b["M"], (x, y) => {
+    | ({m: x, _}, {m: y, _}) => {
         let keys = x->Dict.toArray
         keys->Array.length === y->Dict.keysToArray->Array.length &&
-          keys->Array.every(((key, x)) => {
-            let y = Js.Dict.unsafeGet(y, key)
-            if Obj.magic(y) !== undefined {
-              isValueEqual(x, Obj.magic(y))
-            } else {
-              false
+          keys->Array.every(((key, v)) =>
+            switch Dict.get(y, key) {
+            | Some(y) => isValueEqual(v, y)
+            | _ => false
             }
-          })
-      }),
-      Undefinable.equal(a["B"], b["B"], (x, y) =>
-        x->Js_typed_array2.Uint8Array.toString === y->Js_typed_array2.Uint8Array.toString
-      ),
-      Undefinable.equal(a["BS"], b["BS"], (x, y) =>
-        Array.length(x) === Array.length(y) &&
-          Array.everyWithIndex(x, (v, i) => {
-            let y = Js.Array.unsafe_get(y, i)
-            if Obj.magic(y) !== undefined {
-              v->Js_typed_array2.Uint8Array.toString === y->Js_typed_array2.Uint8Array.toString
-            } else {
-              false
-            }
-          })
-      ),
-    ]->Array.every(x => x)
+          )
+      }
+    | ({b: x, _}, {b: y, _}) => x->TypedArray.toString === y->TypedArray.toString
+
+    | ({bs: x, _}, {bs: y, _}) =>
+      Array.length(x) === Array.length(y) &&
+        Array.everyWithIndex(x, (v, i) =>
+          switch y[i] {
+          | Some(y) => v->TypedArray.toString === y->TypedArray.toString
+          | _ => false
+          }
+        )
+
+    | (_, _) => false
+    }
 
   let rec addValue = (register, element) => {
     open AttributeValue
     switch element {
     | AttributeValue({value, alias}) =>
       let key = AttributeValue({value, alias})->toString
-      let dict = register.values->Undefinable.getOr(Dict.make())
-      let exist = dict->Js.Dict.unsafeGet(key)
-      if (
-        Obj.magic(exist) !== undefined &&
-        exist !== value &&
-        !isValueEqual(Obj.magic(exist), Obj.magic(value))
-      ) {
+      let dict = getValues(register)
+      switch dict->Dict.get(key) {
+      | Some(exist) if exist !== value && !isValueEqual(exist, value) =>
         addValue(register, AttributeValue({value, alias: alias ++ "_"}))
-      } else {
-        dict->Dict.set(key, value)
-        register.values = Undefinable.Value(dict)
-        element
+      | _ => {
+          dict->Dict.set(key, value)
+          register.values = Some(dict)
+          element
+        }
       }
     }
   }
 
-  let addName = (register, element) => {
+  let addName = (register, AttributeName({name}) as element: AttributeName.t) => {
     open AttributeName
-    switch element {
-    | AttributeName({name}) =>
-      let dict = register.names->Undefinable.getOr(Dict.make())
-      dict->Dict.set(AttributeName({name: name})->toString, name)
-      register.names = Undefinable.Value(dict)
-    }
-
+    let dict = register->getNames
+    dict->Dict.set(AttributeName({name: name})->toString, name)
+    register.names = Some(dict)
     element
   }
 
-  let addPath = (register, element: AttributePath.t) => {
+  let addPath = (register, AttributePath({name, subpath}) as element: AttributePath.t) => {
     open AttributeName
-    switch element {
-    | AttributePath({name, subpath}) => {
-        let dict = register.names->Undefinable.getOr(Dict.make())
-        dict->Dict.set(toString(AttributeName({name: name})), name)
+    let dict = register->getNames
+    dict->Dict.set(AttributeName({name: name})->toString, name)
 
-        subpath->Array.forEach(sub =>
-          switch sub {
-          | AttributeName({name}) => dict->Dict.set(toString(AttributeName({name: name})), name)
-          | ListIndex(_) => ()
-          }
-        )
-        register.names = Undefinable.Value(dict)
+    subpath->Array.forEach(sub =>
+      switch sub {
+      | AttributeName({name}) => dict->Dict.set(AttributeName({name: name})->toString, name)
+      | ListIndex(_) => ()
       }
-    }
+    )
+    register.names = Some(dict)
 
     element
   }
@@ -335,38 +304,36 @@ module Condition = {
     // alias for contains where the order of the arguments is reversed
     | ToContains({identifier: Identifier.t, operand: operand})
 
-  module Maker = {
-    let equals = (lhs, rhs) => Comparison({lhs, comparator: Equals, rhs})
-    let notEquals = (lhs, rhs) => Comparison({lhs, comparator: NotEquals, rhs})
-    let lessThan = (lhs, rhs) => Comparison({lhs, comparator: LessThan, rhs})
-    let lessThanOrEqualTo = (lhs, rhs) => Comparison({lhs, comparator: LessThanOrEqual, rhs})
-    let greaterThan = (lhs, rhs) => Comparison({lhs, comparator: GreaterThan, rhs})
-    let greaterThanOrEqualTo = (lhs, rhs) => Comparison({
-      lhs,
-      comparator: GreaterThanOrEqual,
-      rhs,
-    })
-    let between = (operand, limits) => Between({operand, limits})
-    let inList = (operand, list) => In({operand, list})
-    let attributeExists = identifier => AttributeExists({identifier: identifier})
-    let attributeNotExists = identifier => AttributeNotExists({identifier: identifier})
-    let attributeType = (identifier, operand) => AttributeType({identifier, operand})
-    let beginsWith = (identifier, operand) => BeginsWith({identifier, operand})
-    let contains = (identifier, operand) => Contains({identifier, operand})
-    let toContains = (identifier, operand) => ToContains({identifier, operand})
-    let \"and" = (lhs, rhs) => And({lhs, rhs})
-    let or = (lhs, rhs) => Or({lhs, rhs})
-    let not = condition => Not({condition: condition})
-    let size = operand => Size({operand: operand})
-  }
-  include Maker
+  let equals = (lhs, rhs) => Comparison({lhs, comparator: Equals, rhs})
+  let notEquals = (lhs, rhs) => Comparison({lhs, comparator: NotEquals, rhs})
+  let lessThan = (lhs, rhs) => Comparison({lhs, comparator: LessThan, rhs})
+  let lessThanOrEqualTo = (lhs, rhs) => Comparison({lhs, comparator: LessThanOrEqual, rhs})
+  let greaterThan = (lhs, rhs) => Comparison({lhs, comparator: GreaterThan, rhs})
+  let greaterThanOrEqualTo = (lhs, rhs) => Comparison({
+    lhs,
+    comparator: GreaterThanOrEqual,
+    rhs,
+  })
+  let between = (operand, limits) => Between({operand, limits})
+  let inList = (operand, list) => In({operand, list})
+  let attributeExists = identifier => AttributeExists({identifier: identifier})
+  let attributeNotExists = identifier => AttributeNotExists({identifier: identifier})
+  let attributeType = (identifier, operand) => AttributeType({identifier, operand})
+  let beginsWith = (identifier, operand) => BeginsWith({identifier, operand})
+  let contains = (identifier, operand) => Contains({identifier, operand})
+  let toContains = (identifier, operand) => ToContains({identifier, operand})
+  let \"and" = (lhs, rhs) => And({lhs, rhs})
+  let or = (lhs, rhs) => Or({lhs, rhs})
+  let not = condition => Not({condition: condition})
+  let size = operand => Size({operand: operand})
+
   module Overload = {
     @genType.opaque
     let \"&&" = \"and"
     @genType.opaque
     let \"||" = or
     @genType.opaque
-    let \"!" = Maker.not
+    let \"!" = not
     @genType.opaque
     let \"==" = equals
     @genType.opaque
@@ -441,44 +408,42 @@ module KeyCondition = {
     | Comparison({name: AttributeName.t, comparator: comparator, value: AttributeValue.t})
     | Between({name: AttributeName.t, limits: limits})
     | BeginsWith({name: AttributeName.t, value: AttributeValue.t})
-    | Any
+    | @as(undefined) @deprecated("Omit the `sk` field instead") Any
   type keyCondition = {
     pk: pkCond,
-    sk: skCondition,
+    sk?: skCondition,
   }
 
-  module Maker = {
-    let equals = (name, value) => Comparison({name, comparator: Equals, value})
-    let notEquals = (name, value) => Comparison({name, comparator: NotEquals, value})
-    let lessThan = (name, value) => Comparison({name, comparator: LessThan, value})
-    let lessThanOrEqualTo = (name, value) => Comparison({name, comparator: LessThanOrEqual, value})
-    let greaterThan = (name, value) => Comparison({name, comparator: GreaterThan, value})
-    let greaterThanOrEqualTo = (name, value) => Comparison({
-      name,
-      comparator: GreaterThanOrEqual,
-      value,
-    })
-    let between = (name, limits) => Between({name, limits})
-    let beginsWith = (name, value) => BeginsWith({name, value})
-    let any = Any
-  }
-  include Maker
+  let equals = (name, value) => Comparison({name, comparator: Equals, value})
+  let notEquals = (name, value) => Comparison({name, comparator: NotEquals, value})
+  let lessThan = (name, value) => Comparison({name, comparator: LessThan, value})
+  let lessThanOrEqualTo = (name, value) => Comparison({name, comparator: LessThanOrEqual, value})
+  let greaterThan = (name, value) => Comparison({name, comparator: GreaterThan, value})
+  let greaterThanOrEqualTo = (name, value) => Comparison({
+    name,
+    comparator: GreaterThanOrEqual,
+    value,
+  })
+  let between = (name, limits) => Between({name, limits})
+  let beginsWith = (name, value) => BeginsWith({name, value})
+  @deprecated("Omit the `sk` field instead")
+  let any = Any
 
   %%private(
-    let skConditionToString = (skCondition: skCondition, register) =>
+    let skConditionToString = (skCondition: option<skCondition>, register) =>
       switch skCondition {
-      | Any => ""
-      | Comparison({name, comparator, value}) =>
+      | None | Some(Any) => ""
+      | Some(Comparison({name, comparator, value})) =>
         ` AND ${AttributeName.toString(Register.addName(register, name))} ${comparatorToString(
             comparator,
           )} ${AttributeValue.toString(Register.addValue(register, value))}`
-      | Between({name, limits}) =>
+      | Some(Between({name, limits})) =>
         ` AND ${AttributeName.toString(
             Register.addName(register, name),
           )} BETWEEN ${AttributeValue.toString(
             Register.addValue(register, limits.lower),
           )} AND ${AttributeValue.toString(Register.addValue(register, limits.upper))}`
-      | BeginsWith({name, value}) =>
+      | Some(BeginsWith({name, value})) =>
         ` AND begins_with(${AttributeName.toString(
             Register.addName(register, name),
           )}, ${AttributeValue.toString(Register.addValue(register, value))})`
@@ -503,13 +468,10 @@ module Update = {
     | Sum({lhs: operand, rhs: operand})
     | Sub({lhs: operand, rhs: operand})
 
-  module Maker = {
-    let listAppend = (identifier, operand) => ListAppend({identifier, operand})
-    let ifNotExists = (identifier, operand) => IfNotExists({identifier, operand})
-    let sum = (lhs, rhs) => Sum({lhs, rhs})
-    let sub = (lhs, rhs) => Sub({lhs, rhs})
-  }
-  include Maker
+  let listAppend = (identifier, operand) => ListAppend({identifier, operand})
+  let ifNotExists = (identifier, operand) => IfNotExists({identifier, operand})
+  let sum = (lhs, rhs) => Sum({lhs, rhs})
+  let sub = (lhs, rhs) => Sub({lhs, rhs})
 
   type rec update = {
     set?: array<(Identifier.t, operand)>,
@@ -565,19 +527,15 @@ module Update = {
     ->String.trim
   }
 }
-@genType
 module U = {
   include Update
 }
-@genType
 module C = {
   include Condition
 }
-@genType
 module K = {
   include KeyCondition
 }
-@genType
 module P = {
   include Projection
 }

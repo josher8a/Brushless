@@ -13,8 +13,8 @@ TypeScript example usage:
 
 ```typescript
 
-    import { AttributeName, AttributePath, AttributeValue, Register, C, K, U, P } from './Brushless.bs';
-    import { DynamoDB } from 'aws-sdk';
+    import { AttributeName, AttributePath, AttributeValue, Register, Condition, KeyCondition, C, K, U, P } from 'brushless';
+    import * as DynamoDB from '@aws-sdk/client-dynamodb';
 
     const register = Register.make()
 
@@ -59,7 +59,7 @@ TypeScript example usage:
 
     const path = AttributePath.fromString('foo.bar.baz[0]')
 
-    const queryCommand: DynamoDB.QueryInput = {
+    const queryCommand: DynamoDB.QueryCommandInput = {
         TableName: 'YourTable',
         KeyConditionExpression: KeyCondition.build({
             pk: {
@@ -76,7 +76,7 @@ TypeScript example usage:
         ExpressionAttributeValues: register.values
     }
 
-    const updateCommand: DynamoDB.UpdateItemInput = {
+    const updateCommand: DynamoDB.UpdateCommandInput = {
         TableName: 'YourTable',
         Key: {
             PK: pkVal.value,

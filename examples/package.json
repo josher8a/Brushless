@@ -1,9 +1,9 @@
 {
+  "name": "example",
   "scripts": {
     "res:build": "rescript",
     "res:clean": "rescript clean",
-    "res:dev": "rescript build -w",
-    "test": "jest \"src/(.+).spec.ts\""
+    "res:dev": "rescript watch"
   },
   "author": {
     "name": "Joshua Hernandez",
@@ -11,18 +11,13 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@aws/dynamodb-auto-marshaller": "^0.7.1",
-    "@rescript/core": "*",
-    "@types/jest": "^29.2.2",
+    "@aws-sdk/client-dynamodb": "^3.693.0",
+    "@aws-sdk/util-dynamodb": "^3.693.0",
     "@types/node": "^18.11.9",
-    "aws-sdk": "^2.7.0",
-    "jest": "^29.3.1",
-    "rescript": "^11.0.0-rc.1",
-    "ts-jest": "^29.0.3",
-    "tsutils": "^3.21.0",
-    "typescript": "^4.7"
+    "rescript": "^12.2.0",
+    "typescript": "^5.6.3"
   },
   "dependencies": {
-    "brushless": "^0.0.2"
+    "brushless": "0.2.1-alpha.2"
   }
 }
