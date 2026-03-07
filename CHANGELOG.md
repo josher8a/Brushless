@@ -7,6 +7,7 @@
 - Upgraded to ReScript 12 stable (dropped `@rescript/core` dependency, now built-in)
 - `AttributeName.toString` escaping changed: `_` → `__`, `-` → `_dash_` (previously `-` → `_`, which caused collisions)
 - Package exports changed from `src/Brushless.bs.*` to `dist/index.*` via barrel file
+- Minimum Node.js version raised to 18 (`engines.node >= 18`, tsup target `node18`)
 
 ### Added
 
