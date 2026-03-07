@@ -7,14 +7,14 @@
     "gentypeconfig": {
       "language": "typescript",
       "generatedFileExtension": ".bs.ts",
-      "module": "commonjs",
+      "module": "esmodule",
       "debug": {
         "all": false,
         "basic": false
       }
   },
     "package-specs": {
-      "module": "commonjs",
+      "module": "esmodule",
       "in-source": true
     },
     "suffix": ".bs.js",
