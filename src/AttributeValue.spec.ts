@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { AttributeValue, Register, attributeValue } from "./Brushless.bs";
+import { AttributeValue, Register, type attributeValue } from "./index";
 import * as Marshaller from "@aws-sdk/util-dynamodb"
 
 const DefaultMarshaller = {

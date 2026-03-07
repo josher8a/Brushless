@@ -1,5 +1,5 @@
 import {describe, it, expect} from 'bun:test';
-import {AttributePath} from './Brushless.bs';
+import {AttributePath} from './index';
 
 describe('AttributePath', () => {
     it('should convert a string path to a list of elements', () => {
