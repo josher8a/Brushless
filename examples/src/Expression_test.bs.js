@@ -2,7 +2,7 @@
 'use strict';
 
 let Brushless = require("brushless/src/Brushless.bs.js");
-let DefaultMarshaller = require("./DefaultMarshaller.bs.js");
+let UtilDynamodb = require("@aws-sdk/util-dynamodb");
 
 let register = Brushless.Register.make();
 
@@ -59,7 +59,7 @@ let title = {
   name: "title"
 };
 
-let yearValue_0 = DefaultMarshaller.marshallValue(1992);
+let yearValue_0 = UtilDynamodb.convertToAttr(1992);
 
 let yearValue = {
   TAG: "AttributeValue",
@@ -67,7 +67,7 @@ let yearValue = {
   alias: "year"
 };
 
-let titleValue_0 = DefaultMarshaller.marshallValue("The Last of the Mohicans");
+let titleValue_0 = UtilDynamodb.convertToAttr("The Last of the Mohicans");
 
 let titleValue = {
   TAG: "AttributeValue",
@@ -80,7 +80,7 @@ let file = {
   name: "file"
 };
 
-let minFileSize_0 = DefaultMarshaller.marshallValue(0);
+let minFileSize_0 = UtilDynamodb.convertToAttr(0);
 
 let minFileSize = {
   TAG: "AttributeValue",
@@ -119,7 +119,7 @@ let exampleKeyConditionExpression_pk = {
   },
   value: {
     TAG: "AttributeValue",
-    value: DefaultMarshaller.marshallValue(1992),
+    value: UtilDynamodb.convertToAttr(1992),
     alias: "year"
   }
 };
@@ -133,7 +133,7 @@ let exampleKeyConditionExpression_sk = {
   comparator: "=",
   value: {
     TAG: "AttributeValue",
-    value: DefaultMarshaller.marshallValue("The Last of the Mohicans"),
+    value: UtilDynamodb.convertToAttr("The Last of the Mohicans"),
     alias: "title"
   }
 };
@@ -153,7 +153,7 @@ let exampleUpdateExpression_set = [
     },
     {
       TAG: "AttributeValue",
-      value: DefaultMarshaller.marshallValue(5),
+      value: UtilDynamodb.convertToAttr(5),
       alias: "rating"
     }
   ],
@@ -170,7 +170,7 @@ let exampleUpdateExpression_set = [
       },
       operand: {
         TAG: "AttributeValue",
-        value: DefaultMarshaller.marshallValue("test"),
+        value: UtilDynamodb.convertToAttr("test"),
         alias: "plot"
       }
     }
@@ -189,7 +189,7 @@ let exampleUpdateExpression_add = [[
     },
     {
       TAG: "AttributeValue",
-      value: DefaultMarshaller.marshallValue([
+      value: UtilDynamodb.convertToAttr([
         "Daniel Day-Lewis",
         "Madeleine Stowe"
       ]),
