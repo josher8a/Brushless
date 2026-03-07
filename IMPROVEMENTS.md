@@ -74,9 +74,9 @@ Added doc comment on `Register` module explaining one-per-command usage and not 
 
 ---
 
-### P3: Reduce duplicate type exports in generated `.bs.ts`
+### ~~P3: Reduce duplicate type exports in generated `.bs.ts`~~ DONE
 
-The `include` aliases (`C`, `K`, `U`, `P`) cause genType to emit duplicate type definitions (e.g., `C_operand` duplicates `Condition_operand`). This bloats the public API surface. Consider whether the short aliases need their own re-exported types or if users should reference the canonical module types.
+Removed `@genType` from alias modules (`C`, `K`, `U`, `P`), keeping it on canonical modules (`Condition`, `KeyCondition`, `Update`, `Projection`). Added `src/index.ts` barrel that re-exports canonical names and provides short-name aliases (`C`, `C_operand`, etc.) for TS consumers. Updated tsup entry and `package.json` exports to use the barrel.
 
 ---
 
@@ -107,4 +107,4 @@ Added `.github/workflows/ci.yml` with build, test (matrix: Node 20/22/24), and p
 | ~~**P0**~~ | ~~2~~ | ~~SS/NS equality bug, packaging `files` field~~ DONE |
 | ~~**P1**~~ | ~~5~~ | ~~Test coverage gaps, `types`/`exports` in package.json, README fix, example assertions~~ DONE |
 | ~~**P2**~~ | ~~3~~ | ~~Name collision, validation, ESM support~~ DONE |
-| **P3** | 4 | ~~Register docs~~, type dedup, operator exports, changelog, ~~CI~~ DONE (2/5) |
+| **P3** | 4 | ~~Register docs~~, ~~type dedup~~, operator exports, changelog, ~~CI~~ DONE (3/5) |

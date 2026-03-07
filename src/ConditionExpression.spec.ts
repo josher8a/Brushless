@@ -1,5 +1,5 @@
 import {describe, it, expect} from 'bun:test';
-import { Condition, AttributePath, AttributeName, AttributeValue, Register } from "./Brushless.bs";
+import { Condition, AttributePath, AttributeName, AttributeValue, Register } from "./index";
 const {
     equals,
     notEquals,
