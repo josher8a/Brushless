@@ -105,7 +105,25 @@ describe('Expression', () => {
                 ExpressionAttributeNames: register.names,
                 ExpressionAttributeValues: register.values
             }
-            console.log(JSON.stringify(command, null, 4))
+            expect(command.KeyConditionExpression).toBe('#PK = :PK AND begins_with(#SK, :SK)');
+            expect(command.FilterExpression).toBe(
+                '(#foo.#bar.#baz[0] = :SK) AND ((#foo = :foo) OR ((#bar = :bar) AND (contains(#foo.#bar.#baz[0], :baz))))'
+            );
+            expect(command.ProjectionExpression).toBe('#foo, #bar, #baz');
+            expect(command.ExpressionAttributeNames).toEqual({
+                '#PK': 'PK',
+                '#SK': 'SK',
+                '#foo': 'foo',
+                '#bar': 'bar',
+                '#baz': 'baz',
+            });
+            expect(command.ExpressionAttributeValues).toEqual({
+                ':PK': { S: 'X' },
+                ':SK': { S: 'Y' },
+                ':foo': { M: { foo: { S: 'foo' }, bar: { SS: ['bar', 'baz'] }, baz: { L: [{ S: 'baz' }] } } },
+                ':bar': { S: 'bar' },
+                ':baz': { S: 'baz' },
+            });
 
             const updateCommand: DynamoDB.UpdateItemInput = {
                 TableName: 'YourTable',
@@ -183,7 +201,22 @@ describe('Expression', () => {
                 ExpressionAttributeValues: register.values,
             }
 
-            console.log(JSON.stringify(updateCommand, null, 4))
+            expect(updateCommand.UpdateExpression).toBe(
+                'SET #foo = if_not_exists(#foo, :foo), #foo = if_not_exists(#foo, :foo), #foo = if_not_exists(#foo, :foo), #foo = if_not_exists(#foo, :foo_), #foo = if_not_exists(#foo, :foo__), #bar = :bar, #baz = list_append(#baz, :baz), #foo.#bar.#baz[0] = #foo.#bar.#baz[0] - :one'
+            );
+            expect(updateCommand.ConditionExpression).toBe(
+                '(#foo.#bar.#baz[0] = :SK) AND ((#foo = :foo) OR ((#bar = :bar) AND (contains(#foo.#bar.#baz[0], :baz))))'
+            );
+            expect(updateCommand.ExpressionAttributeValues).toEqual({
+                ':PK': { S: 'X' },
+                ':SK': { S: 'Y' },
+                ':foo': { M: { foo: { S: 'foo' }, bar: { SS: ['bar', 'baz'] }, baz: { L: [{ S: 'baz' }] } } },
+                ':bar': { S: 'bar' },
+                ':baz': { S: 'baz' },
+                ':foo_': { M: { foo: { S: 'foo' }, bar: { SS: ['bar', 'baz'] }, baz: { L: [{ S: 'baz' }, { S: 'bar' }] } } },
+                ':foo__': { S: 'fi fa fo fum' },
+                ':one': { N: '1' },
+            });
         })
     })
 })
