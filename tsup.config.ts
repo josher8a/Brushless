@@ -1,7 +1,7 @@
 import { defineConfig } from 'tsup'
 
 export default defineConfig({
-  entry: ['src/Brushless.bs.ts'],
+  entry: ['src/index.ts'],
   format: ['cjs', 'esm'],
   outDir: 'dist',
   splitting: false,

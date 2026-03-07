@@ -526,19 +526,15 @@ module Update = {
     ->String.trim
   }
 }
-@genType
 module U = {
   include Update
 }
-@genType
 module C = {
   include Condition
 }
-@genType
 module K = {
   include KeyCondition
 }
-@genType
 module P = {
   include Projection
 }
