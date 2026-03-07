@@ -104,10 +104,17 @@ module AttributeName = {
   type t = AttributeName({name: string})
   let make = name => AttributeName({name: name})
   let toString = (AttributeName({name})) => {
-    if name->String.includes(" ") || name->String.includes(".") {
-      throwError("InvalidName")
+    if (
+      name->String.includes(" ") ||
+      name->String.includes(".") ||
+      name->String.includes("[") ||
+      name->String.includes("]") ||
+      name->String.includes("#") ||
+      name->String.includes(":")
+    ) {
+      throwError("InvalidName: " ++ name)
     }
-    "#" ++ name->String.replaceAll("-", "_")
+    "#" ++ name->String.replaceAll("_", "__")->String.replaceAll("-", "_dash_")
   }
 }
 
@@ -137,38 +144,29 @@ module AttributePath = {
     | Name
     | Index
 
-  %%private(
-    let splitWhen = (str: string, predicate: string => bool) => {
-      let rec splitWhen = (str: string, index: int) =>
-        switch str->String.get(index) {
-        | Some(char) if predicate(char) => (
-            str->String.substring(~start=0, ~end=index),
-            str->String.substring(~start=index, ~end=index + 1),
-            str->String.substring(~start=index + 1),
-          )
-        | Some(_) => str->splitWhen(index + 1)
-        | None => (str, "", "")
-        }
-      str->splitWhen(0)
-    }
-  )
-
   let fromString = (str: string): t => {
-    let rec parse = (str, state, ~acc=[]) => {
-      let (name, char, rest) = str->splitWhen(char => char == "[" || char == ".")
+    let acc = []
+    let rec parse = (str, state) => {
+      let i = str->String.search(/\[|\./)
+      let name = i === -1 ? str : str->String.substring(~start=0, ~end=i)
 
       switch state {
-      | Name if name == "" => throwError("InvalidPath")
-      | Name => acc->Array.push(AttributeName({name: name}))
-      | Index if name !== "" => throwError("InvalidPath")
+      | Name =>
+        name == "" ? throwError("InvalidPath") : acc->Array.push(AttributeName({name: name}))
+      | _ if name !== "" => throwError("InvalidPath")
       | Index => ()
       }
-      switch (char, rest) {
-      | ("", "") => acc
-      | (".", rest) => parse(rest, Name, ~acc)
-      | ("[", rest) =>
-        switch rest->splitWhen(char => char == "]") {
-        | (index, "]", rest) => {
+
+      if i !== -1 {
+        let next = str->String.charAt(i) === "." ? Name : Index
+        let rest = str->String.substring(~start=i + 1)
+
+        switch next {
+        | Name => rest->parse(Name)
+        | Index => {
+            let i = rest->String.indexOf("]")
+            let index = rest->String.substring(~start=0, ~end=i)
+            let rest = rest->String.substring(~start=i + 1)
             let x = Float.parseInt(index)
             if (
               !Float.isFinite(x) ||
@@ -179,16 +177,14 @@ module AttributePath = {
             }
 
             acc->Array.push(ListIndex({index: x->Float.toInt}))
-            parse(rest, Index, ~acc)
+            rest->parse(Index)
           }
-        | _ => throwError("InvalidPath")
         }
-      | _ => throwError("InvalidPath")
       }
     }
 
-    let acc = []
-    switch Array.shift(str->parse(Name, ~acc)) {
+    str->parse(Name)
+    switch Array.shift(acc) {
     | Some(AttributeName({name})) => AttributePath({name, subpath: acc})
     | Some(ListIndex(_)) | None => throwError("InvalidPath")
     }
@@ -204,6 +200,12 @@ module AttributePath = {
   }
 }
 
+/**
+ * Mutable accumulator for ExpressionAttributeNames and ExpressionAttributeValues.
+ * Create one Register per DynamoDB command and pass it to all `build()` calls
+ * (Condition, KeyCondition, Update, Projection) for that command.
+ * Do not reuse a Register across independent commands.
+ */
 @genType
 module Register = {
   type t = {
@@ -232,8 +234,10 @@ module Register = {
     | ({n: x, _}, {n: y, _}) => x === y
     | ({null: x, _}, {null: y, _}) => x === y
     | ({bool: x, _}, {bool: y, _}) => x === y
-    | ({ss: x, _}, {ss: y, _}) => Array.every(x, v => Array.includes(y, v))
-    | ({ns: x, _}, {ns: y, _}) => Array.every(x, v => Array.includes(y, v))
+    | ({ss: x, _}, {ss: y, _}) =>
+      Array.length(x) === Array.length(y) && Array.every(x, v => Array.includes(y, v))
+    | ({ns: x, _}, {ns: y, _}) =>
+      Array.length(x) === Array.length(y) && Array.every(x, v => Array.includes(y, v))
     | ({l: x, _}, {l: y, _}) =>
       Array.length(x) === Array.length(y) &&
         Array.everyWithIndex(x, (v, i) =>
@@ -584,19 +588,15 @@ module Update = {
     ->String.trim
   }
 }
-@genType
 module U = {
   include Update
 }
-@genType
 module C = {
   include Condition
 }
-@genType
 module K = {
   include KeyCondition
 }
-@genType
 module P = {
   include Projection
 }

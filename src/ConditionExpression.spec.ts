@@ -1,5 +1,5 @@
 import {describe, it, expect} from 'bun:test';
-import { Condition, AttributePath } from "./Brushless.bs";
+import { Condition, AttributePath, AttributeName, AttributeValue, Register } from "./index";
 const {
     equals,
     notEquals,
@@ -14,13 +14,15 @@ const {
     attributeType,
     beginsWith,
     contains,
+    toContains,
+    not,
+    size,
 } = Condition;
 
 const name = AttributePath.fromString('name');
 describe('equals', () => {
     it('should return an equality condition predicate', () => {
         const pred = equals(name, AttributePath.fromString('foo'));
-        // expect(isConditionExpressionPredicate(pred)).toBe(true);
         expect(pred.TAG).toBe('Comparison');
         if(pred.TAG == 'Comparison')  expect(pred.comparator).toBe('=');
     });
@@ -29,7 +31,6 @@ describe('equals', () => {
 describe('notEquals', () => {
     it('should return an inequality condition predicate', () => {
         const pred = notEquals(name, AttributePath.fromString('foo'));
-        // expect(isConditionExpressionPredicate(pred)).toBe(true);
         expect(pred.TAG).toBe('Comparison');
         if(pred.TAG == 'Comparison')  expect(pred.comparator).toBe('<>');
     });
@@ -38,7 +39,6 @@ describe('notEquals', () => {
 describe('lessThan', () => {
     it('should return an < condition predicate', () => {
         const pred = lessThan(name,AttributePath.fromString('foo'));
-        // expect(isConditionExpressionPredicate(pred)).toBe(true);
         expect(pred.TAG).toBe('Comparison');
         if(pred.TAG == 'Comparison')  expect(pred.comparator).toBe('<');
     });
@@ -47,7 +47,6 @@ describe('lessThan', () => {
 describe('lessThanOrEqualTo', () => {
     it('should return an <= condition predicate', () => {
         const pred = lessThanOrEqualTo(name,AttributePath.fromString('foo'));
-        // expect(isConditionExpressionPredicate(pred)).toBe(true);
         expect(pred.TAG).toBe('Comparison');
         if(pred.TAG == 'Comparison')  expect(pred.comparator).toBe('<=');
     });
@@ -56,7 +55,6 @@ describe('lessThanOrEqualTo', () => {
 describe('greaterThan', () => {
     it('should return an > condition predicate', () => {
         const pred = greaterThan(name,AttributePath.fromString('foo'));
-        // expect(isConditionExpressionPredicate(pred)).toBe(true);
         expect(pred.TAG).toBe('Comparison');
         if(pred.TAG == 'Comparison')  expect(pred.comparator).toBe('>');
     });
@@ -65,580 +63,332 @@ describe('greaterThan', () => {
 describe('greaterThanOrEqualTo', () => {
     it('should return an >= condition predicate', () => {
         const pred = greaterThanOrEqualTo(name,AttributePath.fromString('foo'));
-        // expect(isConditionExpressionPredicate(pred)).toBe(true);
         expect(pred.TAG).toBe('Comparison');
         if(pred.TAG == 'Comparison')  expect(pred.comparator).toBe('>=');
     });
 });
 
-// describe('between', () => {
-//     it('should return a bounded condition predicate', () => {
-//         const pred = between(name,{1, 10});
-//         // expect(isConditionExpressionPredicate(pred)).toBe(true);
-//         expect(pred).toEqual({
-//             TAG: 'Between',
-//             lowerBound: 1,
-//             upperBound: 10,
-//         });
-//     });
-// });
+describe('between', () => {
+    it('should return a bounded condition predicate', () => {
+        const lower = AttributeValue.make({ value: { N: '1' }, alias: 'low' });
+        const upper = AttributeValue.make({ value: { N: '10' }, alias: 'high' });
+        const pred = between(name, { lower, upper });
+        expect(pred.TAG).toBe('Between');
+    });
+});
 
-// describe('inList', () => {
-//     it('should return a membership condition predicate', () => {
-//         const pred = inList(name,['foo', 'bar', 'baz', 'quux']);
-//         expect(isConditionExpressionPredicate(pred)).toBe(true);
-//         expect(pred).toEqual({
-//             type: 'Membership',
-//             values: [
-//                 'foo',
-//                 'bar',
-//                 'baz',
-//                 'quux',
-//             ]
-//         });
-//     });
-// });
+describe('inList', () => {
+    it('should return a membership condition predicate', () => {
+        const vals = ['foo', 'bar', 'baz', 'quux'].map((v) =>
+            AttributeValue.make({ value: { S: v }, alias: v })
+        );
+        const pred = inList(name, vals);
+        expect(pred.TAG).toBe('In');
+    });
+});
 
-// describe('attributeExists', () => {
-//     it('should return an attribute_exists function predicate', () => {
-//         const pred = attributeExists(name,);
-//         expect(pred.TAG).toBe('AttributeExists');
-//     });
-// });
+describe('attributeExists', () => {
+    it('should return an attribute_exists function predicate', () => {
+        const pred = attributeExists(name);
+        expect(pred.TAG).toBe('AttributeExists');
+    });
+});
 
-// describe('attributeNotExists', () => {
-//     it('should return an attribute_not_exists function predicate', () => {
-//         const pred = attributeNotExists(name);
-//         expect(pred.TAG).toBe('attribute_not_exists');
-//     });
-// });
+describe('attributeNotExists', () => {
+    it('should return an attribute_not_exists function predicate', () => {
+        const pred = attributeNotExists(name);
+        expect(pred.TAG).toBe('AttributeNotExists');
+    });
+});
 
-// describe('attributeType', () => {
-//     it('should return an attribute_type function predicate', () => {
-//         const pred = attributeType(name, 'BOOL');
-//         expect(pred.TAG).toBe('AttributeType');
-//         expect(pred.TAG == 'AttributeType' && pred.comparator).toBe('BOOL');
-//     });
-// });
+describe('attributeType', () => {
+    it('should return an attribute_type function predicate', () => {
+        const typeVal = AttributeValue.make({ value: { S: 'BOOL' }, alias: 'type' });
+        const pred = attributeType(name, typeVal);
+        expect(pred.TAG).toBe('AttributeType');
+    });
+});
 
-// describe('beginsWith', () => {
-//     it('should return an begins_with function predicate', () => {
-//         const pred = beginsWith('prefix');
-//         expect(isConditionExpressionPredicate(pred)).toBe(true);
-//         expect(pred.TAG).toBe('Function');
-//         expect(pred.name).toBe('begins_with');
-//         expect(pred.expected).toBe('prefix');
-//     });
-// });
+describe('beginsWith', () => {
+    it('should return a begins_with function predicate', () => {
+        const prefix = AttributeValue.make({ value: { S: 'prefix' }, alias: 'prefix' });
+        const pred = beginsWith(name, prefix);
+        expect(pred.TAG).toBe('BeginsWith');
+    });
+});
 
-// describe('contains', () => {
-//     it('should return an contains function predicate', () => {
-//         const pred = contains('substr');
-//         expect(isConditionExpressionPredicate(pred)).toBe(true);
-//         expect(pred.TAG).toBe('Function');
-//         expect(pred.name).toBe('contains');
-//         expect(pred.expected).toBe('substr');
-//     });
-// });
+describe('contains', () => {
+    it('should return a contains function predicate', () => {
+        const substr = AttributeValue.make({ value: { S: 'substr' }, alias: 'substr' });
+        const pred = contains(name, substr);
+        expect(pred.TAG).toBe('Contains');
+    });
+});
 
-// describe('isConditionExpressionPredicate', () => {
-//     it('should return true for a valid predicate', () => {
-//         expect(isConditionExpressionPredicate({type: 'Equals', object: 0}))
-//             .toBe(true);
-//     });
+describe('Condition.build', () => {
+    const foo = AttributeName.make('foo');
+    const bar = AttributeName.make('bar');
+    const val = (s: string, alias: string) => AttributeValue.make({ value: { S: s }, alias });
+    const numVal = (n: string, alias: string) => AttributeValue.make({ value: { N: n }, alias });
 
-//     it('should reject non-matching values', () => {
-//         for (const notPredicate of [
-//             false,
-//             true,
-//             null,
-//             void 0,
-//             'string',
-//             123,
-//             [],
-//             {},
-//             new Uint8Array(12),
-//             {foo: 'bar'},
-//             {name: 'foo', arguments: 'bar'},
-//             {S: 'string'}
-//         ] as any[]) {
-//             expect(isConditionExpressionPredicate(notPredicate)).toBe(false);
-//         }
-//     });
-// });
+    it('should serialize equality expressions', () => {
+        const attributes = Register.make();
+        const serialized = Condition.build(
+            equals(foo, val('bar', 'val1')),
+            attributes
+        );
 
-// describe('isConditionExpressionSubject', () => {
-//     it('should return true for a string subject', () => {
-//         expect(isConditionExpressionSubject({subject: 'foo'})).toBe(true);
-//     });
+        expect(serialized).toBe('#foo = :val1');
+        expect(attributes.names).toEqual({ '#foo': 'foo' });
+        expect(attributes.values).toEqual({ ':val1': { S: 'bar' } });
+    });
 
-//     it('should return true for an AttributePath subject', () => {
-//         expect(isConditionExpressionSubject({
-//             subject: AttributePath.fromString('foo.bar[3]'),
-//         })).toBe(true);
-//     });
+    it('should serialize inequality expressions', () => {
+        const attributes = Register.make();
+        const serialized = Condition.build(
+            notEquals(foo, val('bar', 'val1')),
+            attributes
+        );
 
-//     it('should reject non-matching values', () => {
-//         for (const notSubject of [
-//             false,
-//             true,
-//             null,
-//             void 0,
-//             'string',
-//             123,
-//             [],
-//             {},
-//             new Uint8Array(12),
-//             {foo: 'bar'},
-//             {name: 'foo', arguments: 'bar'},
-//             {S: 'string'},
-//             {subject: 123},
-//         ]) {
-//             expect(isConditionExpressionSubject(notSubject)).toBe(false);
-//         }
-//     });
-// });
+        expect(serialized).toBe('#foo <> :val1');
+        expect(attributes.names).toEqual({ '#foo': 'foo' });
+        expect(attributes.values).toEqual({ ':val1': { S: 'bar' } });
+    });
 
-// describe('isConditionExpression', () => {
-//     it('should return true for valid expressions', () => {
-//         expect(isConditionExpression({
-//             type: 'Equals',
-//             subject: 'foo',
-//             object: 'bar',
-//         })).toBe(true);
-//     });
+    it('should serialize less than expressions', () => {
+        const attributes = Register.make();
+        const serialized = Condition.build(
+            lessThan(foo, val('bar', 'val1')),
+            attributes
+        );
 
-//     it('should return true for function expressions', () => {
-//         expect(isConditionExpression(
-//             new FunctionExpression('attribute_not_exists', 'foo')
-//         )).toBe(true);
-//     });
+        expect(serialized).toBe('#foo < :val1');
+        expect(attributes.names).toEqual({ '#foo': 'foo' });
+        expect(attributes.values).toEqual({ ':val1': { S: 'bar' } });
+    });
 
-//     it('should return true for negation expressions', () => {
-//         expect(isConditionExpression({
-//             type: 'Not',
-//             condition: {
-//                 type: 'Between',
-//                 subject: 'foo',
-//                 lowerBound: 100,
-//                 upperBound: 200,
-//             }
-//         })).toBe(true);
-//     });
+    it('should serialize greater than expressions with size', () => {
+        const attributes = Register.make();
+        const serialized = Condition.build(
+            greaterThan(foo, size(AttributePath.fromString('bar'))),
+            attributes
+        );
 
-//     it('should return true for compound expressions', () => {
-//         for (const type of ['And', 'Or'] as const) {
-//             expect(isConditionExpression({
-//                 type,
-//                 conditions: [
-//                     {
-//                         type: 'Between',
-//                         subject: 'foo',
-//                         lowerBound: 100,
-//                         upperBound: 200,
-//                     },
-//                     {
-//                         type: 'Between',
-//                         subject: 'foo',
-//                         lowerBound: 400,
-//                         upperBound: 600,
-//                     },
-//                 ]
-//             })).toBe(true);
-//         }
-//     });
+        expect(serialized).toBe('#foo > size(#bar)');
+        expect(attributes.names).toEqual({
+            '#foo': 'foo',
+            '#bar': 'bar'
+        });
+    });
 
-//     it('should reject compound expressions without a conditions list', () => {
-//         for (const type of ['And', 'Or'] as const) {
-//             expect(isConditionExpression({type} as any)).toBe(false);
-//         }
-//     });
+    it('should serialize less than or equal to expressions', () => {
+        const attributes = Register.make();
+        const serialized = Condition.build(
+            lessThanOrEqualTo(foo, val('bar', 'val1')),
+            attributes
+        );
 
-//     it(
-//         'should reject compound expressions whose list contains invalid members',
-//         () => {
+        expect(serialized).toBe('#foo <= :val1');
+        expect(attributes.names).toEqual({ '#foo': 'foo' });
+        expect(attributes.values).toEqual({ ':val1': { S: 'bar' } });
+    });
 
-//             for (const type of ['And', 'Or'] as const) {
-//                 expect(isConditionExpression({
-//                     type: type as any,
-//                     conditions: ['foo', 123] as any,
-//                 })).toBe(false);
-//             }
-//         }
-//     );
+    it('should serialize greater than or equal to expressions', () => {
+        const attributes = Register.make();
+        const serialized = Condition.build(
+            greaterThanOrEqualTo(foo, AttributePath.fromString('bar')),
+            attributes
+        );
 
-//     it('should reject non-matching values', () => {
-//         for (const notExpression of [
-//             false,
-//             true,
-//             null,
-//             void 0,
-//             'string',
-//             123,
-//             [],
-//             {},
-//             new Uint8Array(12),
-//             {foo: 'bar'},
-//             {name: 'foo', arguments: 'bar'},
-//             {S: 'string'},
-//             {subject: 'foo', object: 'bar'},
-//             {type: 'UnknownType', subject: 'foo', object: 'bar'},
-//         ] as any[]) {
-//             expect(isConditionExpression(notExpression)).toBe(false);
-//         }
-//     });
-// });
+        expect(serialized).toBe('#foo >= #bar');
+        expect(attributes.names).toEqual({
+            '#foo': 'foo',
+            '#bar': 'bar',
+        });
+    });
 
-// describe('serializeConditionExpression', () => {
-//     it('should serialize equality expressions', () => {
-//         const attributes = new ExpressionAttributes();
-//         const serialized = serializeConditionExpression(
-//             {
-//                 type: 'Equals',
-//                 subject: 'foo',
-//                 object: 'bar',
-//             },
-//             attributes
-//         );
+    it('should serialize bounding expressions', () => {
+        const attributes = Register.make();
+        const serialized = Condition.build(
+            between(foo, {
+                lower: numVal('1', 'val1'),
+                upper: numVal('10', 'val2'),
+            }),
+            attributes
+        );
 
-//         expect(serialized).toBe('#attr0 = :val1');
-//         expect(attributes.names).toEqual({'#attr0': 'foo'});
-//         expect(attributes.values).toEqual({':val1': {S: 'bar'}});
-//     });
+        expect(serialized).toBe('#foo BETWEEN :val1 AND :val2');
+        expect(attributes.names).toEqual({ '#foo': 'foo' });
+        expect(attributes.values).toEqual({
+            ':val1': { N: '1' },
+            ':val2': { N: '10' },
+        });
+    });
 
-//     it('should serialize inequality expressions', () => {
-//         const attributes = new ExpressionAttributes();
-//         const serialized = serializeConditionExpression(
-//             {type: 'NotEquals', subject: 'foo', object: 'bar'},
-//             attributes
-//         );
+    it('should serialize membership expressions', () => {
+        const attributes = Register.make();
+        const serialized = Condition.build(
+            inList(foo, [
+                numVal('1', 'val1'),
+                numVal('10', 'val2'),
+                numVal('100', 'val3'),
+            ]),
+            attributes
+        );
 
-//         expect(serialized).toBe('#attr0 <> :val1');
-//         expect(attributes.names).toEqual({'#attr0': 'foo'});
-//         expect(attributes.values).toEqual({':val1': {S: 'bar'}});
-//     });
+        expect(serialized).toBe('#foo IN (:val1, :val2, :val3)');
+        expect(attributes.names).toEqual({ '#foo': 'foo' });
+        expect(attributes.values).toEqual({
+            ':val1': { N: '1' },
+            ':val2': { N: '10' },
+            ':val3': { N: '100' },
+        });
+    });
 
-//     it('should serialize less than expressions', () => {
-//         const attributes = new ExpressionAttributes();
-//         const serialized = serializeConditionExpression(
-//             {type: 'LessThan', subject: 'foo', object: 'bar'},
-//             attributes
-//         );
+    describe('function expressions', () => {
+        it('should serialize attribute_exists expressions', () => {
+            const attributes = Register.make();
+            const serialized = Condition.build(
+                attributeExists(foo),
+                attributes
+            );
 
-//         expect(serialized).toBe('#attr0 < :val1');
-//         expect(attributes.names).toEqual({'#attr0': 'foo'});
-//         expect(attributes.values).toEqual({':val1': {S: 'bar'}});
-//     });
+            expect(serialized).toBe('attribute_exists(#foo)');
+            expect(attributes.names).toEqual({ '#foo': 'foo' });
+        });
 
-//     it('should serialize greater than expressions', () => {
-//         const attributes = new ExpressionAttributes();
-//         const serialized = serializeConditionExpression(
-//             {
-//                 type: 'GreaterThan',
-//                 subject: 'foo',
-//                 object: new FunctionExpression('size', AttributePath.fromString('bar')),
-//             },
-//             attributes
-//         );
+        it('should serialize attribute_not_exists expressions', () => {
+            const attributes = Register.make();
+            const serialized = Condition.build(
+                attributeNotExists(foo),
+                attributes
+            );
 
-//         expect(serialized).toBe('#attr0 > size(#attr1)');
-//         expect(attributes.names).toEqual({
-//             '#attr0': 'foo',
-//             '#attr1': 'bar'
-//         });
-//         expect(attributes.values).toEqual({});
-//     });
+            expect(serialized).toBe('attribute_not_exists(#foo)');
+            expect(attributes.names).toEqual({ '#foo': 'foo' });
+        });
 
-//     it('should serialize less than or equal to expressions', () => {
-//         const attributes = new ExpressionAttributes();
-//         const serialized = serializeConditionExpression(
-//             {
-//                 type: 'LessThanOrEqualTo',
-//                 subject: 'foo',
-//                 object: 'bar',
-//             },
-//             attributes
-//         );
+        it('should serialize attribute_type expressions', () => {
+            const attributes = Register.make();
+            const serialized = Condition.build(
+                attributeType(foo, val('S', 'val1')),
+                attributes
+            );
 
-//         expect(serialized).toBe('#attr0 <= :val1');
-//         expect(attributes.names).toEqual({'#attr0': 'foo'});
-//         expect(attributes.values).toEqual({':val1': {S: 'bar'}});
-//     });
+            expect(serialized).toBe('attribute_type(#foo, :val1)');
+            expect(attributes.names).toEqual({ '#foo': 'foo' });
+            expect(attributes.values).toEqual({ ':val1': { S: 'S' } });
+        });
 
-//     it('should serialize greater than or equal to expressions', () => {
-//         const attributes = new ExpressionAttributes();
-//         const serialized = serializeConditionExpression(
-//             {
-//                 type: 'GreaterThanOrEqualTo',
-//                 subject: 'foo',
-//                 object: AttributePath.fromString('bar'),
-//             },
-//             attributes
-//         );
+        it('should serialize begins_with expressions', () => {
+            const attributes = Register.make();
+            const serialized = Condition.build(
+                beginsWith(foo, val('prefix', 'val1')),
+                attributes
+            );
 
-//         expect(serialized).toBe('#attr0 >= #attr1');
-//         expect(attributes.names).toEqual({
-//             '#attr0': 'foo',
-//             '#attr1': 'bar',
-//         });
-//         expect(attributes.values).toEqual({});
-//     });
+            expect(serialized).toBe('begins_with(#foo, :val1)');
+            expect(attributes.names).toEqual({ '#foo': 'foo' });
+            expect(attributes.values).toEqual({ ':val1': { S: 'prefix' } });
+        });
 
-//     it('should serialize bounding expressions', () => {
-//         const attributes = new ExpressionAttributes();
-//         const serialized = serializeConditionExpression(
-//             {
-//                 type: 'Between',
-//                 subject: 'foo',
-//                 lowerBound: 1,
-//                 upperBound: 10,
-//             },
-//             attributes
-//         );
+        it('should serialize contains expressions', () => {
+            const attributes = Register.make();
+            const serialized = Condition.build(
+                contains(foo, val('substr', 'val1')),
+                attributes
+            );
 
-//         expect(serialized).toBe('#attr0 BETWEEN :val1 AND :val2');
-//         expect(attributes.names).toEqual({'#attr0': 'foo'});
-//         expect(attributes.values).toEqual({
-//             ':val1': {N: '1'},
-//             ':val2': {N: '10'},
-//         });
-//     });
+            expect(serialized).toBe('contains(#foo, :val1)');
+            expect(attributes.names).toEqual({ '#foo': 'foo' });
+            expect(attributes.values).toEqual({ ':val1': { S: 'substr' } });
+        });
+    });
 
-//     it('should serialize membership expressions', () => {
-//         const attributes = new ExpressionAttributes();
-//         const serialized = serializeConditionExpression(
-//             {
-//                 type: 'Membership',
-//                 subject: 'foo',
-//                 values: [
-//                     1,
-//                     10,
-//                     100,
-//                 ],
-//             },
-//             attributes
-//         );
+    it('should serialize negation expressions', () => {
+        const attributes = Register.make();
+        const serialized = Condition.build(
+            not(between(foo, {
+                lower: numVal('1', 'val1'),
+                upper: numVal('10', 'val2'),
+            })),
+            attributes
+        );
 
-//         expect(serialized).toBe('#attr0 IN (:val1, :val2, :val3)');
-//         expect(attributes.names).toEqual({'#attr0': 'foo'});
-//         expect(attributes.values).toEqual({
-//             ':val1': {N: '1'},
-//             ':val2': {N: '10'},
-//             ':val3': {N: '100'},
-//         });
-//     });
+        expect(serialized).toBe('NOT (#foo BETWEEN :val1 AND :val2)');
+        expect(attributes.names).toEqual({ '#foo': 'foo' });
+        expect(attributes.values).toEqual({
+            ':val1': { N: '1' },
+            ':val2': { N: '10' },
+        });
+    });
 
-//     describe('function expressions', () => {
-//         it('should serialize attribute_exists expressions', () => {
-//             const attributes = new ExpressionAttributes();
-//             const serialized = serializeConditionExpression(
-//                 {type: 'Function', subject: 'foo', name: 'attribute_exists'},
-//                 attributes
-//             );
+    it('should serialize and expressions', () => {
+        const attributes = Register.make();
+        const fizz = AttributeName.make('fizz');
+        const serialized = Condition.build(
+            Condition.and(
+                greaterThanOrEqualTo(foo, numVal('1', 'val1')),
+                Condition.and(
+                    lessThan(foo, numVal('10', 'val2')),
+                    equals(fizz, val('buzz', 'val4'))
+                )
+            ),
+            attributes
+        );
 
-//             expect(serialized).toBe('attribute_exists(#attr0)');
-//             expect(attributes.names).toEqual({'#attr0': 'foo'});
-//             expect(attributes.values).toEqual({});
-//         });
+        expect(serialized).toBe('(#foo >= :val1) AND ((#foo < :val2) AND (#fizz = :val4))');
+        expect(attributes.names).toEqual({
+            '#foo': 'foo',
+            '#fizz': 'fizz',
+        });
+        expect(attributes.values).toEqual({
+            ':val1': { N: '1' },
+            ':val2': { N: '10' },
+            ':val4': { S: 'buzz' },
+        });
+    });
 
-//         it('should serialize attribute_not_exists expressions', () => {
-//             const attributes = new ExpressionAttributes();
-//             const serialized = serializeConditionExpression(
-//                 {type: 'Function', subject: 'foo', name: 'attribute_not_exists'},
-//                 attributes
-//             );
+    it('should serialize or expressions', () => {
+        const attributes = Register.make();
+        const serialized = Condition.build(
+            Condition.or(
+                greaterThanOrEqualTo(foo, numVal('10', 'val1')),
+                lessThan(foo, numVal('1', 'val2'))
+            ),
+            attributes
+        );
 
-//             expect(serialized).toBe('attribute_not_exists(#attr0)');
-//             expect(attributes.names).toEqual({'#attr0': 'foo'});
-//             expect(attributes.values).toEqual({});
-//         });
+        expect(serialized).toBe('(#foo >= :val1) OR (#foo < :val2)');
+        expect(attributes.names).toEqual({
+            '#foo': 'foo',
+        });
+        expect(attributes.values).toEqual({
+            ':val1': { N: '10' },
+            ':val2': { N: '1' },
+        });
+    });
 
-//         it('should serialize attribute_type expressions', () => {
-//             const attributes = new ExpressionAttributes();
-//             const serialized = serializeConditionExpression(
-//                 {
-//                     type: 'Function',
-//                     subject: 'foo',
-//                     name: 'attribute_type',
-//                     expected: 'S'
-//                 },
-//                 attributes
-//             );
+    it('should serialize function expressions with attribute paths', () => {
+        const attributes = Register.make();
+        const serialized = Condition.build(
+            attributeType(AttributePath.fromString('foo'), val('S', 'val1')),
+            attributes
+        );
 
-//             expect(serialized).toBe('attribute_type(#attr0, :val1)');
-//             expect(attributes.names).toEqual({'#attr0': 'foo'});
-//             expect(attributes.values).toEqual({':val1': {S: 'S'}});
-//         });
+        expect(serialized).toBe('attribute_type(#foo, :val1)');
+        expect(attributes.names).toEqual({ '#foo': 'foo' });
+        expect(attributes.values).toEqual({ ':val1': { S: 'S' } });
+    });
 
-//         it('should serialize begins_with expressions', () => {
-//             const attributes = new ExpressionAttributes();
-//             const serialized = serializeConditionExpression(
-//                 {
-//                     type: 'Function',
-//                     subject: 'foo',
-//                     name: 'begins_with',
-//                     expected: 'prefix'
-//                 },
-//                 attributes
-//             );
+    it('should serialize toContains expressions', () => {
+        const attributes = Register.make();
+        const listVal = AttributeValue.make({ value: { L: [{ S: 'x' }] }, alias: 'list' });
+        const serialized = Condition.build(
+            toContains(foo, listVal),
+            attributes
+        );
 
-//             expect(serialized).toBe('begins_with(#attr0, :val1)');
-//             expect(attributes.names).toEqual({'#attr0': 'foo'});
-//             expect(attributes.values).toEqual({':val1': {S: 'prefix'}});
-//         });
-
-//         it('should serialize contains expressions', () => {
-//             const attributes = new ExpressionAttributes();
-//             const serialized = serializeConditionExpression(
-//                 {
-//                     type: 'Function',
-//                     subject: 'foo',
-//                     name: 'contains',
-//                     expected: 'substr'
-//                 },
-//                 attributes
-//             );
-
-//             expect(serialized).toBe('contains(#attr0, :val1)');
-//             expect(attributes.names).toEqual({'#attr0': 'foo'});
-//             expect(attributes.values).toEqual({':val1': {S: 'substr'}});
-//         });
-//     });
-
-//     it('should serialize negation expressions', () => {
-//         const attributes = new ExpressionAttributes();
-//         const serialized = serializeConditionExpression(
-//             {
-//                 type: 'Not',
-//                 condition: {
-//                     type: 'Between',
-//                     subject: 'foo',
-//                     lowerBound: 1,
-//                     upperBound: 10,
-//                 }
-//             },
-//             attributes
-//         );
-
-//         expect(serialized).toBe('NOT (#attr0 BETWEEN :val1 AND :val2)');
-//         expect(attributes.names).toEqual({'#attr0': 'foo'});
-//         expect(attributes.values).toEqual({
-//             ':val1': {N: '1'},
-//             ':val2': {N: '10'},
-//         });
-//     });
-
-//     it('should serialize and expressions', () => {
-//         const attributes = new ExpressionAttributes();
-//         const serialized = serializeConditionExpression(
-//             {
-//                 type: 'And',
-//                 conditions: [
-//                     {
-//                         type: 'GreaterThanOrEqualTo',
-//                         subject: 'foo',
-//                         object: 1,
-//                     },
-//                     {
-//                         type: 'LessThan',
-//                         subject: 'foo',
-//                         object: 10,
-//                     },
-//                     {
-//                         type: 'Equals',
-//                         subject: 'fizz',
-//                         object: 'buzz',
-//                     }
-//                 ]
-//             },
-//             attributes
-//         );
-
-//         expect(serialized).toBe('(#attr0 >= :val1) AND (#attr0 < :val2) AND (#attr3 = :val4)');
-//         expect(attributes.names).toEqual({
-//             '#attr0': 'foo',
-//             '#attr3': 'fizz',
-//         });
-//         expect(attributes.values).toEqual({
-//             ':val1': {N: '1'},
-//             ':val2': {N: '10'},
-//             ':val4': {S: 'buzz'},
-//         });
-//     });
-
-//     it('should serialize single-clause and expressions as the underlying expression type', () => {
-//         const attributes = new ExpressionAttributes();
-//         const serialized = serializeConditionExpression(
-//             {
-//                 type: 'And',
-//                 conditions: [
-//                     {
-//                         type: 'Membership',
-//                         subject: 'foo',
-//                         values: [
-//                             1,
-//                             10,
-//                             100,
-//                         ],
-//                     },
-//                 ]
-//             },
-//             attributes
-//         );
-
-//         expect(serialized).toBe('#attr0 IN (:val1, :val2, :val3)');
-//         expect(attributes.names).toEqual({'#attr0': 'foo'});
-//         expect(attributes.values).toEqual({
-//             ':val1': {N: '1'},
-//             ':val2': {N: '10'},
-//             ':val3': {N: '100'},
-//         });
-//     });
-
-//     it('should serialize or expressions', () => {
-//         const attributes = new ExpressionAttributes();
-//         const serialized = serializeConditionExpression(
-//             {
-//                 type: 'Or',
-//                 conditions: [
-//                     {
-//                         type: 'GreaterThanOrEqualTo',
-//                         subject: 'foo',
-//                         object: 10,
-//                     },
-//                     {
-//                         type: 'LessThan',
-//                         subject: 'foo',
-//                         object: 1,
-//                     }
-//                 ]
-//             },
-//             attributes
-//         );
-
-//         expect(serialized).toBe('(#attr0 >= :val1) OR (#attr0 < :val2)');
-//         expect(attributes.names).toEqual({
-//             '#attr0': 'foo',
-//         });
-//         expect(attributes.values).toEqual({
-//             ':val1': {N: '10'},
-//             ':val2': {N: '1'},
-//         });
-//     });
-
-//     it('should serialize function expressions', () => {
-//         const attributes = new ExpressionAttributes();
-//         const serialized = serializeConditionExpression(
-//             new FunctionExpression(
-//                 'attribute_type',
-//                 AttributePath.fromString('foo'),
-//                 'S'
-//             ),
-//             attributes
-//         );
-
-//         expect(serialized).toBe('attribute_type(#attr0, :val1)');
-//         expect(attributes.names).toEqual({'#attr0': 'foo'});
-//         expect(attributes.values).toEqual({':val1': {S: 'S'}});
-//     });
-// });
+        expect(serialized).toBe('contains(:list, #foo)');
+    });
+});

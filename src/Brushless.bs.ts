@@ -3,7 +3,7 @@
 /* eslint-disable */
 /* tslint:disable */
 
-const BrushlessJS = require('./Brushless.bs.js');
+import * as BrushlessJS from './Brushless.bs.js';
 
 import type {AtLeastOne as $$atLeastOne} from './external';
 
@@ -102,58 +102,6 @@ export type Update_update = {
   readonly delete?: Array<[Identifier_t, AttributeValue_t]>
 };
 
-export type U_operand = 
-    { TAG: "AttributePath"; readonly name: string; readonly subpath: AttributePath_sub[] }
-  | { TAG: "AttributeName"; readonly name: string }
-  | { TAG: "AttributeValue"; readonly value: attributeValue; readonly alias: string }
-  | { TAG: "ListAppend"; readonly identifier: U_operand; readonly operand: U_operand }
-  | { TAG: "IfNotExists"; readonly identifier: U_operand; readonly operand: U_operand }
-  | { TAG: "Sum"; readonly lhs: U_operand; readonly rhs: U_operand }
-  | { TAG: "Sub"; readonly lhs: U_operand; readonly rhs: U_operand };
-
-export type U_update = {
-  readonly set?: Array<[Identifier_t, U_operand]>; 
-  readonly remove?: Identifier_t[]; 
-  readonly add?: Array<[Identifier_t, AttributeValue_t]>; 
-  readonly delete?: Array<[Identifier_t, AttributeValue_t]>
-};
-
-export type C_operand = 
-    { TAG: "AttributePath"; readonly name: string; readonly subpath: AttributePath_sub[] }
-  | { TAG: "AttributeName"; readonly name: string }
-  | { TAG: "AttributeValue"; readonly value: attributeValue; readonly alias: string }
-  | { TAG: "Size"; readonly operand: C_operand };
-
-export type C_limits = { readonly lower: C_operand; readonly upper: C_operand };
-
-export type C_condition = 
-    { TAG: "Comparison"; readonly lhs: C_operand; readonly comparator: comparator; readonly rhs: C_operand }
-  | { TAG: "Between"; readonly operand: C_operand; readonly limits: C_limits }
-  | { TAG: "In"; readonly operand: C_operand; readonly list: C_operand[] }
-  | { TAG: "And"; readonly lhs: C_condition; readonly rhs: C_condition }
-  | { TAG: "Or"; readonly lhs: C_condition; readonly rhs: C_condition }
-  | { TAG: "Not"; readonly condition: C_condition }
-  | { TAG: "AttributeExists"; readonly identifier: Identifier_t }
-  | { TAG: "AttributeNotExists"; readonly identifier: Identifier_t }
-  | { TAG: "AttributeType"; readonly identifier: Identifier_t; readonly operand: C_operand }
-  | { TAG: "BeginsWith"; readonly identifier: Identifier_t; readonly operand: C_operand }
-  | { TAG: "Contains"; readonly identifier: Identifier_t; readonly operand: C_operand }
-  | { TAG: "ToContains"; readonly identifier: Identifier_t; readonly operand: C_operand };
-
-export type K_pkCond = { readonly name: AttributeName_t; readonly value: AttributeValue_t };
-
-export type K_limits = { readonly lower: AttributeValue_t; readonly upper: AttributeValue_t };
-
-export type K_skCondition = 
-    "Any"
-  | { TAG: "Comparison"; readonly name: AttributeName_t; readonly comparator: comparator; readonly value: AttributeValue_t }
-  | { TAG: "Between"; readonly name: AttributeName_t; readonly limits: K_limits }
-  | { TAG: "BeginsWith"; readonly name: AttributeName_t; readonly value: AttributeValue_t };
-
-export type K_keyCondition = { readonly pk: K_pkCond; readonly sk: K_skCondition };
-
-export type P_projection = Identifier_t[];
-
 export const AttributeName_make: (name:string) => AttributeName_t = BrushlessJS.AttributeName.make as any;
 
 export const AttributeName_toString: (param:AttributeName_t) => string = BrushlessJS.AttributeName.toString as any;
@@ -248,90 +196,7 @@ export const Update_sub: (lhs:Update_operand, rhs:Update_operand) => Update_oper
 
 export const Update_build: (update:Update_update, register:Register_t) => string = BrushlessJS.Update.build as any;
 
-export const U_listAppend: (_1:U_operand, _2:U_operand) => U_operand = BrushlessJS.U.listAppend as any;
-
-export const U_ifNotExists: (_1:U_operand, _2:U_operand) => U_operand = BrushlessJS.U.ifNotExists as any;
-
-export const U_sum: (_1:U_operand, _2:U_operand) => U_operand = BrushlessJS.U.sum as any;
-
-export const U_sub: (_1:U_operand, _2:U_operand) => U_operand = BrushlessJS.U.sub as any;
-
-export const U_build: (_1:U_update, _2:Register_t) => string = BrushlessJS.U.build as any;
-
-export const C_equals: (_1:C_operand, _2:C_operand) => C_condition = BrushlessJS.C.equals as any;
-
-export const C_notEquals: (_1:C_operand, _2:C_operand) => C_condition = BrushlessJS.C.notEquals as any;
-
-export const C_lessThan: (_1:C_operand, _2:C_operand) => C_condition = BrushlessJS.C.lessThan as any;
-
-export const C_lessThanOrEqualTo: (_1:C_operand, _2:C_operand) => C_condition = BrushlessJS.C.lessThanOrEqualTo as any;
-
-export const C_greaterThan: (_1:C_operand, _2:C_operand) => C_condition = BrushlessJS.C.greaterThan as any;
-
-export const C_greaterThanOrEqualTo: (_1:C_operand, _2:C_operand) => C_condition = BrushlessJS.C.greaterThanOrEqualTo as any;
-
-export const C_between: (_1:C_operand, _2:C_limits) => C_condition = BrushlessJS.C.between as any;
-
-export const C_inList: (_1:C_operand, _2:C_operand[]) => C_condition = BrushlessJS.C.inList as any;
-
-export const C_attributeExists: (_1:Identifier_t) => C_condition = BrushlessJS.C.attributeExists as any;
-
-export const C_attributeNotExists: (_1:Identifier_t) => C_condition = BrushlessJS.C.attributeNotExists as any;
-
-export const C_attributeType: (_1:Identifier_t, _2:C_operand) => C_condition = BrushlessJS.C.attributeType as any;
-
-export const C_beginsWith: (_1:Identifier_t, _2:C_operand) => C_condition = BrushlessJS.C.beginsWith as any;
-
-export const C_contains: (_1:Identifier_t, _2:C_operand) => C_condition = BrushlessJS.C.contains as any;
-
-export const C_toContains: (_1:Identifier_t, _2:C_operand) => C_condition = BrushlessJS.C.toContains as any;
-
-export const C_and: (_1:C_condition, _2:C_condition) => C_condition = BrushlessJS.C.and as any;
-
-export const C_or: (_1:C_condition, _2:C_condition) => C_condition = BrushlessJS.C.or as any;
-
-export const C_not: (_1:C_condition) => C_condition = BrushlessJS.C.not as any;
-
-export const C_size: (_1:C_operand) => C_operand = BrushlessJS.C.size as any;
-
-export const C_build: (_1:C_condition, _2:Register_t) => string = BrushlessJS.C.build as any;
-
-export const K_equals: (_1:AttributeName_t, _2:AttributeValue_t) => K_skCondition = BrushlessJS.K.equals as any;
-
-export const K_notEquals: (_1:AttributeName_t, _2:AttributeValue_t) => K_skCondition = BrushlessJS.K.notEquals as any;
-
-export const K_lessThan: (_1:AttributeName_t, _2:AttributeValue_t) => K_skCondition = BrushlessJS.K.lessThan as any;
-
-export const K_lessThanOrEqualTo: (_1:AttributeName_t, _2:AttributeValue_t) => K_skCondition = BrushlessJS.K.lessThanOrEqualTo as any;
-
-export const K_greaterThan: (_1:AttributeName_t, _2:AttributeValue_t) => K_skCondition = BrushlessJS.K.greaterThan as any;
-
-export const K_greaterThanOrEqualTo: (_1:AttributeName_t, _2:AttributeValue_t) => K_skCondition = BrushlessJS.K.greaterThanOrEqualTo as any;
-
-export const K_between: (_1:AttributeName_t, _2:K_limits) => K_skCondition = BrushlessJS.K.between as any;
-
-export const K_beginsWith: (_1:AttributeName_t, _2:AttributeValue_t) => K_skCondition = BrushlessJS.K.beginsWith as any;
-
-export const K_any: K_skCondition = BrushlessJS.K.any as any;
-
-export const K_build: (_1:K_keyCondition, _2:Register_t) => string = BrushlessJS.K.build as any;
-
-export const P_build: (_1:P_projection, _2:Register_t) => string = BrushlessJS.P.build as any;
-
 export const AttributeName: { toString: (param:AttributeName_t) => string; make: (name:string) => AttributeName_t } = BrushlessJS.AttributeName as any;
-
-export const K: {
-  notEquals: (_1:AttributeName_t, _2:AttributeValue_t) => K_skCondition; 
-  greaterThan: (_1:AttributeName_t, _2:AttributeValue_t) => K_skCondition; 
-  greaterThanOrEqualTo: (_1:AttributeName_t, _2:AttributeValue_t) => K_skCondition; 
-  between: (_1:AttributeName_t, _2:K_limits) => K_skCondition; 
-  lessThanOrEqualTo: (_1:AttributeName_t, _2:AttributeValue_t) => K_skCondition; 
-  build: (_1:K_keyCondition, _2:Register_t) => string; 
-  any: K_skCondition; 
-  lessThan: (_1:AttributeName_t, _2:AttributeValue_t) => K_skCondition; 
-  equals: (_1:AttributeName_t, _2:AttributeValue_t) => K_skCondition; 
-  beginsWith: (_1:AttributeName_t, _2:AttributeValue_t) => K_skCondition
-} = BrushlessJS.K as any;
 
 export const Identifier: { toString: (identifier:Identifier_t, register:Register_t) => string } = BrushlessJS.Identifier as any;
 
@@ -390,36 +255,4 @@ export const Projection: { build: (projection:Projection_projection, register:Re
 
 export const AttributePath: { fromString: (str:string) => AttributePath_t; toString: (param:AttributePath_t) => string } = BrushlessJS.AttributePath as any;
 
-export const U: {
-  sub: (_1:U_operand, _2:U_operand) => U_operand; 
-  listAppend: (_1:U_operand, _2:U_operand) => U_operand; 
-  ifNotExists: (_1:U_operand, _2:U_operand) => U_operand; 
-  sum: (_1:U_operand, _2:U_operand) => U_operand; 
-  build: (_1:U_update, _2:Register_t) => string
-} = BrushlessJS.U as any;
-
-export const C: {
-  attributeType: (_1:Identifier_t, _2:C_operand) => C_condition; 
-  toContains: (_1:Identifier_t, _2:C_operand) => C_condition; 
-  notEquals: (_1:C_operand, _2:C_operand) => C_condition; 
-  attributeNotExists: (_1:Identifier_t) => C_condition; 
-  greaterThan: (_1:C_operand, _2:C_operand) => C_condition; 
-  greaterThanOrEqualTo: (_1:C_operand, _2:C_operand) => C_condition; 
-  between: (_1:C_operand, _2:C_limits) => C_condition; 
-  inList: (_1:C_operand, _2:C_operand[]) => C_condition; 
-  and: (_1:C_condition, _2:C_condition) => C_condition; 
-  size: (_1:C_operand) => C_operand; 
-  lessThanOrEqualTo: (_1:C_operand, _2:C_operand) => C_condition; 
-  build: (_1:C_condition, _2:Register_t) => string; 
-  not: (_1:C_condition) => C_condition; 
-  lessThan: (_1:C_operand, _2:C_operand) => C_condition; 
-  equals: (_1:C_operand, _2:C_operand) => C_condition; 
-  beginsWith: (_1:Identifier_t, _2:C_operand) => C_condition; 
-  or: (_1:C_condition, _2:C_condition) => C_condition; 
-  attributeExists: (_1:Identifier_t) => C_condition; 
-  contains: (_1:Identifier_t, _2:C_operand) => C_condition
-} = BrushlessJS.C as any;
-
 export const AttributeValue: { toString: (param:AttributeValue_t) => string; make: (x:AttributeValue_from<attributeValue>) => AttributeValue_t } = BrushlessJS.AttributeValue as any;
-
-export const P: { build: (_1:P_projection, _2:Register_t) => string } = BrushlessJS.P as any;
