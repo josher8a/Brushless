@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [0.2.1-alpha.2] — 2026-03-07
 
 ### Breaking
 
@@ -13,7 +13,7 @@
 
 - Dual CJS/ESM publishing with tsup (`dist/index.js`, `dist/index.mjs`)
 - `src/index.ts` barrel file with canonical (`Condition`, `Update`) and short-name (`C`, `U`) exports
-- CI workflow: build, test matrix (Node 20/22/24), publish with npm trusted publishers
+- CI workflow: build, test matrix (Node 18/20/22/24), publish with npm trusted publishers
 - `AttributeName` validation for reserved expression characters (`[`, `]`, `#`, `:`)
 - `isValueEqual` edge case tests (cross-type, nested M/L, addValue alias collisions)
 - Assertions to `Expression.spec.ts` example use case
