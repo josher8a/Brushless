@@ -52,7 +52,7 @@ module AttributeName = {
     ) {
       throwError("InvalidName: " ++ name)
     }
-    "#" ++ name->String.replaceAll("-", "_")
+    "#" ++ name->String.replaceAll("_", "__")->String.replaceAll("-", "_dash_")
   }
 }
 
