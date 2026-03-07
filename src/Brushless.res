@@ -159,8 +159,10 @@ module Register = {
     | ({n: x, _}, {n: y, _}) => x === y
     | ({null: x, _}, {null: y, _}) => x === y
     | ({bool: x, _}, {bool: y, _}) => x === y
-    | ({ss: x, _}, {ss: y, _}) => Array.every(x, v => Array.includes(y, v))
-    | ({ns: x, _}, {ns: y, _}) => Array.every(x, v => Array.includes(y, v))
+    | ({ss: x, _}, {ss: y, _}) =>
+      Array.length(x) === Array.length(y) && Array.every(x, v => Array.includes(y, v))
+    | ({ns: x, _}, {ns: y, _}) =>
+      Array.length(x) === Array.length(y) && Array.every(x, v => Array.includes(y, v))
     | ({l: x, _}, {l: y, _}) =>
       Array.length(x) === Array.length(y) &&
         Array.everyWithIndex(x, (v, i) =>

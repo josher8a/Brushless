@@ -182,7 +182,11 @@ function isValueEqual(a, b) {
         if (x$3 !== undefined) {
           let y$4 = b.SS;
           if (y$4 !== undefined) {
-            return x$3.every(v => y$4.includes(v));
+            if (x$3.length === y$4.length) {
+              return x$3.every(v => y$4.includes(v));
+            } else {
+              return false;
+            }
           }
           exit$4 = 5;
         } else {
@@ -195,7 +199,11 @@ function isValueEqual(a, b) {
         if (x$6 !== undefined) {
           let y$5 = b.NS;
           if (y$5 !== undefined) {
-            return x$6.every(v => y$5.includes(v));
+            if (x$6.length === y$5.length) {
+              return x$6.every(v => y$5.includes(v));
+            } else {
+              return false;
+            }
           }
           exit$7 = 6;
         } else {
