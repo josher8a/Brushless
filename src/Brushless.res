@@ -138,6 +138,12 @@ module AttributePath = {
   }
 }
 
+/**
+ * Mutable accumulator for ExpressionAttributeNames and ExpressionAttributeValues.
+ * Create one Register per DynamoDB command and pass it to all `build()` calls
+ * (Condition, KeyCondition, Update, Projection) for that command.
+ * Do not reuse a Register across independent commands.
+ */
 @genType
 module Register = {
   type t = {
