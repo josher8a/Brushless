@@ -3,7 +3,7 @@
 /* eslint-disable */
 /* tslint:disable */
 
-const BrushlessJS = require('./Brushless.bs.js');
+import * as BrushlessJS from './Brushless.bs.js';
 
 import type {AtLeastOne as $$atLeastOne} from './external';
 
