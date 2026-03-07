@@ -68,14 +68,9 @@ ReScript compiles to ESM, tsup produces dual CJS/ESM bundles in `dist/`. Added n
 
 ## Design
 
-### P3: Document or reconsider `Register` mutation contract
+### ~~P3: Document or reconsider `Register` mutation contract~~ DONE
 
-`Register` is mutable (`mutable names?`, `mutable values?`) in an otherwise functional codebase. A register cannot be safely shared across independent expression builds, but nothing in the API signals this.
-
-**Options:**
-- Document that a single `Register` should be used per DynamoDB command
-- Return a new register from each `build()` call (immutable approach)
-- Add a `Register.clone()` utility
+Added doc comment on `Register` module explaining one-per-command usage and not to reuse across independent commands.
 
 ---
 
@@ -112,4 +107,4 @@ Added `.github/workflows/ci.yml` with build, test (matrix: Node 20/22/24), and p
 | ~~**P0**~~ | ~~2~~ | ~~SS/NS equality bug, packaging `files` field~~ DONE |
 | ~~**P1**~~ | ~~5~~ | ~~Test coverage gaps, `types`/`exports` in package.json, README fix, example assertions~~ DONE |
 | ~~**P2**~~ | ~~3~~ | ~~Name collision, validation, ESM support~~ DONE |
-| **P3** | 4 | Register docs, type dedup, operator exports, changelog, ~~CI~~ DONE (1/5) |
+| **P3** | 4 | ~~Register docs~~, type dedup, operator exports, changelog, ~~CI~~ DONE (2/5) |
