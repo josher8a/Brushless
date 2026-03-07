@@ -1,70 +1,40 @@
 # Changelog
 
-## [0.3.0-rc.1] — 2026-03-07
-
-### Added
-
-- `KeyCondition.spec.ts` with 20 tests covering all SK condition variants, build output, and register accumulation
-- ReScript `Condition.Overload` operator tests exercising all 9 overloaded operators (`==`, `!=`, `<`, `<=`, `>`, `>=`, `&&`, `||`, `!`) with `Size` and `AttributePath` operands
-- `src/*` subpath export for ReScript consumers
-
-### Changed
-
-- Made `sk` optional in `keyCondition` type (omit sk for pk-only queries)
-- Deprecated `Any` variant using `@as(undefined)` for backwards compat
-- CI publishes prereleases under `next` dist-tag
-- Examples aligned with v0.2.1-alpha.2: bumped brushless dep, replaced AWS SDK v2 with v3 (`convertToAttr`), renamed `bsconfig.json` to `rescript.json`, dropped jest stack
-
-## [0.2.1-alpha.2] — 2026-03-07
+## [0.3.0] — 2026-03-07
 
 ### Breaking
 
-- Upgraded to ReScript 12 stable (dropped `@rescript/core` dependency, now built-in)
+- Upgraded to **ReScript 12 stable** (dropped `@rescript/core` dependency, now built-in)
 - `AttributeName.toString` escaping changed: `_` → `__`, `-` → `_dash_` (previously `-` → `_`, which caused collisions)
 - Package exports changed from `src/Brushless.bs.*` to `dist/index.*` via barrel file
-- Minimum Node.js version raised to 18 (`engines.node >= 18`, tsup target `node18`)
+- Minimum Node.js version raised to **18** (`engines.node >= 18`)
+- Removed `external.ts` 230-line `AttributeValue` type in favor of `AtLeastOne<T>` utility
+- Removed `Condition.Maker`, `KeyCondition.Maker`, `Update.Maker` submodules (functions were already re-exported on parent modules via `include`, so existing `Condition.equals` etc. access patterns are unaffected)
 
 ### Added
 
-- Dual CJS/ESM publishing with tsup (`dist/index.js`, `dist/index.mjs`)
+- **Dual CJS/ESM publishing** with tsup (`dist/index.js`, `dist/index.mjs`)
 - `src/index.ts` barrel file with canonical (`Condition`, `Update`) and short-name (`C`, `U`) exports
-- CI workflow: build, test matrix (Node 18/20/22/24), publish with npm trusted publishers
+- `src/*` subpath export for ReScript consumers
 - `AttributeName` validation for reserved expression characters (`[`, `]`, `#`, `:`)
-- `isValueEqual` edge case tests (cross-type, nested M/L, addValue alias collisions)
-- Assertions to `Expression.spec.ts` example use case
-- Migrated all `ConditionExpression.spec.ts` legacy tests (25 new tests, 68→81 total)
+- `sk` is now **optional** in `keyCondition` type (omit sk for pk-only queries)
+- CI workflow: build, test matrix (Node 18/20/22/24), publish with npm trusted publishers
+- Comprehensive test suite: KeyCondition (20 tests), ReScript operator overloads, `isValueEqual` edge cases, migrated legacy tests (68 → 81+ total)
 
 ### Fixed
 
 - `SS`/`NS` equality check: added `Array.length` guard before `every` call
 - `AttributeName.toString` hyphen/underscore collision (`foo-bar` vs `foo_bar`)
-- `AttributePath.spec.ts` dead regex assertions replaced with actual error matchers
+- AWS SDK marshaller compatibility (`$unknown` field, mutable `AtLeastOne<T>`)
 - README AWS SDK import updated to v3 (`@aws-sdk/client-dynamodb`)
 
 ### Changed
 
-- Optimized path parser: `String.search` regex instead of character-by-character recursion
-- Rewrote `isValueEqual` with short-circuiting pattern match and catch-all for type mismatches
-- Exhaustive match in `fromString` catches future variant additions at compile time
-- Removed `@genType` from alias modules; barrel handles short-name re-exports
-- Added doc comment on `Register` explaining one-per-command usage contract
-
-## [0.2.1-alpha.1] — 2025-11-02
-
-### Breaking
-
-- Upgraded to ReScript 12 RC (dropped `@rescript/core` dependency, now built-in)
-- Removed `external.ts` 230-line `AttributeValue` type in favor of `AtLeastOne<T>` utility
-
-### Fixed
-
-- AWS SDK marshaller compatibility: added `$unknown` field to `attributeValue_`, removed `readonly` from `AtLeastOne<T>`
-
-### Changed
-
-- Removed `Condition.Maker`, `KeyCondition.Maker`, `Update.Maker` submodules (functions were already re-exported on parent modules via `include`, so existing `Condition.equals` etc. access patterns are unaffected)
 - Eliminated all `Obj.magic` usage, replaced with idiomatic optional fields and `Dict.get`
-- Added `@inline` annotations on `getValues`/`getNames` for zero-overhead access
+- Optimized path parser: `String.search` regex instead of character-by-character recursion
+- `@inline` annotations on `getValues`/`getNames` for zero-overhead access
+- Exhaustive match in `fromString` catches future variant additions at compile time
+- Deprecated `Any` variant using `@as(undefined)` for backwards compat
 
 ## [0.2.0] — 2025-03-04
 
