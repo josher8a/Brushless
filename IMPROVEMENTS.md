@@ -80,17 +80,17 @@ Removed `@genType` from alias modules (`C`, `K`, `U`, `P`), keeping it on canoni
 
 ---
 
-### P3: Expose `Condition.Overload` operators to TypeScript
+### ~~P3: Expose `Condition.Overload` operators to TypeScript~~ DONE (N/A)
 
-The ReScript operator overloads (`&&`, `||`, `==`, etc.) are marked `@genType.opaque` and invisible to TypeScript consumers. Consider exporting them under usable names for TS users, or document that `C.and()`, `C.or()`, etc. are the TS equivalents.
+The operator overloads are ReScript-only syntax sugar. The underlying functions (`Condition.and`, `Condition.equals`, etc.) are already exported and accessible to TS consumers. No action needed.
 
 ---
 
 ## Project Hygiene
 
-### P3: Add `CHANGELOG.md`
+### ~~P3: Add `CHANGELOG.md`~~ DONE
 
-No changelog exists. Important for consumers tracking breaking changes across versions.
+Added changelog covering all tagged releases (v0.0.1 through v0.2.0) and unreleased refactor branch work.
 
 ---
 
@@ -107,4 +107,4 @@ Added `.github/workflows/ci.yml` with build, test (matrix: Node 20/22/24), and p
 | ~~**P0**~~ | ~~2~~ | ~~SS/NS equality bug, packaging `files` field~~ DONE |
 | ~~**P1**~~ | ~~5~~ | ~~Test coverage gaps, `types`/`exports` in package.json, README fix, example assertions~~ DONE |
 | ~~**P2**~~ | ~~3~~ | ~~Name collision, validation, ESM support~~ DONE |
-| **P3** | 4 | ~~Register docs~~, ~~type dedup~~, operator exports, changelog, ~~CI~~ DONE (3/5) |
+| ~~**P3**~~ | ~~4~~ | ~~Register docs, type dedup, operator exports, changelog, CI~~ DONE |
