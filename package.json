@@ -3,6 +3,18 @@
   "version": "0.2.1-alpha.1",
   "description": "DynamoDB utils lib write in Rescript and Typescript",
   "main": "src/Brushless.bs.js",
+  "types": "src/Brushless.bs.ts",
+  "exports": {
+    ".": {
+      "types": "./src/Brushless.bs.ts",
+      "require": "./src/Brushless.bs.js"
+    }
+  },
+  "files": [
+    "src/Brushless.bs.js",
+    "src/Brushless.bs.ts",
+    "src/external.ts"
+  ],
   "keywords": [
     "AWS",
     "Dynamodb",
