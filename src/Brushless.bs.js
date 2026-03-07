@@ -13,7 +13,7 @@ function toString(param) {
   if (name.includes(" ") || name.includes(".") || name.includes("[") || name.includes("]") || name.includes("#") || name.includes(":")) {
     throw new Error("InvalidName: " + name);
   }
-  return "#" + name.replaceAll("-", "_");
+  return "#" + name.replaceAll("_", "__").replaceAll("-", "_dash_");
 }
 
 let AttributeName = {

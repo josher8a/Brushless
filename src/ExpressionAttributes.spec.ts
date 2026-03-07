@@ -57,7 +57,14 @@ describe('ExpressionAttributes', () => {
         });
 
         it('should escape hyphens in names', () => {
-            expect(AttributeName.toString(AttributeName.make('foo-bar'))).toBe('#foo_bar');
+            expect(AttributeName.toString(AttributeName.make('foo-bar'))).toBe('#foo_dash_bar');
+        });
+
+        it('should not collide hyphenated and underscored names', () => {
+            expect(AttributeName.toString(AttributeName.make('foo-bar'))).not.toBe(
+                AttributeName.toString(AttributeName.make('foo_bar'))
+            );
+            expect(AttributeName.toString(AttributeName.make('foo_bar'))).toBe('#foo__bar');
         });
     });
 
