@@ -1,5 +1,5 @@
 import {describe, it, expect} from 'bun:test';
-import {AttributePath} from './Brushless.bs';
+import {AttributePath} from './index';
 
 describe('AttributePath', () => {
     it('should convert a string path to a list of elements', () => {
@@ -26,7 +26,7 @@ describe('AttributePath', () => {
             'should throw an error when a path begins with a control character',
             () => {
                 expect(() => AttributePath.fromString('[1]'))
-                    .toThrowError()///Invalid control character/);
+                    .toThrowError('InvalidPath');
             }
         );
 
@@ -34,7 +34,7 @@ describe('AttributePath', () => {
             'should throw an error when a list index access contains invalid characters',
             () => {
                 expect(() => AttributePath.fromString('foo[a]'))
-                    .toThrowError()///Invalid array index character/);
+                    .toThrowError('InvalidIndex');
             }
         );
 
@@ -42,7 +42,7 @@ describe('AttributePath', () => {
             'should throw an error when a list index access contains no characters',
             () => {
                 expect(() => AttributePath.fromString('foo[]'))
-                    .toThrowError()///Invalid array index/);
+                    .toThrowError('InvalidIndex');
             }
         );
 
@@ -50,7 +50,7 @@ describe('AttributePath', () => {
             'should throw an error when an identifier immediately follows a list index access',
             () => {
                 expect(() => AttributePath.fromString('foo[1]a'))
-                    .toThrowError()///Bare identifier encountered/);
+                    .toThrowError('InvalidPath');
             }
         );
     });
