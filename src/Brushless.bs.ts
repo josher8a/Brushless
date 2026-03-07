@@ -79,12 +79,12 @@ export type KeyCondition_pkCond = { readonly name: AttributeName_t; readonly val
 export type KeyCondition_limits = { readonly lower: AttributeValue_t; readonly upper: AttributeValue_t };
 
 export type KeyCondition_skCondition = 
-    "Any"
+    undefined
   | { TAG: "Comparison"; readonly name: AttributeName_t; readonly comparator: comparator; readonly value: AttributeValue_t }
   | { TAG: "Between"; readonly name: AttributeName_t; readonly limits: KeyCondition_limits }
   | { TAG: "BeginsWith"; readonly name: AttributeName_t; readonly value: AttributeValue_t };
 
-export type KeyCondition_keyCondition = { readonly pk: KeyCondition_pkCond; readonly sk: KeyCondition_skCondition };
+export type KeyCondition_keyCondition = { readonly pk: KeyCondition_pkCond; readonly sk?: KeyCondition_skCondition };
 
 export type Update_operand = 
     { TAG: "AttributePath"; readonly name: string; readonly subpath: AttributePath_sub[] }

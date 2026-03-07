@@ -408,10 +408,10 @@ module KeyCondition = {
     | Comparison({name: AttributeName.t, comparator: comparator, value: AttributeValue.t})
     | Between({name: AttributeName.t, limits: limits})
     | BeginsWith({name: AttributeName.t, value: AttributeValue.t})
-    | Any
+    | @as(undefined) @deprecated("Omit the `sk` field instead") Any
   type keyCondition = {
     pk: pkCond,
-    sk: skCondition,
+    sk?: skCondition,
   }
 
   let equals = (name, value) => Comparison({name, comparator: Equals, value})
@@ -426,23 +426,24 @@ module KeyCondition = {
   })
   let between = (name, limits) => Between({name, limits})
   let beginsWith = (name, value) => BeginsWith({name, value})
+  @deprecated("Omit the `sk` field instead")
   let any = Any
 
   %%private(
-    let skConditionToString = (skCondition: skCondition, register) =>
+    let skConditionToString = (skCondition: option<skCondition>, register) =>
       switch skCondition {
-      | Any => ""
-      | Comparison({name, comparator, value}) =>
+      | None | Some(Any) => ""
+      | Some(Comparison({name, comparator, value})) =>
         ` AND ${AttributeName.toString(Register.addName(register, name))} ${comparatorToString(
             comparator,
           )} ${AttributeValue.toString(Register.addValue(register, value))}`
-      | Between({name, limits}) =>
+      | Some(Between({name, limits})) =>
         ` AND ${AttributeName.toString(
             Register.addName(register, name),
           )} BETWEEN ${AttributeValue.toString(
             Register.addValue(register, limits.lower),
           )} AND ${AttributeValue.toString(Register.addValue(register, limits.upper))}`
-      | BeginsWith({name, value}) =>
+      | Some(BeginsWith({name, value})) =>
         ` AND begins_with(${AttributeName.toString(
             Register.addName(register, name),
           )}, ${AttributeValue.toString(Register.addValue(register, value))})`
