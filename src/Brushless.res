@@ -42,8 +42,15 @@ module AttributeName = {
   type t = AttributeName({name: string})
   let make = name => AttributeName({name: name})
   let toString = (AttributeName({name})) => {
-    if name->String.includes(" ") || name->String.includes(".") {
-      throwError("InvalidName")
+    if (
+      name->String.includes(" ") ||
+      name->String.includes(".") ||
+      name->String.includes("[") ||
+      name->String.includes("]") ||
+      name->String.includes("#") ||
+      name->String.includes(":")
+    ) {
+      throwError("InvalidName: " ++ name)
     }
     "#" ++ name->String.replaceAll("-", "_")
   }
