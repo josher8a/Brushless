@@ -1,13 +1,11 @@
 # Changelog
 
-## [Unreleased] — 0.2.1-alpha.1
+## [Unreleased]
 
 ### Breaking
 
 - Upgraded to ReScript 12 stable (dropped `@rescript/core` dependency, now built-in)
 - `AttributeName.toString` escaping changed: `_` → `__`, `-` → `_dash_` (previously `-` → `_`, which caused collisions)
-- Flattened `Condition.Maker`, `KeyCondition.Maker`, `Update.Maker` into parent modules
-- Removed `external.ts` 230-line `AttributeValue` type in favor of `AtLeastOne<T>` utility
 - Package exports changed from `src/Brushless.bs.*` to `dist/index.*` via barrel file
 
 ### Added
@@ -29,13 +27,28 @@
 
 ### Changed
 
-- Eliminated all `Obj.magic` usage, replaced with idiomatic optional fields and `Dict.get`
 - Optimized path parser: `String.search` regex instead of character-by-character recursion
 - Rewrote `isValueEqual` with short-circuiting pattern match and catch-all for type mismatches
-- Added `@inline` annotations on `getValues`/`getNames` for zero-overhead access
 - Exhaustive match in `fromString` catches future variant additions at compile time
 - Removed `@genType` from alias modules; barrel handles short-name re-exports
 - Added doc comment on `Register` explaining one-per-command usage contract
+
+## [0.2.1-alpha.1] — 2025-11-02
+
+### Breaking
+
+- Upgraded to ReScript 12 RC (dropped `@rescript/core` dependency, now built-in)
+- Removed `external.ts` 230-line `AttributeValue` type in favor of `AtLeastOne<T>` utility
+
+### Fixed
+
+- AWS SDK marshaller compatibility: added `$unknown` field to `attributeValue_`, removed `readonly` from `AtLeastOne<T>`
+
+### Changed
+
+- Removed `Condition.Maker`, `KeyCondition.Maker`, `Update.Maker` submodules (functions were already re-exported on parent modules via `include`, so existing `Condition.equals` etc. access patterns are unaffected)
+- Eliminated all `Obj.magic` usage, replaced with idiomatic optional fields and `Dict.get`
+- Added `@inline` annotations on `getValues`/`getNames` for zero-overhead access
 
 ## [0.2.0] — 2025-03-04
 
