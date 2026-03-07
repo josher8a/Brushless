@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.3.0-rc.1] — 2026-03-07
+
+### Added
+
+- `KeyCondition.spec.ts` with 20 tests covering all SK condition variants, build output, and register accumulation
+- ReScript `Condition.Overload` operator tests exercising all 9 overloaded operators (`==`, `!=`, `<`, `<=`, `>`, `>=`, `&&`, `||`, `!`) with `Size` and `AttributePath` operands
+- `src/*` subpath export for ReScript consumers
+
+### Changed
+
+- Made `sk` optional in `keyCondition` type (omit sk for pk-only queries)
+- Deprecated `Any` variant using `@as(undefined)` for backwards compat
+- CI publishes prereleases under `next` dist-tag
+- Examples aligned with v0.2.1-alpha.2: bumped brushless dep, replaced AWS SDK v2 with v3 (`convertToAttr`), renamed `bsconfig.json` to `rescript.json`, dropped jest stack
+
 ## [0.2.1-alpha.2] — 2026-03-07
 
 ### Breaking
