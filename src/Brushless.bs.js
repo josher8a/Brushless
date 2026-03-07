@@ -11,8 +11,8 @@ function make(name) {
 
 function toString(param) {
   let name = param.name;
-  if (name.includes(" ") || name.includes(".")) {
-    throw new Error("InvalidName");
+  if (name.includes(" ") || name.includes(".") || name.includes("[") || name.includes("]") || name.includes("#") || name.includes(":")) {
+    throw new Error("InvalidName: " + name);
   }
   return "#" + name.replaceAll("-", "_");
 }

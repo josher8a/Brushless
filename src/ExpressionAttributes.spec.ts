@@ -44,6 +44,21 @@ describe('ExpressionAttributes', () => {
          it('should allow the addition of nested attributes', () => {
             expect(()=>AttributePath.toString(AttributePath.fromString('foo[]'))).toThrowError('InvalidIndex');
         });
+
+        it('should reject names containing reserved expression characters', () => {
+            for (const bad of ['foo[0', 'bar]', '#baz', ':qux']) {
+                expect(() => AttributeName.toString(AttributeName.make(bad))).toThrowError('InvalidName');
+            }
+        });
+
+        it('should reject names containing spaces or dots', () => {
+            expect(() => AttributeName.toString(AttributeName.make('foo bar'))).toThrowError('InvalidName');
+            expect(() => AttributeName.toString(AttributeName.make('foo.bar'))).toThrowError('InvalidName');
+        });
+
+        it('should escape hyphens in names', () => {
+            expect(AttributeName.toString(AttributeName.make('foo-bar'))).toBe('#foo_bar');
+        });
     });
 
     describe('#addValue', () => {
