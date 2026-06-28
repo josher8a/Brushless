@@ -526,6 +526,46 @@ function size(operand) {
   };
 }
 
+function string(v) {
+  return {
+    TAG: "AttributeValue",
+    value: {
+      S: v.value
+    },
+    alias: v.alias
+  };
+}
+
+function number(v) {
+  return {
+    TAG: "AttributeValue",
+    value: {
+      N: v.value.toString()
+    },
+    alias: v.alias
+  };
+}
+
+function boolean(v) {
+  return {
+    TAG: "AttributeValue",
+    value: {
+      BOOL: v.value
+    },
+    alias: v.alias
+  };
+}
+
+function binary(v) {
+  return {
+    TAG: "AttributeValue",
+    value: {
+      B: v.value
+    },
+    alias: v.alias
+  };
+}
+
 let Overload = {
   $amp$amp: and,
   $pipe$pipe: or,
@@ -613,6 +653,10 @@ let Condition = {
   or: or,
   not: not,
   size: size,
+  string: string,
+  number: number,
+  boolean: boolean,
+  binary: binary,
   Overload: Overload,
   build: build
 };
@@ -763,6 +807,26 @@ function sub(lhs, rhs) {
   };
 }
 
+function number$1(v) {
+  return {
+    TAG: "AttributeValue",
+    value: {
+      N: v.value.toString()
+    },
+    alias: v.alias
+  };
+}
+
+function list(v) {
+  return {
+    TAG: "AttributeValue",
+    value: {
+      L: v.value
+    },
+    alias: v.alias
+  };
+}
+
 function operandToString(operand, register) {
   switch (operand.TAG) {
     case "AttributePath" :
@@ -810,6 +874,8 @@ let Update = {
   ifNotExists: ifNotExists,
   sum: sum,
   sub: sub,
+  number: number$1,
+  list: list,
   build: build$3
 };
 
@@ -818,6 +884,8 @@ let U = {
   ifNotExists: ifNotExists,
   sum: sum,
   sub: sub,
+  number: number$1,
+  list: list,
   build: build$3
 };
 
@@ -840,6 +908,10 @@ let C = {
   or: or,
   not: not,
   size: size,
+  string: string,
+  number: number,
+  boolean: boolean,
+  binary: binary,
   Overload: Overload,
   build: build
 };

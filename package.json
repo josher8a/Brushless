@@ -35,11 +35,13 @@
   },
   "homepage": "https://github.com/josher8a/brushless",
   "scripts": {
-    "build": "rescript && tsup",
-    "res:build": "rescript",
+    "build": "rescript && npm run gentype:patch && npm run gentype:check && tsup",
+    "res:build": "rescript && npm run gentype:patch",
     "res:clean": "rescript clean",
     "res:dev": "rescript watch",
     "res:format": "rescript format -all",
+    "gentype:patch": "node scripts/patch-gentype.mjs",
+    "gentype:check": "tsc --noEmit --strict --skipLibCheck src/Brushless.bs.ts src/Condition.typecheck.ts src/Update.typecheck.ts",
     "test": "bun test \"src/\""
   },
   "author": {

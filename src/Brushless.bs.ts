@@ -50,27 +50,35 @@ export type Identifier_t =
     { TAG: "AttributePath"; readonly name: string; readonly subpath: AttributePath_sub[] }
   | { TAG: "AttributeName"; readonly name: string };
 
-export type Condition_operand = 
-    { TAG: "AttributePath"; readonly name: string; readonly subpath: AttributePath_sub[] }
-  | { TAG: "AttributeName"; readonly name: string }
-  | { TAG: "AttributeValue"; readonly value: attributeValue; readonly alias: string }
-  | { TAG: "Size"; readonly operand: Condition_operand };
+export abstract class Condition_str { protected opaque!: any }; /* simulate opaque types */
 
-export type Condition_limits = { readonly lower: Condition_operand; readonly upper: Condition_operand };
+export abstract class Condition_num { protected opaque!: any }; /* simulate opaque types */
 
-export type Condition_condition = 
-    { TAG: "Comparison"; readonly lhs: Condition_operand; readonly comparator: comparator; readonly rhs: Condition_operand }
-  | { TAG: "Between"; readonly operand: Condition_operand; readonly limits: Condition_limits }
-  | { TAG: "In"; readonly operand: Condition_operand; readonly list: Condition_operand[] }
+export abstract class Condition_bool_ { protected opaque!: any }; /* simulate opaque types */
+
+export abstract class Condition_bin { protected opaque!: any }; /* simulate opaque types */
+
+export type Condition_operand<Cat> =
+    { TAG: "AttributePath"; readonly name: string; readonly subpath: AttributePath_sub[]; readonly _cat?: Cat }
+  | { TAG: "AttributeName"; readonly name: string; readonly _cat?: Cat }
+  | { TAG: "AttributeValue"; readonly value: attributeValue; readonly alias: string; readonly _cat?: Cat }
+  | { TAG: "Size"; readonly operand: Condition_operand<unknown>; readonly _cat?: Cat };
+
+export type Condition_limits<a> = { readonly lower: Condition_operand<a>; readonly upper: Condition_operand<a> };
+
+export type Condition_condition =
+    { TAG: "Comparison"; readonly lhs: Condition_operand<unknown>; readonly comparator: comparator; readonly rhs: Condition_operand<unknown> }
+  | { TAG: "Between"; readonly operand: Condition_operand<unknown>; readonly limits: Condition_limits<unknown> }
+  | { TAG: "In"; readonly operand: Condition_operand<unknown>; readonly list: Condition_operand<unknown>[] }
   | { TAG: "And"; readonly lhs: Condition_condition; readonly rhs: Condition_condition }
   | { TAG: "Or"; readonly lhs: Condition_condition; readonly rhs: Condition_condition }
   | { TAG: "Not"; readonly condition: Condition_condition }
   | { TAG: "AttributeExists"; readonly identifier: Identifier_t }
   | { TAG: "AttributeNotExists"; readonly identifier: Identifier_t }
-  | { TAG: "AttributeType"; readonly identifier: Identifier_t; readonly operand: Condition_operand }
-  | { TAG: "BeginsWith"; readonly identifier: Identifier_t; readonly operand: Condition_operand }
-  | { TAG: "Contains"; readonly identifier: Identifier_t; readonly operand: Condition_operand }
-  | { TAG: "ToContains"; readonly identifier: Identifier_t; readonly operand: Condition_operand };
+  | { TAG: "AttributeType"; readonly identifier: Identifier_t; readonly operand: Condition_operand<unknown> }
+  | { TAG: "BeginsWith"; readonly identifier: Identifier_t; readonly operand: Condition_operand<unknown> }
+  | { TAG: "Contains"; readonly identifier: Identifier_t; readonly operand: Condition_operand<unknown> }
+  | { TAG: "ToContains"; readonly identifier: Identifier_t; readonly operand: Condition_operand<unknown> };
 
 export type Projection_projection = Identifier_t[];
 
@@ -86,17 +94,23 @@ export type KeyCondition_skCondition =
 
 export type KeyCondition_keyCondition = { readonly pk: KeyCondition_pkCond; readonly sk?: KeyCondition_skCondition };
 
-export type Update_operand = 
-    { TAG: "AttributePath"; readonly name: string; readonly subpath: AttributePath_sub[] }
-  | { TAG: "AttributeName"; readonly name: string }
-  | { TAG: "AttributeValue"; readonly value: attributeValue; readonly alias: string }
-  | { TAG: "ListAppend"; readonly identifier: Update_operand; readonly operand: Update_operand }
-  | { TAG: "IfNotExists"; readonly identifier: Update_operand; readonly operand: Update_operand }
-  | { TAG: "Sum"; readonly lhs: Update_operand; readonly rhs: Update_operand }
-  | { TAG: "Sub"; readonly lhs: Update_operand; readonly rhs: Update_operand };
+export abstract class Update_num { protected opaque!: any }; /* simulate opaque types */
+
+export abstract class Update_list_ { protected opaque!: any }; /* simulate opaque types */
+
+export type Update_operand<Cat> =
+    { TAG: "AttributePath"; readonly name: string; readonly subpath: AttributePath_sub[]; readonly _cat?: Cat }
+  | { TAG: "AttributeName"; readonly name: string; readonly _cat?: Cat }
+  | { TAG: "AttributeValue"; readonly value: attributeValue; readonly alias: string; readonly _cat?: Cat }
+  | { TAG: "ListAppend"; readonly identifier: Update_operand<unknown>; readonly operand: Update_operand<unknown>; readonly _cat?: Cat }
+  | { TAG: "IfNotExists"; readonly identifier: Update_operand<unknown>; readonly operand: Update_operand<unknown>; readonly _cat?: Cat }
+  | { TAG: "Sum"; readonly lhs: Update_operand<unknown>; readonly rhs: Update_operand<unknown>; readonly _cat?: Cat }
+  | { TAG: "Sub"; readonly lhs: Update_operand<unknown>; readonly rhs: Update_operand<unknown>; readonly _cat?: Cat };
+
+export type Update_anyOperand = Update_operand<unknown>;
 
 export type Update_update = {
-  readonly set?: Array<[Identifier_t, Update_operand]>; 
+  readonly set?: Array<[Identifier_t, Update_anyOperand]>; 
   readonly remove?: Identifier_t[]; 
   readonly add?: Array<[Identifier_t, AttributeValue_t]>; 
   readonly delete?: Array<[Identifier_t, AttributeValue_t]>
@@ -126,33 +140,33 @@ export const Register_addPath: (register:Register_t, element:AttributePath_t) =>
 
 export const Identifier_toString: (identifier:Identifier_t, register:Register_t) => string = BrushlessJS.Identifier.toString as any;
 
-export const Condition_equals: (lhs:Condition_operand, rhs:Condition_operand) => Condition_condition = BrushlessJS.Condition.equals as any;
+export const Condition_equals: <T1>(lhs:Condition_operand<T1>, rhs:Condition_operand<T1>) => Condition_condition = BrushlessJS.Condition.equals as any;
 
-export const Condition_notEquals: (lhs:Condition_operand, rhs:Condition_operand) => Condition_condition = BrushlessJS.Condition.notEquals as any;
+export const Condition_notEquals: <T1>(lhs:Condition_operand<T1>, rhs:Condition_operand<T1>) => Condition_condition = BrushlessJS.Condition.notEquals as any;
 
-export const Condition_lessThan: (lhs:Condition_operand, rhs:Condition_operand) => Condition_condition = BrushlessJS.Condition.lessThan as any;
+export const Condition_lessThan: <T1>(lhs:Condition_operand<T1>, rhs:Condition_operand<T1>) => Condition_condition = BrushlessJS.Condition.lessThan as any;
 
-export const Condition_lessThanOrEqualTo: (lhs:Condition_operand, rhs:Condition_operand) => Condition_condition = BrushlessJS.Condition.lessThanOrEqualTo as any;
+export const Condition_lessThanOrEqualTo: <T1>(lhs:Condition_operand<T1>, rhs:Condition_operand<T1>) => Condition_condition = BrushlessJS.Condition.lessThanOrEqualTo as any;
 
-export const Condition_greaterThan: (lhs:Condition_operand, rhs:Condition_operand) => Condition_condition = BrushlessJS.Condition.greaterThan as any;
+export const Condition_greaterThan: <T1>(lhs:Condition_operand<T1>, rhs:Condition_operand<T1>) => Condition_condition = BrushlessJS.Condition.greaterThan as any;
 
-export const Condition_greaterThanOrEqualTo: (lhs:Condition_operand, rhs:Condition_operand) => Condition_condition = BrushlessJS.Condition.greaterThanOrEqualTo as any;
+export const Condition_greaterThanOrEqualTo: <T1>(lhs:Condition_operand<T1>, rhs:Condition_operand<T1>) => Condition_condition = BrushlessJS.Condition.greaterThanOrEqualTo as any;
 
-export const Condition_between: (operand:Condition_operand, limits:Condition_limits) => Condition_condition = BrushlessJS.Condition.between as any;
+export const Condition_between: <T1>(operand:Condition_operand<T1>, limits:Condition_limits<T1>) => Condition_condition = BrushlessJS.Condition.between as any;
 
-export const Condition_inList: (operand:Condition_operand, list:Condition_operand[]) => Condition_condition = BrushlessJS.Condition.inList as any;
+export const Condition_inList: <T1>(operand:Condition_operand<T1>, list:Condition_operand<T1>[]) => Condition_condition = BrushlessJS.Condition.inList as any;
 
 export const Condition_attributeExists: (identifier:Identifier_t) => Condition_condition = BrushlessJS.Condition.attributeExists as any;
 
 export const Condition_attributeNotExists: (identifier:Identifier_t) => Condition_condition = BrushlessJS.Condition.attributeNotExists as any;
 
-export const Condition_attributeType: (identifier:Identifier_t, operand:Condition_operand) => Condition_condition = BrushlessJS.Condition.attributeType as any;
+export const Condition_attributeType: <T1>(identifier:Identifier_t, operand:Condition_operand<T1>) => Condition_condition = BrushlessJS.Condition.attributeType as any;
 
-export const Condition_beginsWith: (identifier:Identifier_t, operand:Condition_operand) => Condition_condition = BrushlessJS.Condition.beginsWith as any;
+export const Condition_beginsWith: (identifier:Identifier_t, operand:Condition_operand<Condition_str | Condition_bin>) => Condition_condition = BrushlessJS.Condition.beginsWith as any;
 
-export const Condition_contains: (identifier:Identifier_t, operand:Condition_operand) => Condition_condition = BrushlessJS.Condition.contains as any;
+export const Condition_contains: <T1>(identifier:Identifier_t, operand:Condition_operand<T1>) => Condition_condition = BrushlessJS.Condition.contains as any;
 
-export const Condition_toContains: (identifier:Identifier_t, operand:Condition_operand) => Condition_condition = BrushlessJS.Condition.toContains as any;
+export const Condition_toContains: <T1>(identifier:Identifier_t, operand:Condition_operand<T1>) => Condition_condition = BrushlessJS.Condition.toContains as any;
 
 export const Condition_and: (lhs:Condition_condition, rhs:Condition_condition) => Condition_condition = BrushlessJS.Condition.and as any;
 
@@ -160,7 +174,15 @@ export const Condition_or: (lhs:Condition_condition, rhs:Condition_condition) =>
 
 export const Condition_not: (condition:Condition_condition) => Condition_condition = BrushlessJS.Condition.not as any;
 
-export const Condition_size: (operand:Condition_operand) => Condition_operand = BrushlessJS.Condition.size as any;
+export const Condition_size: <T1>(operand:Condition_operand<T1>) => Condition_operand<Condition_num> = BrushlessJS.Condition.size as any;
+
+export const Condition_string: (v:AttributeValue_from<string>) => Condition_operand<Condition_str> = BrushlessJS.Condition.string as any;
+
+export const Condition_number: (v:AttributeValue_from<number>) => Condition_operand<Condition_num> = BrushlessJS.Condition.number as any;
+
+export const Condition_boolean: (v:AttributeValue_from<boolean>) => Condition_operand<Condition_bool_> = BrushlessJS.Condition.boolean as any;
+
+export const Condition_binary: (v:AttributeValue_from<Uint8Array>) => Condition_operand<Condition_bin> = BrushlessJS.Condition.binary as any;
 
 export const Condition_build: (condition:Condition_condition, register:Register_t) => string = BrushlessJS.Condition.build as any;
 
@@ -186,13 +208,17 @@ export const KeyCondition_any: KeyCondition_skCondition = BrushlessJS.KeyConditi
 
 export const KeyCondition_build: (keyCondition:KeyCondition_keyCondition, register:Register_t) => string = BrushlessJS.KeyCondition.build as any;
 
-export const Update_listAppend: (identifier:Update_operand, operand:Update_operand) => Update_operand = BrushlessJS.Update.listAppend as any;
+export const Update_listAppend: (identifier:Update_operand<Update_list_>, operand:Update_operand<Update_list_>) => Update_operand<Update_list_> = BrushlessJS.Update.listAppend as any;
 
-export const Update_ifNotExists: (identifier:Update_operand, operand:Update_operand) => Update_operand = BrushlessJS.Update.ifNotExists as any;
+export const Update_ifNotExists: <T1,T2>(identifier:Update_operand<T1>, operand:Update_operand<T2>) => Update_operand<T2> = BrushlessJS.Update.ifNotExists as any;
 
-export const Update_sum: (lhs:Update_operand, rhs:Update_operand) => Update_operand = BrushlessJS.Update.sum as any;
+export const Update_sum: (lhs:Update_operand<Update_num>, rhs:Update_operand<Update_num>) => Update_operand<Update_num> = BrushlessJS.Update.sum as any;
 
-export const Update_sub: (lhs:Update_operand, rhs:Update_operand) => Update_operand = BrushlessJS.Update.sub as any;
+export const Update_sub: (lhs:Update_operand<Update_num>, rhs:Update_operand<Update_num>) => Update_operand<Update_num> = BrushlessJS.Update.sub as any;
+
+export const Update_number: (v:AttributeValue_from<number>) => Update_operand<Update_num> = BrushlessJS.Update.number as any;
+
+export const Update_list: (v:AttributeValue_from<attributeValue[]>) => Update_operand<Update_list_> = BrushlessJS.Update.list as any;
 
 export const Update_build: (update:Update_update, register:Register_t) => string = BrushlessJS.Update.build as any;
 
@@ -201,25 +227,29 @@ export const AttributeName: { toString: (param:AttributeName_t) => string; make:
 export const Identifier: { toString: (identifier:Identifier_t, register:Register_t) => string } = BrushlessJS.Identifier as any;
 
 export const Condition: {
-  attributeType: (identifier:Identifier_t, operand:Condition_operand) => Condition_condition; 
-  toContains: (identifier:Identifier_t, operand:Condition_operand) => Condition_condition; 
-  notEquals: (lhs:Condition_operand, rhs:Condition_operand) => Condition_condition; 
+  attributeType: <T1>(identifier:Identifier_t, operand:Condition_operand<T1>) => Condition_condition; 
+  toContains: <T1>(identifier:Identifier_t, operand:Condition_operand<T1>) => Condition_condition; 
+  boolean: (v:AttributeValue_from<boolean>) => Condition_operand<Condition_bool_>; 
+  notEquals: <T1>(lhs:Condition_operand<T1>, rhs:Condition_operand<T1>) => Condition_condition; 
   attributeNotExists: (identifier:Identifier_t) => Condition_condition; 
-  greaterThan: (lhs:Condition_operand, rhs:Condition_operand) => Condition_condition; 
-  greaterThanOrEqualTo: (lhs:Condition_operand, rhs:Condition_operand) => Condition_condition; 
-  between: (operand:Condition_operand, limits:Condition_limits) => Condition_condition; 
-  inList: (operand:Condition_operand, list:Condition_operand[]) => Condition_condition; 
+  number: (v:AttributeValue_from<number>) => Condition_operand<Condition_num>; 
+  greaterThan: <T1>(lhs:Condition_operand<T1>, rhs:Condition_operand<T1>) => Condition_condition; 
+  greaterThanOrEqualTo: <T1>(lhs:Condition_operand<T1>, rhs:Condition_operand<T1>) => Condition_condition; 
+  between: <T1>(operand:Condition_operand<T1>, limits:Condition_limits<T1>) => Condition_condition; 
+  inList: <T1>(operand:Condition_operand<T1>, list:Condition_operand<T1>[]) => Condition_condition; 
   and: (lhs:Condition_condition, rhs:Condition_condition) => Condition_condition; 
-  size: (operand:Condition_operand) => Condition_operand; 
-  lessThanOrEqualTo: (lhs:Condition_operand, rhs:Condition_operand) => Condition_condition; 
+  size: <T1>(operand:Condition_operand<T1>) => Condition_operand<Condition_num>; 
+  string: (v:AttributeValue_from<string>) => Condition_operand<Condition_str>; 
+  lessThanOrEqualTo: <T1>(lhs:Condition_operand<T1>, rhs:Condition_operand<T1>) => Condition_condition; 
+  binary: (v:AttributeValue_from<Uint8Array>) => Condition_operand<Condition_bin>; 
   build: (condition:Condition_condition, register:Register_t) => string; 
   not: (condition:Condition_condition) => Condition_condition; 
-  lessThan: (lhs:Condition_operand, rhs:Condition_operand) => Condition_condition; 
-  equals: (lhs:Condition_operand, rhs:Condition_operand) => Condition_condition; 
-  beginsWith: (identifier:Identifier_t, operand:Condition_operand) => Condition_condition; 
+  lessThan: <T1>(lhs:Condition_operand<T1>, rhs:Condition_operand<T1>) => Condition_condition; 
+  equals: <T1>(lhs:Condition_operand<T1>, rhs:Condition_operand<T1>) => Condition_condition; 
+  beginsWith: (identifier:Identifier_t, operand:Condition_operand<Condition_str | Condition_bin>) => Condition_condition; 
   or: (lhs:Condition_condition, rhs:Condition_condition) => Condition_condition; 
   attributeExists: (identifier:Identifier_t) => Condition_condition; 
-  contains: (identifier:Identifier_t, operand:Condition_operand) => Condition_condition
+  contains: <T1>(identifier:Identifier_t, operand:Condition_operand<T1>) => Condition_condition
 } = BrushlessJS.Condition as any;
 
 export const KeyCondition: {
@@ -236,10 +266,12 @@ export const KeyCondition: {
 } = BrushlessJS.KeyCondition as any;
 
 export const Update: {
-  sub: (lhs:Update_operand, rhs:Update_operand) => Update_operand; 
-  listAppend: (identifier:Update_operand, operand:Update_operand) => Update_operand; 
-  ifNotExists: (identifier:Update_operand, operand:Update_operand) => Update_operand; 
-  sum: (lhs:Update_operand, rhs:Update_operand) => Update_operand; 
+  sub: (lhs:Update_operand<Update_num>, rhs:Update_operand<Update_num>) => Update_operand<Update_num>; 
+  number: (v:AttributeValue_from<number>) => Update_operand<Update_num>; 
+  listAppend: (identifier:Update_operand<Update_list_>, operand:Update_operand<Update_list_>) => Update_operand<Update_list_>; 
+  ifNotExists: <T1,T2>(identifier:Update_operand<T1>, operand:Update_operand<T2>) => Update_operand<T2>; 
+  sum: (lhs:Update_operand<Update_num>, rhs:Update_operand<Update_num>) => Update_operand<Update_num>; 
+  list: (v:AttributeValue_from<attributeValue[]>) => Update_operand<Update_list_>; 
   build: (update:Update_update, register:Register_t) => string
 } = BrushlessJS.Update as any;
 

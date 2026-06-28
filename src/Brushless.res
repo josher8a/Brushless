@@ -279,30 +279,46 @@ module Identifier = {
 }
 @genType
 module Condition = {
-  type rec operand =
+  // Category witnesses used as GADT indices. Never present at runtime. genType
+  // renders them as distinct opaque classes, which keeps same-category checks
+  // strict: `equals<C>(operand<C>, operand<C>)` rejects mixed categories because
+  // TS won't widen two distinct opaque classes into a `C` union (poly-variant
+  // string-literal tags WOULD be widened, silently defeating the check).
+  // Multi-category operations (begins_with accepts String OR Binary) are handled
+  // by widening the emitted parameter to a union in scripts/patch-gentype.mjs.
+  type str
+  type num
+  type bool_
+  type bin
+
+  // Paths/names/values are spread in un-indexed, so they stay polymorphic.
+  type rec operand<_> =
     | ...AttributePath.t
     | ...AttributeName.t
     | ...AttributeValue.t
-    | Size({operand: operand}) // is a function but it is the only one that returns a number
+    | Size({operand: operand<'a>}): operand<num> // the only function returning a number
 
-  type limits = {lower: operand, upper: operand}
+  type limits<'a> = {lower: operand<'a>, upper: operand<'a>}
 
+  // A condition is a boolean. Comparison/Between/In require their operands to
+  // share a category ('a appears only in the arguments, never in the result),
+  // so the category is existentially erased once it becomes a condition.
   type rec condition =
-    | Comparison({lhs: operand, comparator: comparator, rhs: operand})
-    | Between({operand: operand, limits: limits})
-    | In({operand: operand, list: array<operand>})
-    | And({lhs: condition, rhs: condition})
-    | Or({lhs: condition, rhs: condition})
-    | Not({condition: condition})
+    | Comparison({lhs: operand<'a>, comparator: comparator, rhs: operand<'a>}): condition
+    | Between({operand: operand<'a>, limits: limits<'a>}): condition
+    | In({operand: operand<'a>, list: array<operand<'a>>}): condition
+    | And({lhs: condition, rhs: condition}): condition
+    | Or({lhs: condition, rhs: condition}): condition
+    | Not({condition: condition}): condition
     //   | Function(function)
     // and function =
-    | AttributeExists({identifier: Identifier.t})
-    | AttributeNotExists({identifier: Identifier.t})
-    | AttributeType({identifier: Identifier.t, operand: operand})
-    | BeginsWith({identifier: Identifier.t, operand: operand})
-    | Contains({identifier: Identifier.t, operand: operand})
+    | AttributeExists({identifier: Identifier.t}): condition
+    | AttributeNotExists({identifier: Identifier.t}): condition
+    | AttributeType({identifier: Identifier.t, operand: operand<'a>}): condition
+    | BeginsWith({identifier: Identifier.t, operand: operand<str>}): condition // String or Binary (widened in TS)
+    | Contains({identifier: Identifier.t, operand: operand<'a>}): condition
     // alias for contains where the order of the arguments is reversed
-    | ToContains({identifier: Identifier.t, operand: operand})
+    | ToContains({identifier: Identifier.t, operand: operand<'a>}): condition
 
   let equals = (lhs, rhs) => Comparison({lhs, comparator: Equals, rhs})
   let notEquals = (lhs, rhs) => Comparison({lhs, comparator: NotEquals, rhs})
@@ -319,6 +335,8 @@ module Condition = {
   let attributeExists = identifier => AttributeExists({identifier: identifier})
   let attributeNotExists = identifier => AttributeNotExists({identifier: identifier})
   let attributeType = (identifier, operand) => AttributeType({identifier, operand})
+  // ReScript types this as String only; the codemod widens the emitted TS
+  // parameter to `Condition_operand<Condition_str | Condition_binary>`.
   let beginsWith = (identifier, operand) => BeginsWith({identifier, operand})
   let contains = (identifier, operand) => Contains({identifier, operand})
   let toContains = (identifier, operand) => ToContains({identifier, operand})
@@ -326,6 +344,18 @@ module Condition = {
   let or = (lhs, rhs) => Or({lhs, rhs})
   let not = condition => Not({condition: condition})
   let size = operand => Size({operand: operand})
+
+  // Typed value constructors. Unlike `AttributeValue.make` (which yields a
+  // category-polymorphic operand), these pin the category so comparisons,
+  // begins_with, between, contains etc. are checked against literal values.
+  let string = (v: AttributeValue.from<string>): operand<str> =>
+    AttributeValue({value: {s: v.value}, alias: v.alias})
+  let number = (v: AttributeValue.from<float>): operand<num> =>
+    AttributeValue({value: {n: v.value->Float.toString}, alias: v.alias})
+  let boolean = (v: AttributeValue.from<bool>): operand<bool_> =>
+    AttributeValue({value: {bool: v.value}, alias: v.alias})
+  let binary = (v: AttributeValue.from<Uint8Array.t>): operand<bin> =>
+    AttributeValue({value: {b: v.value}, alias: v.alias})
 
   module Overload = {
     @genType.opaque
@@ -373,16 +403,18 @@ module Condition = {
       | ToContains({identifier, operand}) =>
         `contains(${opString(operand)}, ${Identifier.toString(identifier, register)})`
       }
-    and opString = operand =>
-      switch operand {
-      | AttributePath({name, subpath}) =>
-        AttributePath.toString(Register.addPath(register, AttributePath({name, subpath})))
-      | AttributeName({name}) =>
-        AttributeName.toString(Register.addName(register, AttributeName({name: name})))
-      | AttributeValue({value, alias}) =>
-        AttributeValue.toString(Register.addValue(register, AttributeValue({value, alias})))
-      | Size({operand}) => `size(${opString(operand)})`
-      }
+    and opString:
+      type a. operand<a> => string =
+      operand =>
+        switch operand {
+        | AttributePath({name, subpath}) =>
+          AttributePath.toString(Register.addPath(register, AttributePath({name, subpath})))
+        | AttributeName({name}) =>
+          AttributeName.toString(Register.addName(register, AttributeName({name: name})))
+        | AttributeValue({value, alias}) =>
+          AttributeValue.toString(Register.addValue(register, AttributeValue({value, alias})))
+        | Size({operand}) => `size(${opString(operand)})`
+        }
 
     toString(condition)
   }
@@ -459,29 +491,48 @@ module KeyCondition = {
 
 @genType
 module Update = {
-  type rec operand =
+  // Category witnesses (opaque GADT indices); see Condition for why opaque types
+  // rather than poly-variant tags.
+  type num
+  type list_
+
+  // - Sum/Sub (`+`/`-`) require numbers and yield a number.
+  // - ListAppend requires lists and yields a list.
+  // - IfNotExists yields the category of its value operand (the path is any).
+  type rec operand<_> =
     | ...AttributePath.t
     | ...AttributeName.t
     | ...AttributeValue.t
-    | ListAppend({identifier: operand, operand: operand})
-    | IfNotExists({identifier: operand, operand: operand})
-    | Sum({lhs: operand, rhs: operand})
-    | Sub({lhs: operand, rhs: operand})
+    | ListAppend({identifier: operand<list_>, operand: operand<list_>}): operand<list_>
+    | IfNotExists({identifier: operand<'b>, operand: operand<'a>}): operand<'a>
+    | Sum({lhs: operand<num>, rhs: operand<num>}): operand<num>
+    | Sub({lhs: operand<num>, rhs: operand<num>}): operand<num>
 
   let listAppend = (identifier, operand) => ListAppend({identifier, operand})
   let ifNotExists = (identifier, operand) => IfNotExists({identifier, operand})
   let sum = (lhs, rhs) => Sum({lhs, rhs})
   let sub = (lhs, rhs) => Sub({lhs, rhs})
 
+  // Typed value constructors — pin the category so `sum`/`sub` (number) and
+  // `listAppend` (list) are checked against literal values.
+  let number = (v: AttributeValue.from<float>): operand<num> =>
+    AttributeValue({value: {n: v.value->Float.toString}, alias: v.alias})
+  let list = (v: AttributeValue.from<array<attributeValue>>): operand<list_> =>
+    AttributeValue({value: {l: v.value}, alias: v.alias})
+
+  // The assignment target of a SET clause is schema-less, so operands are stored
+  // with their category erased (the codemod renders this slot as `<unknown>`).
+  type anyOperand = operand<unit>
+
   type rec update = {
-    set?: array<(Identifier.t, operand)>,
+    set?: array<(Identifier.t, anyOperand)>,
     remove?: array<Identifier.t>,
     add?: array<(Identifier.t, AttributeValue.t)>,
     delete?: array<(Identifier.t, AttributeValue.t)>,
   }
 
   %%private(
-    let rec operandToString = (operand: operand, register) =>
+    let rec operandToString: type a. (operand<a>, Register.t) => string = (operand, register) =>
       switch operand {
       | AttributePath({name, subpath}) =>
         AttributePath.toString(Register.addPath(register, AttributePath({name, subpath})))
