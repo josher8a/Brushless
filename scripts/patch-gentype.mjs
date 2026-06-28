@@ -1,25 +1,24 @@
 #!/usr/bin/env node
 // Post-genType codemod.
 //
-// Why this exists: the expression models in Brushless.res are GADTs (operands
-// carry their DynamoDB value category as a type index — e.g. `size` yields a
-// number, `begins_with` requires a string). genType cannot represent a GADT, so
-// it bails and emits the indexed types as opaque `abstract class` declarations
-// with NO type parameter. The result does not even typecheck: every generated
-// signature still applies a type argument to them (`Condition_operand<T1>`),
-// which TS rejects (TS2315 "is not generic").
+// The expression models in Brushless.res are GADTs: operands (and the shared
+// AttributeValue.t value) carry their DynamoDB category as a type index. genType
+// can't represent GADTs — it emits the indexed types either as opaque
+// `abstract class` declarations or as non-generic structural unions, neither of
+// which typechecks against the generated signatures (which apply `<...>` to them).
 //
-// genType DOES emit the generic function signatures correctly, so the only
-// breakage is the type *declarations*. This script swaps those opaque classes
-// for proper branded generic unions. The brand (`_cat?: Cat`) is an optional,
-// type-only field: it never exists at runtime, so real values stay assignable,
-// but it makes `Cat` load-bearing so TS enforces the category (an unused type
-// parameter would be ignored by TS's structural checks — see the spike notes).
+// genType DOES emit the generic function signatures correctly, so the breakage is
+// confined to a few type *declarations*. This script swaps those for proper
+// branded generic unions and widens a few erased/multi-category slots.
 //
-// Source of truth:
-//   - function signatures  -> Brushless.res (genType derives them)
-//   - the union bodies below -> THIS FILE (kept in sync with the .res variants)
-// If you add/rename a constructor in a patched module, update the body here.
+// The brand `(... ) & { _cat?: Cat }` is an optional, type-only field: it never
+// exists at runtime, so real values stay assignable, but it makes `Cat`
+// load-bearing so TS enforces the category (an unused type parameter would be
+// ignored by TS's structural checks). The category tags are emitted as opaque
+// classes (str/num/bin/…), which are nominal, so same-category checks stay strict.
+//
+// Source of truth: function signatures -> Brushless.res; the union bodies and
+// category-union widenings below -> THIS FILE (keep in sync with the .res variants).
 
 import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -28,12 +27,22 @@ import { dirname, join } from "node:path";
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const target = join(root, "src", "Brushless.bs.ts");
 
-// Each patch: the opaque-class anchor genType emits, the branded replacement,
-// and a sentinel that proves the replacement is already present (idempotency).
+// Declaration replacements: a regex anchor genType emits, the branded
+// replacement, and a sentinel proving the replacement is already present.
 const patches = [
   {
+    name: "AttributeValue_t",
+    // genType emits this as a non-generic structural union; brand it + add <Cat>.
+    // The member shape matches each operand's AttributeValue member, so the typed
+    // value constructors (AttributeValue.number, …) are usable directly as operands.
+    anchor:
+      /export type AttributeValue_t =\s*\n\s+\{ TAG: "AttributeValue"; readonly value: attributeValue; readonly alias: string \};/,
+    patched: "export type AttributeValue_t<Cat> =",
+    replacement: `export type AttributeValue_t<Cat> = ({ TAG: "AttributeValue"; readonly value: attributeValue; readonly alias: string }) & { readonly _cat?: Cat };`,
+  },
+  {
     name: "Condition_operand",
-    opaque:
+    anchor:
       /export abstract class Condition_operand \{ protected opaque!: any \};[^\n]*/,
     patched: "export type Condition_operand<Cat> =",
     replacement: `export type Condition_operand<Cat> = ({
@@ -45,7 +54,7 @@ const patches = [
   },
   {
     name: "Condition_condition",
-    opaque:
+    anchor:
       /export abstract class Condition_condition \{ protected opaque!: any \};[^\n]*/,
     patched: "export type Condition_condition =",
     replacement: `export type Condition_condition =
@@ -64,7 +73,7 @@ const patches = [
   },
   {
     name: "Update_operand",
-    opaque:
+    anchor:
       /export abstract class Update_operand \{ protected opaque!: any \};[^\n]*/,
     patched: "export type Update_operand<Cat> =",
     replacement: `export type Update_operand<Cat> = ({
@@ -79,45 +88,48 @@ const patches = [
   },
 ];
 
-// Simple text rewrites (not opaque-class declarations). Each has a `from`
-// (current genType output), a `to`, and is a no-op if `to` is already present.
+// Text rewrites: widen erased / multi-category slots. Category tags are the bare
+// shared names (str/num/bin/strSet/numSet/binSet/list_/map_).
 const rewrites = [
   {
+    name: "AttributeValue_anyValue",
+    from: "export type AttributeValue_anyValue = AttributeValue_t<void>;",
+    to: "export type AttributeValue_anyValue = AttributeValue_t<unknown>;",
+  },
+  {
+    name: "AttributeValue_make (untyped escape hatch)",
+    // make() yields an untyped value; brand it <never> so it stays assignable into
+    // ANY operand category (the escape hatch). Use the typed constructors
+    // (AttributeValue.string/number/…) when you want the category checked.
+    from: "<cat>(x:AttributeValue_from<attributeValue>) => AttributeValue_t<cat>",
+    to: "(x:AttributeValue_from<attributeValue>) => AttributeValue_t<never>",
+  },
+  {
     name: "Update_anyOperand",
-    // genType emits the erased slot as `<void>`; with the brand that would
-    // reject any typed operand, so widen it to `<unknown>` (accepts any category).
     from: "export type Update_anyOperand = Update_operand<void>;",
     to: "export type Update_anyOperand = Update_operand<unknown>;",
   },
   {
     name: "Update_addOperand (Number|Set)",
-    // ADD supports only Number or Set data types (spec).
     from: "export type Update_addOperand = Update_operand<void>;",
-    to: "export type Update_addOperand = Update_operand<Update_num | Update_strSet | Update_numSet | Update_binSet>;",
+    to: "export type Update_addOperand = Update_operand<num | strSet | numSet | binSet>;",
   },
   {
     name: "Update_deleteOperand (Set)",
-    // DELETE supports only Set data types (spec).
     from: "export type Update_deleteOperand = Update_operand<void>;",
-    to: "export type Update_deleteOperand = Update_operand<Update_strSet | Update_numSet | Update_binSet>;",
+    to: "export type Update_deleteOperand = Update_operand<strSet | numSet | binSet>;",
   },
   {
     name: "Condition_size (sizeable types)",
-    // size() is valid only for String, Binary, Set, List, Map (not Number/Bool/Null).
-    // Widen the (otherwise unconstrained) parameter to that union. Anchored on the
-    // `<T1>(operand:...)=>...<Condition_num>` shape, unique to size.
-    from: "<T1>(operand:Condition_operand<T1>) => Condition_operand<Condition_num>",
-    to: "(operand:Condition_operand<Condition_str | Condition_bin | Condition_strSet | Condition_numSet | Condition_binSet | Condition_list_ | Condition_map_>) => Condition_operand<Condition_num>",
+    // size() is valid only for String/Binary/Set/List/Map (not Number/Bool/Null).
+    from: "<T1>(operand:Condition_operand<T1>) => Condition_operand<num>",
+    to: "(operand:Condition_operand<str | bin | strSet | numSet | binSet | list_ | map_>) => Condition_operand<num>",
   },
   {
     name: "Condition_beginsWith (String|Binary)",
-    // DynamoDB begins_with accepts String OR Binary. ReScript can only type the
-    // parameter as one opaque category (`str`), so widen the emitted parameter to
-    // the union here. Anchored on the `operand:` parameter (the `string` value
-    // constructor returns the same type but in return position, no `operand:`).
-    // Replaces both the `const` and the module-object-literal occurrences.
-    from: "operand:Condition_operand<Condition_str>)",
-    to: "operand:Condition_operand<Condition_str | Condition_bin>)",
+    // begins_with accepts String OR Binary; ReScript types it as String only.
+    from: "operand:Condition_operand<str>)",
+    to: "operand:Condition_operand<str | bin>)",
   },
 ];
 
@@ -126,14 +138,14 @@ const applied = [];
 const skipped = [];
 
 for (const p of patches) {
-  if (p.opaque.test(src)) {
-    src = src.replace(p.opaque, p.replacement);
+  if (p.anchor.test(src)) {
+    src = src.replace(p.anchor, p.replacement);
     applied.push(p.name);
   } else if (src.includes(p.patched)) {
-    skipped.push(p.name); // already patched (idempotent re-run)
+    skipped.push(p.name);
   } else {
     console.error(
-      `patch-gentype: FAILED — could not find the opaque '${p.name}' declaration ` +
+      `patch-gentype: FAILED — could not find the '${p.name}' declaration ` +
         `nor a previously-patched one in ${target}.\n` +
         `genType output likely changed shape. Update scripts/patch-gentype.mjs.`,
     );

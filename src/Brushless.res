@@ -126,19 +126,53 @@ module AttributeName = {
   }
 }
 
+// Value category witnesses (phantom GADT indices), shared by every operand type.
+// A value carries its DynamoDB category so each operation can restrict which
+// categories it accepts (begins_with -> string/binary, size -> sizeable, etc.).
+type str
+type num
+type bool_
+type bin
+type strSet
+type numSet
+type binSet
+type list_
+type map_
+
 @genType
 module AttributeValue = {
-  type t = AttributeValue({value: attributeValue, alias: string})
+  type t<_> = AttributeValue({value: attributeValue, alias: string})
+  // Category-erased value (e.g. key values); the codemod widens this to <unknown>.
+  type anyValue = t<unit>
   type from<'a> = {
     value: 'a,
     alias: string,
   }
-  let make = x => AttributeValue({
+  let make = (x): t<'cat> => AttributeValue({
     value: x.value, // DefaultMarshaller.marshallValue(x.value),
     alias: x.alias,
   })
 
   let toString = (AttributeValue({alias, _})) => ":" ++ alias
+
+  // Typed value constructors — pin the DynamoDB category of a literal value, so
+  // comparisons / begins_with / sum / list_append / ADD / DELETE are checked.
+  // Defined once here; usable in any operand position (Condition or Update).
+  let string = (v: from<string>): t<str> => AttributeValue({value: {s: v.value}, alias: v.alias})
+  let number = (v: from<float>): t<num> =>
+    AttributeValue({value: {n: v.value->Float.toString}, alias: v.alias})
+  let boolean = (v: from<bool>): t<bool_> => AttributeValue({value: {bool: v.value}, alias: v.alias})
+  let binary = (v: from<Uint8Array.t>): t<bin> => AttributeValue({value: {b: v.value}, alias: v.alias})
+  let stringSet = (v: from<array<string>>): t<strSet> =>
+    AttributeValue({value: {ss: v.value}, alias: v.alias})
+  let numberSet = (v: from<array<float>>): t<numSet> =>
+    AttributeValue({value: {ns: v.value->Array.map(x => x->Float.toString)}, alias: v.alias})
+  let binarySet = (v: from<array<Uint8Array.t>>): t<binSet> =>
+    AttributeValue({value: {bs: v.value}, alias: v.alias})
+  let list = (v: from<array<attributeValue>>): t<list_> =>
+    AttributeValue({value: {l: v.value}, alias: v.alias})
+  let map = (v: from<dict<attributeValue>>): t<map_> =>
+    AttributeValue({value: {m: v.value}, alias: v.alias})
 }
 
 @genType
@@ -356,21 +390,15 @@ module Condition = {
   // string-literal tags WOULD be widened, silently defeating the check).
   // Multi-category operations (begins_with accepts String OR Binary) are handled
   // by widening the emitted parameter to a union in scripts/patch-gentype.mjs.
-  type str
-  type num
-  type bool_
-  type bin
-  type strSet
-  type numSet
-  type binSet
-  type list_
-  type map_
-
-  // Paths/names/values are spread in un-indexed, so they stay polymorphic.
+  // Category tags live in AttributeValue's scope (top-level) now, shared by all
+  // operands. Paths/names are spread (un-indexed, polymorphic); the value leaf is
+  // an explicit constructor (parameterized variants can't be spread) mirroring
+  // AttributeValue.t structurally, so AttributeValue's typed value constructors
+  // are usable directly as operands.
   type rec operand<_> =
     | ...AttributePath.t
     | ...AttributeName.t
-    | ...AttributeValue.t
+    | AttributeValue({value: attributeValue, alias: string}): operand<'cat>
     | Size({operand: operand<'a>}): operand<num> // the only function returning a number
 
   type limits<'a> = {lower: operand<'a>, upper: operand<'a>}
@@ -438,28 +466,6 @@ module Condition = {
   let not = condition => Not({condition: condition})
   let size = operand => Size({operand: operand})
 
-  // Typed value constructors. Unlike `AttributeValue.make` (which yields a
-  // category-polymorphic operand), these pin the category so comparisons,
-  // begins_with, between, contains etc. are checked against literal values.
-  let string = (v: AttributeValue.from<string>): operand<str> =>
-    AttributeValue({value: {s: v.value}, alias: v.alias})
-  let number = (v: AttributeValue.from<float>): operand<num> =>
-    AttributeValue({value: {n: v.value->Float.toString}, alias: v.alias})
-  let boolean = (v: AttributeValue.from<bool>): operand<bool_> =>
-    AttributeValue({value: {bool: v.value}, alias: v.alias})
-  let binary = (v: AttributeValue.from<Uint8Array.t>): operand<bin> =>
-    AttributeValue({value: {b: v.value}, alias: v.alias})
-  let stringSet = (v: AttributeValue.from<array<string>>): operand<strSet> =>
-    AttributeValue({value: {ss: v.value}, alias: v.alias})
-  let numberSet = (v: AttributeValue.from<array<float>>): operand<numSet> =>
-    AttributeValue({value: {ns: v.value->Array.map(x => x->Float.toString)}, alias: v.alias})
-  let binarySet = (v: AttributeValue.from<array<Uint8Array.t>>): operand<binSet> =>
-    AttributeValue({value: {bs: v.value}, alias: v.alias})
-  let list = (v: AttributeValue.from<array<attributeValue>>): operand<list_> =>
-    AttributeValue({value: {l: v.value}, alias: v.alias})
-  let map = (v: AttributeValue.from<dict<attributeValue>>): operand<map_> =>
-    AttributeValue({value: {m: v.value}, alias: v.alias})
-
   module Overload = {
     @genType.opaque
     let \"&&" = \"and"
@@ -515,7 +521,7 @@ module Condition = {
         | AttributeName({name}) =>
           AttributeName.toString(Register.addName(register, AttributeName({name: name})))
         | AttributeValue({value, alias}) =>
-          AttributeValue.toString(Register.addValue(register, AttributeValue({value, alias})))
+          AttributeValue.toString(Register.addValue(register, AttributeValue.make({value, alias})))
         | Size({operand}) => `size(${opString(operand)})`
         }
 
@@ -535,9 +541,9 @@ module Projection = {
 module KeyCondition = {
   type pkCond = {
     name: AttributeName.t,
-    value: AttributeValue.t,
+    value: AttributeValue.anyValue,
   }
-  type limits = {lower: AttributeValue.t, upper: AttributeValue.t}
+  type limits = {lower: AttributeValue.anyValue, upper: AttributeValue.anyValue}
 
   // The Query KeyConditionExpression spec allows only these comparators on the
   // sort key — notably NOT `<>` (not-equals), nor IN/contains.
@@ -550,9 +556,9 @@ module KeyCondition = {
   external keyComparatorToString: keyComparator => string = "%identity"
 
   type skCondition =
-    | Comparison({name: AttributeName.t, comparator: keyComparator, value: AttributeValue.t})
+    | Comparison({name: AttributeName.t, comparator: keyComparator, value: AttributeValue.anyValue})
     | Between({name: AttributeName.t, limits: limits})
-    | BeginsWith({name: AttributeName.t, value: AttributeValue.t})
+    | BeginsWith({name: AttributeName.t, value: AttributeValue.anyValue})
     | @as(undefined) @deprecated("Omit the `sk` field instead") Any
   type keyCondition = {
     pk: pkCond,
@@ -603,21 +609,15 @@ module KeyCondition = {
 
 @genType
 module Update = {
-  // Category witnesses (opaque GADT indices); see Condition for why opaque types
-  // rather than poly-variant tags.
-  type num
-  type list_
-  type strSet
-  type numSet
-  type binSet
-
+  // Category tags are shared (top-level, in AttributeValue's scope). The value
+  // leaf is an explicit constructor (parameterized variants can't be spread).
   // - Sum/Sub (`+`/`-`) require numbers and yield a number.
   // - ListAppend requires lists and yields a list.
   // - IfNotExists yields the category of its value operand (the path is any).
   type rec operand<_> =
     | ...AttributePath.t
     | ...AttributeName.t
-    | ...AttributeValue.t
+    | AttributeValue({value: attributeValue, alias: string}): operand<'cat>
     | ListAppend({identifier: operand<list_>, operand: operand<list_>}): operand<list_>
     | IfNotExists({identifier: operand<'b>, operand: operand<'a>}): operand<'a>
     | Sum({lhs: operand<num>, rhs: operand<num>}): operand<num>
@@ -627,19 +627,6 @@ module Update = {
   let ifNotExists = (identifier, operand) => IfNotExists({identifier, operand})
   let sum = (lhs, rhs) => Sum({lhs, rhs})
   let sub = (lhs, rhs) => Sub({lhs, rhs})
-
-  // Typed value constructors — pin the category so `sum`/`sub` (number) and
-  // `listAppend` (list) are checked against literal values.
-  let number = (v: AttributeValue.from<float>): operand<num> =>
-    AttributeValue({value: {n: v.value->Float.toString}, alias: v.alias})
-  let list = (v: AttributeValue.from<array<attributeValue>>): operand<list_> =>
-    AttributeValue({value: {l: v.value}, alias: v.alias})
-  let stringSet = (v: AttributeValue.from<array<string>>): operand<strSet> =>
-    AttributeValue({value: {ss: v.value}, alias: v.alias})
-  let numberSet = (v: AttributeValue.from<array<float>>): operand<numSet> =>
-    AttributeValue({value: {ns: v.value->Array.map(x => x->Float.toString)}, alias: v.alias})
-  let binarySet = (v: AttributeValue.from<array<Uint8Array.t>>): operand<binSet> =>
-    AttributeValue({value: {bs: v.value}, alias: v.alias})
 
   // The assignment target of a SET clause is schema-less, so operands are stored
   // with their category erased (the codemod renders this slot as `<unknown>`).
@@ -664,7 +651,7 @@ module Update = {
       | AttributeName({name}) =>
         AttributeName.toString(Register.addName(register, AttributeName({name: name})))
       | AttributeValue({value, alias}) =>
-        AttributeValue.toString(Register.addValue(register, AttributeValue({value, alias})))
+        AttributeValue.toString(Register.addValue(register, AttributeValue.make({value, alias})))
       | ListAppend({identifier, operand}) =>
         `list_append(${operandToString(identifier, register)}, ${operandToString(
             operand,

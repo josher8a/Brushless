@@ -5,7 +5,7 @@ import { Update, AttributePath, AttributeValue } from "./index";
 
 const p = AttributePath.fromString("foo");
 const id = p as unknown as import("./index").Identifier_t;
-const v = AttributeValue.make({ value: { N: "1" }, alias: "n" });
+const v = AttributeValue.make({ value: { N: "1" }, alias: "n" }); // untyped escape hatch
 
 // --- Allowed: + / - over (schema-less) operands; list_append over operands ---
 Update.sum(v, v);
@@ -30,22 +30,22 @@ Update.sum(Update.listAppend(p, p), v);
 // @ts-expect-error  sum -> operand<num> cannot satisfy operand<list_>
 Update.listAppend(Update.sum(v, v), p);
 
-// --- Typed number literals pin the number category for + / - ---
-const m1 = Update.number({ value: 1, alias: "m1" });
-const m2 = Update.number({ value: 2, alias: "m2" });
+// --- Typed number literals (centralized on AttributeValue) pin the category ---
+const m1 = AttributeValue.number({ value: 1, alias: "m1" });
+const m2 = AttributeValue.number({ value: 2, alias: "m2" });
 Update.sum(m1, m2);
 Update.sub(Update.sum(m1, m2), m1);
 
 // @ts-expect-error  list_append requires lists, not a number literal
 Update.listAppend(m1, p);
 
-const lst = Update.list({ value: [{ N: "1" }], alias: "lst" });
+const lst = AttributeValue.list({ value: [{ N: "1" }], alias: "lst" });
 Update.listAppend(p, lst); // appending a typed list literal is fine
 // @ts-expect-error  + requires numbers, not a list literal
 Update.sum(lst, m1);
 
 // --- ADD accepts Number or Set; DELETE accepts Set only ---
-const ss = Update.stringSet({ value: ["x"], alias: "ss" });
+const ss = AttributeValue.stringSet({ value: ["x"], alias: "ss" });
 const _addOk: import("./index").Update_update = { add: [[id, m1], [id, ss]] };
 const _delOk: import("./index").Update_update = { delete: [[id, ss]] };
 void _addOk;

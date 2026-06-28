@@ -177,9 +177,108 @@ function toString$1(param) {
   return ":" + param.alias;
 }
 
+function string(v) {
+  return {
+    TAG: "AttributeValue",
+    value: {
+      S: v.value
+    },
+    alias: v.alias
+  };
+}
+
+function number(v) {
+  return {
+    TAG: "AttributeValue",
+    value: {
+      N: v.value.toString()
+    },
+    alias: v.alias
+  };
+}
+
+function boolean(v) {
+  return {
+    TAG: "AttributeValue",
+    value: {
+      BOOL: v.value
+    },
+    alias: v.alias
+  };
+}
+
+function binary(v) {
+  return {
+    TAG: "AttributeValue",
+    value: {
+      B: v.value
+    },
+    alias: v.alias
+  };
+}
+
+function stringSet(v) {
+  return {
+    TAG: "AttributeValue",
+    value: {
+      SS: v.value
+    },
+    alias: v.alias
+  };
+}
+
+function numberSet(v) {
+  return {
+    TAG: "AttributeValue",
+    value: {
+      NS: v.value.map(x => x.toString())
+    },
+    alias: v.alias
+  };
+}
+
+function binarySet(v) {
+  return {
+    TAG: "AttributeValue",
+    value: {
+      BS: v.value
+    },
+    alias: v.alias
+  };
+}
+
+function list(v) {
+  return {
+    TAG: "AttributeValue",
+    value: {
+      L: v.value
+    },
+    alias: v.alias
+  };
+}
+
+function map(v) {
+  return {
+    TAG: "AttributeValue",
+    value: {
+      M: v.value
+    },
+    alias: v.alias
+  };
+}
+
 let AttributeValue = {
   make: make$1,
-  toString: toString$1
+  toString: toString$1,
+  string: string,
+  number: number,
+  boolean: boolean,
+  binary: binary,
+  stringSet: stringSet,
+  numberSet: numberSet,
+  binarySet: binarySet,
+  list: list,
+  map: map
 };
 
 function fromString(str) {
@@ -675,96 +774,6 @@ function size(operand) {
   };
 }
 
-function string(v) {
-  return {
-    TAG: "AttributeValue",
-    value: {
-      S: v.value
-    },
-    alias: v.alias
-  };
-}
-
-function number(v) {
-  return {
-    TAG: "AttributeValue",
-    value: {
-      N: v.value.toString()
-    },
-    alias: v.alias
-  };
-}
-
-function boolean(v) {
-  return {
-    TAG: "AttributeValue",
-    value: {
-      BOOL: v.value
-    },
-    alias: v.alias
-  };
-}
-
-function binary(v) {
-  return {
-    TAG: "AttributeValue",
-    value: {
-      B: v.value
-    },
-    alias: v.alias
-  };
-}
-
-function stringSet(v) {
-  return {
-    TAG: "AttributeValue",
-    value: {
-      SS: v.value
-    },
-    alias: v.alias
-  };
-}
-
-function numberSet(v) {
-  return {
-    TAG: "AttributeValue",
-    value: {
-      NS: v.value.map(x => x.toString())
-    },
-    alias: v.alias
-  };
-}
-
-function binarySet(v) {
-  return {
-    TAG: "AttributeValue",
-    value: {
-      BS: v.value
-    },
-    alias: v.alias
-  };
-}
-
-function list(v) {
-  return {
-    TAG: "AttributeValue",
-    value: {
-      L: v.value
-    },
-    alias: v.alias
-  };
-}
-
-function map(v) {
-  return {
-    TAG: "AttributeValue",
-    value: {
-      M: v.value
-    },
-    alias: v.alias
-  };
-}
-
 let Overload = {
   $amp$amp: and,
   $pipe$pipe: or,
@@ -821,11 +830,10 @@ function build(condition, register) {
           name: operand.name
         }));
       case "AttributeValue" :
-        return toString$1(addValue(register, {
-          TAG: "AttributeValue",
+        return toString$1(addValue(register, make$1({
           value: operand.value,
           alias: operand.alias
-        }));
+        })));
       case "Size" :
         return `size(` + opString(operand.operand) + `)`;
     }
@@ -852,15 +860,6 @@ let Condition = {
   or: or,
   not: not,
   size: size,
-  string: string,
-  number: number,
-  boolean: boolean,
-  binary: binary,
-  stringSet: stringSet,
-  numberSet: numberSet,
-  binarySet: binarySet,
-  list: list,
-  map: map,
   Overload: Overload,
   build: build
 };
@@ -1001,56 +1000,6 @@ function sub(lhs, rhs) {
   };
 }
 
-function number$1(v) {
-  return {
-    TAG: "AttributeValue",
-    value: {
-      N: v.value.toString()
-    },
-    alias: v.alias
-  };
-}
-
-function list$1(v) {
-  return {
-    TAG: "AttributeValue",
-    value: {
-      L: v.value
-    },
-    alias: v.alias
-  };
-}
-
-function stringSet$1(v) {
-  return {
-    TAG: "AttributeValue",
-    value: {
-      SS: v.value
-    },
-    alias: v.alias
-  };
-}
-
-function numberSet$1(v) {
-  return {
-    TAG: "AttributeValue",
-    value: {
-      NS: v.value.map(x => x.toString())
-    },
-    alias: v.alias
-  };
-}
-
-function binarySet$1(v) {
-  return {
-    TAG: "AttributeValue",
-    value: {
-      BS: v.value
-    },
-    alias: v.alias
-  };
-}
-
 function operandToString(operand, register) {
   switch (operand.TAG) {
     case "AttributePath" :
@@ -1065,11 +1014,10 @@ function operandToString(operand, register) {
         name: operand.name
       }));
     case "AttributeValue" :
-      return toString$1(addValue(register, {
-        TAG: "AttributeValue",
+      return toString$1(addValue(register, make$1({
         value: operand.value,
         alias: operand.alias
-      }));
+      })));
     case "ListAppend" :
       return `list_append(` + operandToString(operand.identifier, register) + `, ` + operandToString(operand.operand, register) + `)`;
     case "IfNotExists" :
@@ -1098,11 +1046,6 @@ let Update = {
   ifNotExists: ifNotExists,
   sum: sum,
   sub: sub,
-  number: number$1,
-  list: list$1,
-  stringSet: stringSet$1,
-  numberSet: numberSet$1,
-  binarySet: binarySet$1,
   build: build$3
 };
 
@@ -1111,11 +1054,6 @@ let U = {
   ifNotExists: ifNotExists,
   sum: sum,
   sub: sub,
-  number: number$1,
-  list: list$1,
-  stringSet: stringSet$1,
-  numberSet: numberSet$1,
-  binarySet: binarySet$1,
   build: build$3
 };
 
@@ -1138,15 +1076,6 @@ let C = {
   or: or,
   not: not,
   size: size,
-  string: string,
-  number: number,
-  boolean: boolean,
-  binary: binary,
-  stringSet: stringSet,
-  numberSet: numberSet,
-  binarySet: binarySet,
-  list: list,
-  map: map,
   Overload: Overload,
   build: build
 };
