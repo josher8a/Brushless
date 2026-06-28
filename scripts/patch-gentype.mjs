@@ -107,6 +107,36 @@ const rewrites = [
     from: "<T1>(operand:Condition_operand<T1>) => Condition_operand<Condition_num>",
     to: "(operand:Condition_operand<Condition_str | Condition_bin | Condition_strSet | Condition_numSet | Condition_binSet | Condition_list_ | Condition_map_>) => Condition_operand<Condition_num>",
   },
+  // Ordering comparators (< <= > >=) and BETWEEN are valid only on the ordered
+  // types String/Number/Binary (spec). equals/notEquals/IN stay unrestricted.
+  // Bounding the shared type parameter keeps same-category enforcement AND limits
+  // it to ordered types. Each `from` is a substring shared by the `const` and the
+  // module-object-literal occurrences, so split/join rewrites both.
+  {
+    name: "Condition_lessThan (ordered)",
+    from: "lessThan: <T1>(lhs:Condition_operand<T1>, rhs:Condition_operand<T1>)",
+    to: "lessThan: <T1 extends Condition_str | Condition_num | Condition_bin>(lhs:Condition_operand<T1>, rhs:Condition_operand<T1>)",
+  },
+  {
+    name: "Condition_lessThanOrEqualTo (ordered)",
+    from: "lessThanOrEqualTo: <T1>(lhs:Condition_operand<T1>, rhs:Condition_operand<T1>)",
+    to: "lessThanOrEqualTo: <T1 extends Condition_str | Condition_num | Condition_bin>(lhs:Condition_operand<T1>, rhs:Condition_operand<T1>)",
+  },
+  {
+    name: "Condition_greaterThan (ordered)",
+    from: "greaterThan: <T1>(lhs:Condition_operand<T1>, rhs:Condition_operand<T1>)",
+    to: "greaterThan: <T1 extends Condition_str | Condition_num | Condition_bin>(lhs:Condition_operand<T1>, rhs:Condition_operand<T1>)",
+  },
+  {
+    name: "Condition_greaterThanOrEqualTo (ordered)",
+    from: "greaterThanOrEqualTo: <T1>(lhs:Condition_operand<T1>, rhs:Condition_operand<T1>)",
+    to: "greaterThanOrEqualTo: <T1 extends Condition_str | Condition_num | Condition_bin>(lhs:Condition_operand<T1>, rhs:Condition_operand<T1>)",
+  },
+  {
+    name: "Condition_between (ordered)",
+    from: "between: <T1>(operand:Condition_operand<T1>, limits:Condition_limits<T1>)",
+    to: "between: <T1 extends Condition_str | Condition_num | Condition_bin>(operand:Condition_operand<T1>, limits:Condition_limits<T1>)",
+  },
   {
     name: "Condition_beginsWith (String|Binary)",
     // DynamoDB begins_with accepts String OR Binary. ReScript can only type the

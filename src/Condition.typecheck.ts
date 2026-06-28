@@ -70,3 +70,15 @@ Condition.size(Condition.stringSet({ value: ["a"], alias: "ss" })); // set ok
 Condition.size(n1);
 // @ts-expect-error  size() is not valid on a boolean
 Condition.size(b1);
+
+// --- ordering (< <= > >=, BETWEEN) is valid only on String/Number/Binary ---
+Condition.lessThan(n1, n2); // number ok
+Condition.greaterThan(s1, Condition.string({ value: "y", alias: "s2" })); // string ok
+Condition.between(n1, { lower: n1, upper: n2 }); // number bounds ok
+// @ts-expect-error  ordering is not valid on booleans
+Condition.lessThan(b1, Condition.boolean({ value: false, alias: "b3" }));
+// equals/notEquals remain valid on any type (equality, not ordering)
+Condition.equals(b1, Condition.boolean({ value: false, alias: "b4" }));
+// contains: operand stays polymorphic — the path's type (String vs Set) is not
+// statically known (schema-less), so the spec's element-type rule is unenforceable.
+Condition.contains(id, s1);
