@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { codec, SchemaError, type StandardSchemaV1 } from './index';
+import { codec, SchemaError, Marshaller, type StandardSchemaV1, type MarshallerLike } from './index';
 
 // A minimal hand-rolled Standard Schema — demonstrates that the codec needs no
 // validator library (zod/valibot/arktype would plug in the same way).
@@ -51,5 +51,19 @@ describe('codec', () => {
 
     it('throws SchemaError on invalid stored data', () => {
         expect(() => User.decode({ id: { S: 'not-a-number' } })).toThrow(SchemaError);
+    });
+
+    it('accepts a custom marshaller', () => {
+        // toy custom marshaller: store numbers under S, delegate the rest
+        const custom: MarshallerLike = {
+            marshall: (v) =>
+                typeof v === 'number' ? ({ S: String(v) } as any) : Marshaller.marshall(v),
+            unmarshall: (av) => Marshaller.unmarshall(av),
+        };
+        const numSchema: StandardSchemaV1<{ n: number }, { n: number }> = {
+            '~standard': { version: 1, vendor: 't', validate: (v) => ({ value: v as { n: number } }) },
+        };
+        expect(codec(numSchema).encode({ n: 5 })).toEqual({ n: { N: '5' } });
+        expect(codec(numSchema, custom).encode({ n: 5 })).toEqual({ n: { S: '5' } });
     });
 });

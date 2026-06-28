@@ -4,11 +4,21 @@
 // Marshaller. The precise input/output types are inferred from the schema, which
 // is why this layer is hand-written TS (genType cannot express these generics).
 import type { StandardSchemaV1 } from './standard-schema';
-import { Marshaller } from './Brushless.bs';
+import { Marshaller as defaultMarshaller } from './Brushless.bs';
 import type { attributeValue } from './Brushless.bs';
 
 /** A marshalled DynamoDB item: the shape returned by/passed to the SDK. */
 export type Item = Record<string, attributeValue>;
+
+/**
+ * Converts native values to/from DynamoDB attribute values. The built-in
+ * `Marshaller` satisfies this; implement it to plug in custom behaviour
+ * (e.g. Date support, bigint precision, a different Set convention).
+ */
+export interface MarshallerLike {
+    marshall: (value: unknown) => attributeValue;
+    unmarshall: (value: attributeValue) => unknown;
+}
 
 export class SchemaError extends Error {
     readonly issues: ReadonlyArray<StandardSchemaV1.Issue>;
@@ -41,7 +51,8 @@ function runSync<T>(
  * must be an object (a DynamoDB item is a map of attributes).
  */
 export function codec<S extends StandardSchemaV1<Record<string, unknown>, Record<string, unknown>>>(
-    schema: S
+    schema: S,
+    marshaller: MarshallerLike = defaultMarshaller
 ): Codec<StandardSchemaV1.InferInput<S>, StandardSchemaV1.InferOutput<S>> {
     const std = schema['~standard'];
     return {
@@ -49,14 +60,14 @@ export function codec<S extends StandardSchemaV1<Record<string, unknown>, Record
             const validated = runSync(std.validate(value)) as Record<string, unknown>;
             const item: Item = {};
             for (const key of Object.keys(validated)) {
-                item[key] = Marshaller.marshall(validated[key]);
+                item[key] = marshaller.marshall(validated[key]);
             }
             return item;
         },
         decode(item) {
             const native: Record<string, unknown> = {};
             for (const key of Object.keys(item)) {
-                native[key] = Marshaller.unmarshall(item[key]);
+                native[key] = marshaller.unmarshall(item[key]);
             }
             return runSync(std.validate(native)) as StandardSchemaV1.InferOutput<S>;
         },
