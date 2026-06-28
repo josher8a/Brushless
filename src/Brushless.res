@@ -23,19 +23,65 @@ type attributeValue = atLeastOne<attributeValue_>
   @send external reduce: (array<'b>, ('a, 'b) => 'a, 'a) => 'a = "reduce"
 )
 
-// TODO: Move to external binding
-// @genType
-// module DefaultMarshaller = {
-//   @genType.import(("@aws/dynamodb-auto-marshaller", "Marshaller"))
-//   type t
-//   %%private(
-//     @new @module("@aws/dynamodb-auto-marshaller") external init: unit => t = "Marshaller"
-//     @send @genType
-//     external marshallValue: (t, 'a) => attributeValue = "marshallValue"
-//   )
-//   let marshaller = init()
-//   let marshallValue = x => marshallValue(marshaller, x)
-// }
+@genType
+module Marshaller = {
+  // Native, zero-dependency marshaller: converts a native JS value into a
+  // DynamoDB attributeValue (the {S,N,B,SS,NS,BS,L,M,BOOL,NULL} wire form),
+  // recursively for arrays/objects/Sets. This is the runtime generalization of
+  // the typed leaf constructors (Condition.string -> {S}, etc.).
+  %%private(
+    @val external isArray: 'a => bool = "Array.isArray"
+    let isUint8Array: 'a => bool = %raw(`(x) => x instanceof Uint8Array`)
+    let isSet: 'a => bool = %raw(`(x) => x instanceof Set`)
+    let isNull: 'a => bool = %raw(`(x) => x === null`)
+    let numToString: 'a => string = %raw(`(n) => String(n)`)
+    let setToArray: 'a => array<'b> = %raw(`(s) => Array.from(s)`)
+    external asString: 'a => string = "%identity"
+    external asBool: 'a => bool = "%identity"
+    external asBinary: 'a => Uint8Array.t = "%identity"
+    external asArray: 'a => array<'b> = "%identity"
+    external asDict: 'a => dict<'b> = "%identity"
+    external asStrings: 'a => array<string> = "%identity"
+    external asBinaries: 'a => array<Uint8Array.t> = "%identity"
+  )
+
+  let rec marshall = (value: 'a): attributeValue =>
+    switch Type.typeof(value) {
+    | #string => {s: asString(value)}
+    | #number => {n: numToString(value)}
+    | #bigint => {n: numToString(value)}
+    | #boolean => {bool: asBool(value)}
+    | #undefined => {null: true}
+    | #object =>
+      if isNull(value) {
+        {null: true}
+      } else if isUint8Array(value) {
+        {b: asBinary(value)}
+      } else if isArray(value) {
+        {l: asArray(value)->Array.map(marshall)}
+      } else if isSet(value) {
+        let arr = setToArray(value)
+        switch arr[0] {
+        | None => throwError("Marshaller: cannot marshall an empty Set")
+        | Some(first) =>
+          switch Type.typeof(first) {
+          | #string => {ss: asStrings(arr)}
+          | #number | #bigint => {ns: arr->Array.map(numToString)}
+          | #object if isUint8Array(first) => {bs: asBinaries(arr)}
+          | _ => throwError("Marshaller: unsupported Set element type")
+          }
+        }
+      } else {
+        {
+          m: asDict(value)
+          ->Dict.toArray
+          ->Array.map(((k, v)) => (k, marshall(v)))
+          ->Dict.fromArray,
+        }
+      }
+    | _ => throwError("Marshaller: cannot marshall value of this type")
+    }
+}
 
 @genType
 module AttributeName = {

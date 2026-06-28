@@ -28,6 +28,7 @@ export {
   type Projection_projection,
 
   // Module objects
+  Marshaller,
   AttributeName,
   AttributeValue,
   AttributePath,

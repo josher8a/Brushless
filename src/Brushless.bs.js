@@ -2,6 +2,96 @@
 
 import * as Primitive_option from "@rescript/runtime/lib/es6/Primitive_option.js";
 
+let isUint8Array = ((x) => x instanceof Uint8Array);
+
+let isSet = ((x) => x instanceof Set);
+
+let isNull = ((x) => x === null);
+
+let numToString = ((n) => String(n));
+
+let setToArray = ((s) => Array.from(s));
+
+function marshall(value) {
+  let match = typeof value;
+  if (match === "number" || match === "bigint") {
+    return {
+      N: numToString(value)
+    };
+  }
+  if (match === "boolean") {
+    return {
+      BOOL: value
+    };
+  }
+  if (match === "string") {
+    return {
+      S: value
+    };
+  }
+  if (match === "object") {
+    if (isNull(value)) {
+      return {
+        NULL: true
+      };
+    }
+    if (isUint8Array(value)) {
+      return {
+        B: value
+      };
+    }
+    if (Array.isArray(value)) {
+      return {
+        L: value.map(marshall)
+      };
+    }
+    if (!isSet(value)) {
+      return {
+        M: Object.fromEntries(Object.entries(value).map(param => [
+          param[0],
+          marshall(param[1])
+        ]))
+      };
+    }
+    let arr = setToArray(value);
+    let first = arr[0];
+    if (first !== undefined) {
+      let first$1 = Primitive_option.valFromOption(first);
+      let match$1 = typeof first$1;
+      if (match$1 === "number" || match$1 === "bigint") {
+        return {
+          NS: arr.map(numToString)
+        };
+      }
+      if (match$1 === "string") {
+        return {
+          SS: arr
+        };
+      }
+      if (match$1 === "object") {
+        if (isUint8Array(first$1)) {
+          return {
+            BS: arr
+          };
+        }
+        throw new Error("Marshaller: unsupported Set element type");
+      }
+      throw new Error("Marshaller: unsupported Set element type");
+    }
+    throw new Error("Marshaller: cannot marshall an empty Set");
+  }
+  if (match === "undefined") {
+    return {
+      NULL: true
+    };
+  }
+  throw new Error("Marshaller: cannot marshall value of this type");
+}
+
+let Marshaller = {
+  marshall: marshall
+};
+
 function make(name) {
   return {
     TAG: "AttributeName",
@@ -1025,6 +1115,7 @@ let P = {
 };
 
 export {
+  Marshaller,
   AttributeName,
   AttributeValue,
   AttributePath,
