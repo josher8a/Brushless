@@ -55,3 +55,9 @@ Condition.beginsWith(id, bin); // Binary ok
 Condition.beginsWith(id, n1);
 // @ts-expect-error  binary and string are still distinct for equality
 Condition.equals(bin, s1);
+
+// --- attribute_type takes a DynamoDB type code, not an arbitrary value ---
+Condition.attributeType(id, "L");
+Condition.attributeType(id, "BOOL");
+// @ts-expect-error  "X" is not a valid DynamoDB type code
+Condition.attributeType(id, "X");

@@ -80,15 +80,29 @@ export type Condition_condition =
   | { TAG: "Contains"; readonly identifier: Identifier_t; readonly operand: Condition_operand<unknown> }
   | { TAG: "ToContains"; readonly identifier: Identifier_t; readonly operand: Condition_operand<unknown> };
 
+export type Condition_attributeTypeCode = 
+    "S"
+  | "SS"
+  | "N"
+  | "NS"
+  | "B"
+  | "BS"
+  | "BOOL"
+  | "NULL"
+  | "L"
+  | "M";
+
 export type Projection_projection = Identifier_t[];
 
 export type KeyCondition_pkCond = { readonly name: AttributeName_t; readonly value: AttributeValue_t };
 
 export type KeyCondition_limits = { readonly lower: AttributeValue_t; readonly upper: AttributeValue_t };
 
+export type KeyCondition_keyComparator = "=" | "<" | "<=" | ">" | ">=";
+
 export type KeyCondition_skCondition = 
     undefined
-  | { TAG: "Comparison"; readonly name: AttributeName_t; readonly comparator: comparator; readonly value: AttributeValue_t }
+  | { TAG: "Comparison"; readonly name: AttributeName_t; readonly comparator: KeyCondition_keyComparator; readonly value: AttributeValue_t }
   | { TAG: "Between"; readonly name: AttributeName_t; readonly limits: KeyCondition_limits }
   | { TAG: "BeginsWith"; readonly name: AttributeName_t; readonly value: AttributeValue_t };
 
@@ -160,7 +174,7 @@ export const Condition_attributeExists: (identifier:Identifier_t) => Condition_c
 
 export const Condition_attributeNotExists: (identifier:Identifier_t) => Condition_condition = BrushlessJS.Condition.attributeNotExists as any;
 
-export const Condition_attributeType: <T1>(identifier:Identifier_t, operand:Condition_operand<T1>) => Condition_condition = BrushlessJS.Condition.attributeType as any;
+export const Condition_attributeType: (identifier:Identifier_t, type_:Condition_attributeTypeCode) => Condition_condition = BrushlessJS.Condition.attributeType as any;
 
 export const Condition_beginsWith: (identifier:Identifier_t, operand:Condition_operand<Condition_str | Condition_bin>) => Condition_condition = BrushlessJS.Condition.beginsWith as any;
 
@@ -189,8 +203,6 @@ export const Condition_build: (condition:Condition_condition, register:Register_
 export const Projection_build: (projection:Projection_projection, register:Register_t) => string = BrushlessJS.Projection.build as any;
 
 export const KeyCondition_equals: (name:AttributeName_t, value:AttributeValue_t) => KeyCondition_skCondition = BrushlessJS.KeyCondition.equals as any;
-
-export const KeyCondition_notEquals: (name:AttributeName_t, value:AttributeValue_t) => KeyCondition_skCondition = BrushlessJS.KeyCondition.notEquals as any;
 
 export const KeyCondition_lessThan: (name:AttributeName_t, value:AttributeValue_t) => KeyCondition_skCondition = BrushlessJS.KeyCondition.lessThan as any;
 
@@ -227,7 +239,7 @@ export const AttributeName: { toString: (param:AttributeName_t) => string; make:
 export const Identifier: { toString: (identifier:Identifier_t, register:Register_t) => string } = BrushlessJS.Identifier as any;
 
 export const Condition: {
-  attributeType: <T1>(identifier:Identifier_t, operand:Condition_operand<T1>) => Condition_condition; 
+  attributeType: (identifier:Identifier_t, type_:Condition_attributeTypeCode) => Condition_condition; 
   toContains: <T1>(identifier:Identifier_t, operand:Condition_operand<T1>) => Condition_condition; 
   boolean: (v:AttributeValue_from<boolean>) => Condition_operand<Condition_bool_>; 
   notEquals: <T1>(lhs:Condition_operand<T1>, rhs:Condition_operand<T1>) => Condition_condition; 
@@ -253,7 +265,6 @@ export const Condition: {
 } = BrushlessJS.Condition as any;
 
 export const KeyCondition: {
-  notEquals: (name:AttributeName_t, value:AttributeValue_t) => KeyCondition_skCondition; 
   greaterThan: (name:AttributeName_t, value:AttributeValue_t) => KeyCondition_skCondition; 
   greaterThanOrEqualTo: (name:AttributeName_t, value:AttributeValue_t) => KeyCondition_skCondition; 
   between: (name:AttributeName_t, limits:KeyCondition_limits) => KeyCondition_skCondition; 

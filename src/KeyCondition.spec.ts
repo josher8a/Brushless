@@ -20,12 +20,6 @@ describe('KeyCondition constructors', () => {
         if (pred.TAG === 'Comparison') expect(pred.comparator).toBe('=');
     });
 
-    it('notEquals', () => {
-        const pred = ensureDefined(K.notEquals(sk, skVal));
-        expect(pred.TAG).toBe('Comparison');
-        if (pred.TAG === 'Comparison') expect(pred.comparator).toBe('<>');
-    });
-
     it('lessThan', () => {
         const pred = ensureDefined(K.lessThan(sk, skVal));
         expect(pred.TAG).toBe('Comparison');
@@ -103,16 +97,6 @@ describe('KeyCondition.build', () => {
             ':PK': { S: 'pk-value' },
             ':SK': { S: 'sk-value' },
         });
-    });
-
-    it('pk + sk notEquals', () => {
-        const register = Register.make();
-        const result = KeyCondition.build({
-            pk: { name: pk, value: pkVal },
-            sk: K.notEquals(sk, skVal),
-        }, register);
-
-        expect(result).toBe('#PK = :PK AND #SK <> :SK');
     });
 
     it('pk + sk lessThan', () => {

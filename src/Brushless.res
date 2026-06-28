@@ -334,7 +334,25 @@ module Condition = {
   let inList = (operand, list) => In({operand, list})
   let attributeExists = identifier => AttributeExists({identifier: identifier})
   let attributeNotExists = identifier => AttributeNotExists({identifier: identifier})
-  let attributeType = (identifier, operand) => AttributeType({identifier, operand})
+  // attribute_type's second argument must be a DynamoDB type code, supplied as an
+  // expression attribute value (per spec). This payload-less, @as-tagged variant
+  // is rendered by genType as the TS string union "S" | "SS" | ... | "M".
+  type attributeTypeCode =
+    | @as("S") TypeString
+    | @as("SS") TypeStringSet
+    | @as("N") TypeNumber
+    | @as("NS") TypeNumberSet
+    | @as("B") TypeBinary
+    | @as("BS") TypeBinarySet
+    | @as("BOOL") TypeBoolean
+    | @as("NULL") TypeNull
+    | @as("L") TypeList
+    | @as("M") TypeMap
+  external attributeTypeCodeToString: attributeTypeCode => string = "%identity"
+  let attributeType = (identifier, type_: attributeTypeCode) => {
+    let code = attributeTypeCodeToString(type_)
+    AttributeType({identifier, operand: AttributeValue({value: {s: code}, alias: "type_" ++ code})})
+  }
   // ReScript types this as String only; the codemod widens the emitted TS
   // parameter to `Condition_operand<Condition_str | Condition_binary>`.
   let beginsWith = (identifier, operand) => BeginsWith({identifier, operand})
@@ -436,8 +454,18 @@ module KeyCondition = {
   }
   type limits = {lower: AttributeValue.t, upper: AttributeValue.t}
 
+  // The Query KeyConditionExpression spec allows only these comparators on the
+  // sort key — notably NOT `<>` (not-equals), nor IN/contains.
+  type keyComparator =
+    | @as("=") Equals
+    | @as("<") LessThan
+    | @as("<=") LessThanOrEqual
+    | @as(">") GreaterThan
+    | @as(">=") GreaterThanOrEqual
+  external keyComparatorToString: keyComparator => string = "%identity"
+
   type skCondition =
-    | Comparison({name: AttributeName.t, comparator: comparator, value: AttributeValue.t})
+    | Comparison({name: AttributeName.t, comparator: keyComparator, value: AttributeValue.t})
     | Between({name: AttributeName.t, limits: limits})
     | BeginsWith({name: AttributeName.t, value: AttributeValue.t})
     | @as(undefined) @deprecated("Omit the `sk` field instead") Any
@@ -447,7 +475,6 @@ module KeyCondition = {
   }
 
   let equals = (name, value) => Comparison({name, comparator: Equals, value})
-  let notEquals = (name, value) => Comparison({name, comparator: NotEquals, value})
   let lessThan = (name, value) => Comparison({name, comparator: LessThan, value})
   let lessThanOrEqualTo = (name, value) => Comparison({name, comparator: LessThanOrEqual, value})
   let greaterThan = (name, value) => Comparison({name, comparator: GreaterThan, value})
@@ -466,7 +493,7 @@ module KeyCondition = {
       switch skCondition {
       | None | Some(Any) => ""
       | Some(Comparison({name, comparator, value})) =>
-        ` AND ${AttributeName.toString(Register.addName(register, name))} ${comparatorToString(
+        ` AND ${AttributeName.toString(Register.addName(register, name))} ${keyComparatorToString(
             comparator,
           )} ${AttributeValue.toString(Register.addValue(register, value))}`
       | Some(Between({name, limits})) =>

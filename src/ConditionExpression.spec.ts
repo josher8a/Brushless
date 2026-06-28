@@ -103,8 +103,7 @@ describe('attributeNotExists', () => {
 
 describe('attributeType', () => {
     it('should return an attribute_type function predicate', () => {
-        const typeVal = AttributeValue.make({ value: { S: 'BOOL' }, alias: 'type' });
-        const pred = attributeType(name, typeVal);
+        const pred = attributeType(name, 'BOOL');
         expect(pred.TAG).toBe('AttributeType');
     });
 });
@@ -271,13 +270,13 @@ describe('Condition.build', () => {
         it('should serialize attribute_type expressions', () => {
             const attributes = Register.make();
             const serialized = Condition.build(
-                attributeType(foo, val('S', 'val1')),
+                attributeType(foo, 'S'),
                 attributes
             );
 
-            expect(serialized).toBe('attribute_type(#foo, :val1)');
+            expect(serialized).toBe('attribute_type(#foo, :type_S)');
             expect(attributes.names).toEqual({ '#foo': 'foo' });
-            expect(attributes.values).toEqual({ ':val1': { S: 'S' } });
+            expect(attributes.values).toEqual({ ':type_S': { S: 'S' } });
         });
 
         it('should serialize begins_with expressions', () => {
@@ -372,13 +371,13 @@ describe('Condition.build', () => {
     it('should serialize function expressions with attribute paths', () => {
         const attributes = Register.make();
         const serialized = Condition.build(
-            attributeType(AttributePath.fromString('foo'), val('S', 'val1')),
+            attributeType(AttributePath.fromString('foo'), 'S'),
             attributes
         );
 
-        expect(serialized).toBe('attribute_type(#foo, :val1)');
+        expect(serialized).toBe('attribute_type(#foo, :type_S)');
         expect(attributes.names).toEqual({ '#foo': 'foo' });
-        expect(attributes.values).toEqual({ ':val1': { S: 'S' } });
+        expect(attributes.values).toEqual({ ':type_S': { S: 'S' } });
     });
 
     it('should serialize toContains expressions', () => {

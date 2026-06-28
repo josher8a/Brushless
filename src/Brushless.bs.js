@@ -464,11 +464,17 @@ function attributeNotExists(identifier) {
   };
 }
 
-function attributeType(identifier, operand) {
+function attributeType(identifier, type_) {
   return {
     TAG: "AttributeType",
     identifier: identifier,
-    operand: operand
+    operand: {
+      TAG: "AttributeValue",
+      value: {
+        S: type_
+      },
+      alias: "type_" + type_
+    }
   };
 }
 
@@ -678,15 +684,6 @@ function equals$1(name, value) {
   };
 }
 
-function notEquals$1(name, value) {
-  return {
-    TAG: "Comparison",
-    name: name,
-    comparator: "<>",
-    value: value
-  };
-}
-
 function lessThan$1(name, value) {
   return {
     TAG: "Comparison",
@@ -764,7 +761,6 @@ function build$2(keyCondition, register) {
 
 let KeyCondition = {
   equals: equals$1,
-  notEquals: notEquals$1,
   lessThan: lessThan$1,
   lessThanOrEqualTo: lessThanOrEqualTo$1,
   greaterThan: greaterThan$1,
@@ -918,7 +914,6 @@ let C = {
 
 let K = {
   equals: equals$1,
-  notEquals: notEquals$1,
   lessThan: lessThan$1,
   lessThanOrEqualTo: lessThanOrEqualTo$1,
   greaterThan: greaterThan$1,
