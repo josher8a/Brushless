@@ -61,3 +61,12 @@ Condition.attributeType(id, "L");
 Condition.attributeType(id, "BOOL");
 // @ts-expect-error  "X" is not a valid DynamoDB type code
 Condition.attributeType(id, "X");
+
+// --- size() is valid only on String/Binary/Set/List/Map (and paths) ---
+Condition.size(foo); // path ok
+Condition.size(s1); // string ok
+Condition.size(Condition.stringSet({ value: ["a"], alias: "ss" })); // set ok
+// @ts-expect-error  size() is not valid on a number
+Condition.size(n1);
+// @ts-expect-error  size() is not valid on a boolean
+Condition.size(b1);

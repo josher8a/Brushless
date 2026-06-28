@@ -947,7 +947,7 @@ function appendIfNotEmpty(acc, arr, tag, fn) {
 }
 
 function build$3(update, register) {
-  return appendIfNotEmpty(appendIfNotEmpty(appendIfNotEmpty(appendIfNotEmpty("", update.add, "ADD", param => toString$3(param[0], register) + " " + toString$1(addValue(register, param[1]))), update.delete, "DELETE", param => toString$3(param[0], register) + " " + toString$1(addValue(register, param[1]))), update.set, "SET", param => toString$3(param[0], register) + ` = ` + operandToString(param[1], register)), update.remove, "REMOVE", __x => toString$3(__x, register)).trim();
+  return appendIfNotEmpty(appendIfNotEmpty(appendIfNotEmpty(appendIfNotEmpty("", update.add, "ADD", param => toString$3(param[0], register) + " " + operandToString(param[1], register)), update.delete, "DELETE", param => toString$3(param[0], register) + " " + operandToString(param[1], register)), update.set, "SET", param => toString$3(param[0], register) + ` = ` + operandToString(param[1], register)), update.remove, "REMOVE", __x => toString$3(__x, register)).trim();
 }
 
 let Update = {

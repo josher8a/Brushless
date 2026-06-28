@@ -139,11 +139,15 @@ export type Update_operand<Cat> =
 
 export type Update_anyOperand = Update_operand<unknown>;
 
+export type Update_addOperand = Update_operand<Update_num | Update_strSet | Update_numSet | Update_binSet>;
+
+export type Update_deleteOperand = Update_operand<Update_strSet | Update_numSet | Update_binSet>;
+
 export type Update_update = {
   readonly set?: Array<[Identifier_t, Update_anyOperand]>; 
   readonly remove?: Identifier_t[]; 
-  readonly add?: Array<[Identifier_t, AttributeValue_t]>; 
-  readonly delete?: Array<[Identifier_t, AttributeValue_t]>
+  readonly add?: Array<[Identifier_t, Update_addOperand]>; 
+  readonly delete?: Array<[Identifier_t, Update_deleteOperand]>
 };
 
 export const AttributeName_make: (name:string) => AttributeName_t = BrushlessJS.AttributeName.make as any;
@@ -204,7 +208,7 @@ export const Condition_or: (lhs:Condition_condition, rhs:Condition_condition) =>
 
 export const Condition_not: (condition:Condition_condition) => Condition_condition = BrushlessJS.Condition.not as any;
 
-export const Condition_size: <T1>(operand:Condition_operand<T1>) => Condition_operand<Condition_num> = BrushlessJS.Condition.size as any;
+export const Condition_size: (operand:Condition_operand<Condition_str | Condition_bin | Condition_strSet | Condition_numSet | Condition_binSet | Condition_list_ | Condition_map_>) => Condition_operand<Condition_num> = BrushlessJS.Condition.size as any;
 
 export const Condition_string: (v:AttributeValue_from<string>) => Condition_operand<Condition_str> = BrushlessJS.Condition.string as any;
 
@@ -285,7 +289,7 @@ export const Condition: {
   between: <T1>(operand:Condition_operand<T1>, limits:Condition_limits<T1>) => Condition_condition; 
   inList: <T1>(operand:Condition_operand<T1>, list:Condition_operand<T1>[]) => Condition_condition; 
   and: (lhs:Condition_condition, rhs:Condition_condition) => Condition_condition; 
-  size: <T1>(operand:Condition_operand<T1>) => Condition_operand<Condition_num>; 
+  size: (operand:Condition_operand<Condition_str | Condition_bin | Condition_strSet | Condition_numSet | Condition_binSet | Condition_list_ | Condition_map_>) => Condition_operand<Condition_num>; 
   string: (v:AttributeValue_from<string>) => Condition_operand<Condition_str>; 
   lessThanOrEqualTo: <T1>(lhs:Condition_operand<T1>, rhs:Condition_operand<T1>) => Condition_condition; 
   binary: (v:AttributeValue_from<Uint8Array>) => Condition_operand<Condition_bin>; 

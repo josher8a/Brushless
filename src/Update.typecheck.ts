@@ -43,3 +43,16 @@ const lst = Update.list({ value: [{ N: "1" }], alias: "lst" });
 Update.listAppend(p, lst); // appending a typed list literal is fine
 // @ts-expect-error  + requires numbers, not a list literal
 Update.sum(lst, m1);
+
+// --- ADD accepts Number or Set; DELETE accepts Set only ---
+const ss = Update.stringSet({ value: ["x"], alias: "ss" });
+const _addOk: import("./index").Update_update = { add: [[id, m1], [id, ss]] };
+const _delOk: import("./index").Update_update = { delete: [[id, ss]] };
+void _addOk;
+void _delOk;
+// @ts-expect-error  ADD does not accept a list
+const _addBad: import("./index").Update_update = { add: [[id, lst]] };
+// @ts-expect-error  DELETE does not accept a number
+const _delBad: import("./index").Update_update = { delete: [[id, m1]] };
+void _addBad;
+void _delBad;

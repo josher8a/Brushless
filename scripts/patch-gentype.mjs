@@ -88,6 +88,26 @@ const rewrites = [
     to: "export type Update_anyOperand = Update_operand<unknown>;",
   },
   {
+    name: "Update_addOperand (Number|Set)",
+    // ADD supports only Number or Set data types (spec).
+    from: "export type Update_addOperand = Update_operand<void>;",
+    to: "export type Update_addOperand = Update_operand<Update_num | Update_strSet | Update_numSet | Update_binSet>;",
+  },
+  {
+    name: "Update_deleteOperand (Set)",
+    // DELETE supports only Set data types (spec).
+    from: "export type Update_deleteOperand = Update_operand<void>;",
+    to: "export type Update_deleteOperand = Update_operand<Update_strSet | Update_numSet | Update_binSet>;",
+  },
+  {
+    name: "Condition_size (sizeable types)",
+    // size() is valid only for String, Binary, Set, List, Map (not Number/Bool/Null).
+    // Widen the (otherwise unconstrained) parameter to that union. Anchored on the
+    // `<T1>(operand:...)=>...<Condition_num>` shape, unique to size.
+    from: "<T1>(operand:Condition_operand<T1>) => Condition_operand<Condition_num>",
+    to: "(operand:Condition_operand<Condition_str | Condition_bin | Condition_strSet | Condition_numSet | Condition_binSet | Condition_list_ | Condition_map_>) => Condition_operand<Condition_num>",
+  },
+  {
     name: "Condition_beginsWith (String|Binary)",
     // DynamoDB begins_with accepts String OR Binary. ReScript can only type the
     // parameter as one opaque category (`str`), so widen the emitted parameter to

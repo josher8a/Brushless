@@ -574,12 +574,16 @@ module Update = {
   // The assignment target of a SET clause is schema-less, so operands are stored
   // with their category erased (the codemod renders this slot as `<unknown>`).
   type anyOperand = operand<unit>
+  // ADD accepts only Number or a Set; DELETE accepts only a Set (per spec). These
+  // erased aliases are widened by the codemod to the corresponding category union.
+  type addOperand = operand<unit>
+  type deleteOperand = operand<unit>
 
   type rec update = {
     set?: array<(Identifier.t, anyOperand)>,
     remove?: array<Identifier.t>,
-    add?: array<(Identifier.t, AttributeValue.t)>,
-    delete?: array<(Identifier.t, AttributeValue.t)>,
+    add?: array<(Identifier.t, addOperand)>,
+    delete?: array<(Identifier.t, deleteOperand)>,
   }
 
   %%private(
@@ -617,10 +621,10 @@ module Update = {
     open Identifier
     ""
     ->appendIfNotEmpty(update.add, "ADD", ((id, value)) =>
-      toString(id, register) ++ " " ++ AttributeValue.toString(Register.addValue(register, value))
+      toString(id, register) ++ " " ++ operandToString(value, register)
     )
     ->appendIfNotEmpty(update.delete, "DELETE", ((id, value)) =>
-      toString(id, register) ++ " " ++ AttributeValue.toString(Register.addValue(register, value))
+      toString(id, register) ++ " " ++ operandToString(value, register)
     )
     ->appendIfNotEmpty(update.set, "SET", ((id, operand)) =>
       `${toString(id, register)} = ${operandToString(operand, register)}`
