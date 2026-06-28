@@ -43,6 +43,9 @@ module Marshaller = {
     external asDict: 'a => dict<'b> = "%identity"
     external asStrings: 'a => array<string> = "%identity"
     external asBinaries: 'a => array<Uint8Array.t> = "%identity"
+    let parseNum: string => float = %raw(`(s) => Number(s)`)
+    let toSet: 'a => 'b = %raw(`(a) => new Set(a)`)
+    let nullValue: 'a = %raw(`null`)
   )
 
   let rec marshall = (value: 'a): attributeValue =>
@@ -80,6 +83,27 @@ module Marshaller = {
         }
       }
     | _ => throwError("Marshaller: cannot marshall value of this type")
+    }
+
+  // Inverse of `marshall`: converts a DynamoDB attributeValue back to a native
+  // JS value, recursively. Sets round-trip to JS `Set`; numbers to `number`
+  // (precision beyond 2^53 is lost — use the codec layer's schema to coerce).
+  let rec unmarshall = (value: attributeValue): 'a =>
+    switch value {
+    | {s: x, _} => Obj.magic(x)
+    | {n: x, _} => Obj.magic(parseNum(x))
+    | {bool: x, _} => Obj.magic(x)
+    | {null: _, _} => nullValue
+    | {b: x, _} => Obj.magic(x)
+    | {ss: x, _} => toSet(x)
+    | {ns: x, _} => toSet(x->Array.map(parseNum))
+    | {bs: x, _} => toSet(x)
+    | {l: x, _} => Obj.magic(x->Array.map(unmarshall))
+    | {m: x, _} =>
+      Obj.magic(
+        x->Dict.toArray->Array.map(((k, v)) => (k, unmarshall(v)))->Dict.fromArray,
+      )
+    | _ => throwError("Marshaller: cannot unmarshall this attributeValue")
     }
 }
 

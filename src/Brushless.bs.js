@@ -12,6 +12,12 @@ let numToString = ((n) => String(n));
 
 let setToArray = ((s) => Array.from(s));
 
+let parseNum = ((s) => Number(s));
+
+let toSet = ((a) => new Set(a));
+
+let nullValue = null;
+
 function marshall(value) {
   let match = typeof value;
   if (match === "number" || match === "bigint") {
@@ -88,8 +94,55 @@ function marshall(value) {
   throw new Error("Marshaller: cannot marshall value of this type");
 }
 
+function unmarshall(value) {
+  let x = value.S;
+  if (x !== undefined) {
+    return x;
+  }
+  let x$1 = value.N;
+  if (x$1 !== undefined) {
+    return parseNum(x$1);
+  }
+  let x$2 = value.B;
+  let x$3 = value.BOOL;
+  if (x$3 !== undefined) {
+    return x$3;
+  }
+  if (value.NULL !== undefined) {
+    return nullValue;
+  }
+  if (x$2 !== undefined) {
+    return x$2;
+  }
+  let x$4 = value.SS;
+  if (x$4 !== undefined) {
+    return toSet(x$4);
+  }
+  let x$5 = value.NS;
+  if (x$5 !== undefined) {
+    return toSet(x$5.map(parseNum));
+  }
+  let x$6 = value.BS;
+  if (x$6 !== undefined) {
+    return toSet(x$6);
+  }
+  let x$7 = value.M;
+  let x$8 = value.L;
+  if (x$8 !== undefined) {
+    return x$8.map(unmarshall);
+  }
+  if (x$7 !== undefined) {
+    return Object.fromEntries(Object.entries(x$7).map(param => [
+      param[0],
+      unmarshall(param[1])
+    ]));
+  }
+  throw new Error("Marshaller: cannot unmarshall this attributeValue");
+}
+
 let Marshaller = {
-  marshall: marshall
+  marshall: marshall,
+  unmarshall: unmarshall
 };
 
 function make(name) {

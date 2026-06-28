@@ -154,6 +154,8 @@ export type Update_update = {
 
 export const Marshaller_marshall: <a>(value:a) => attributeValue = BrushlessJS.Marshaller.marshall as any;
 
+export const Marshaller_unmarshall: <a>(value:atLeastOne<attributeValue_>) => a = BrushlessJS.Marshaller.unmarshall as any;
+
 export const AttributeName_make: (name:string) => AttributeName_t = BrushlessJS.AttributeName.make as any;
 
 export const AttributeName_toString: (param:AttributeName_t) => string = BrushlessJS.AttributeName.toString as any;
@@ -344,7 +346,7 @@ export const Register: {
 
 export const Projection: { build: (projection:Projection_projection, register:Register_t) => string } = BrushlessJS.Projection as any;
 
-export const Marshaller: { marshall: <a>(value:a) => attributeValue } = BrushlessJS.Marshaller as any;
+export const Marshaller: { unmarshall: <a>(value:atLeastOne<attributeValue_>) => a; marshall: <a>(value:a) => attributeValue } = BrushlessJS.Marshaller as any;
 
 export const AttributePath: { fromString: (str:string) => AttributePath_t; toString: (param:AttributePath_t) => string } = BrushlessJS.AttributePath as any;
 

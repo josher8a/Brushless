@@ -54,3 +54,8 @@ export type { KeyCondition_keyCondition as K_keyCondition } from './Brushless.bs
 export type { Update_operand as U_operand } from './Brushless.bs';
 export type { Update_update as U_update } from './Brushless.bs';
 export type { Projection_projection as P_projection } from './Brushless.bs';
+
+// Standard Schema codec (encode/decode a DynamoDB item against zod/valibot/arktype/…)
+export { codec, SchemaError } from './codec';
+export type { Codec, Item } from './codec';
+export type { StandardSchemaV1 } from './standard-schema';
