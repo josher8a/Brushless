@@ -36,11 +36,12 @@ const patches = [
     opaque:
       /export abstract class Condition_operand \{ protected opaque!: any \};[^\n]*/,
     patched: "export type Condition_operand<Cat> =",
-    replacement: `export type Condition_operand<Cat> =
-    { TAG: "AttributePath"; readonly name: string; readonly subpath: AttributePath_sub[]; readonly _cat?: Cat }
-  | { TAG: "AttributeName"; readonly name: string; readonly _cat?: Cat }
-  | { TAG: "AttributeValue"; readonly value: attributeValue; readonly alias: string; readonly _cat?: Cat }
-  | { TAG: "Size"; readonly operand: Condition_operand<unknown>; readonly _cat?: Cat };`,
+    replacement: `export type Condition_operand<Cat> = ({
+    TAG: "AttributePath"; readonly name: string; readonly subpath: AttributePath_sub[] }
+  | { TAG: "AttributeName"; readonly name: string }
+  | { TAG: "AttributeValue"; readonly value: attributeValue; readonly alias: string }
+  | { TAG: "Size"; readonly operand: Condition_operand<unknown> }
+) & { readonly _cat?: Cat };`,
   },
   {
     name: "Condition_condition",
@@ -66,14 +67,15 @@ const patches = [
     opaque:
       /export abstract class Update_operand \{ protected opaque!: any \};[^\n]*/,
     patched: "export type Update_operand<Cat> =",
-    replacement: `export type Update_operand<Cat> =
-    { TAG: "AttributePath"; readonly name: string; readonly subpath: AttributePath_sub[]; readonly _cat?: Cat }
-  | { TAG: "AttributeName"; readonly name: string; readonly _cat?: Cat }
-  | { TAG: "AttributeValue"; readonly value: attributeValue; readonly alias: string; readonly _cat?: Cat }
-  | { TAG: "ListAppend"; readonly identifier: Update_operand<unknown>; readonly operand: Update_operand<unknown>; readonly _cat?: Cat }
-  | { TAG: "IfNotExists"; readonly identifier: Update_operand<unknown>; readonly operand: Update_operand<unknown>; readonly _cat?: Cat }
-  | { TAG: "Sum"; readonly lhs: Update_operand<unknown>; readonly rhs: Update_operand<unknown>; readonly _cat?: Cat }
-  | { TAG: "Sub"; readonly lhs: Update_operand<unknown>; readonly rhs: Update_operand<unknown>; readonly _cat?: Cat };`,
+    replacement: `export type Update_operand<Cat> = ({
+    TAG: "AttributePath"; readonly name: string; readonly subpath: AttributePath_sub[] }
+  | { TAG: "AttributeName"; readonly name: string }
+  | { TAG: "AttributeValue"; readonly value: attributeValue; readonly alias: string }
+  | { TAG: "ListAppend"; readonly identifier: Update_operand<unknown>; readonly operand: Update_operand<unknown> }
+  | { TAG: "IfNotExists"; readonly identifier: Update_operand<unknown>; readonly operand: Update_operand<unknown> }
+  | { TAG: "Sum"; readonly lhs: Update_operand<unknown>; readonly rhs: Update_operand<unknown> }
+  | { TAG: "Sub"; readonly lhs: Update_operand<unknown>; readonly rhs: Update_operand<unknown> }
+) & { readonly _cat?: Cat };`,
   },
 ];
 
@@ -106,36 +108,6 @@ const rewrites = [
     // `<T1>(operand:...)=>...<Condition_num>` shape, unique to size.
     from: "<T1>(operand:Condition_operand<T1>) => Condition_operand<Condition_num>",
     to: "(operand:Condition_operand<Condition_str | Condition_bin | Condition_strSet | Condition_numSet | Condition_binSet | Condition_list_ | Condition_map_>) => Condition_operand<Condition_num>",
-  },
-  // Ordering comparators (< <= > >=) and BETWEEN are valid only on the ordered
-  // types String/Number/Binary (spec). equals/notEquals/IN stay unrestricted.
-  // Bounding the shared type parameter keeps same-category enforcement AND limits
-  // it to ordered types. Each `from` is a substring shared by the `const` and the
-  // module-object-literal occurrences, so split/join rewrites both.
-  {
-    name: "Condition_lessThan (ordered)",
-    from: "lessThan: <T1>(lhs:Condition_operand<T1>, rhs:Condition_operand<T1>)",
-    to: "lessThan: <T1 extends Condition_str | Condition_num | Condition_bin>(lhs:Condition_operand<T1>, rhs:Condition_operand<T1>)",
-  },
-  {
-    name: "Condition_lessThanOrEqualTo (ordered)",
-    from: "lessThanOrEqualTo: <T1>(lhs:Condition_operand<T1>, rhs:Condition_operand<T1>)",
-    to: "lessThanOrEqualTo: <T1 extends Condition_str | Condition_num | Condition_bin>(lhs:Condition_operand<T1>, rhs:Condition_operand<T1>)",
-  },
-  {
-    name: "Condition_greaterThan (ordered)",
-    from: "greaterThan: <T1>(lhs:Condition_operand<T1>, rhs:Condition_operand<T1>)",
-    to: "greaterThan: <T1 extends Condition_str | Condition_num | Condition_bin>(lhs:Condition_operand<T1>, rhs:Condition_operand<T1>)",
-  },
-  {
-    name: "Condition_greaterThanOrEqualTo (ordered)",
-    from: "greaterThanOrEqualTo: <T1>(lhs:Condition_operand<T1>, rhs:Condition_operand<T1>)",
-    to: "greaterThanOrEqualTo: <T1 extends Condition_str | Condition_num | Condition_bin>(lhs:Condition_operand<T1>, rhs:Condition_operand<T1>)",
-  },
-  {
-    name: "Condition_between (ordered)",
-    from: "between: <T1>(operand:Condition_operand<T1>, limits:Condition_limits<T1>)",
-    to: "between: <T1 extends Condition_str | Condition_num | Condition_bin>(operand:Condition_operand<T1>, limits:Condition_limits<T1>)",
   },
   {
     name: "Condition_beginsWith (String|Binary)",
