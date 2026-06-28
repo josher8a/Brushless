@@ -290,6 +290,11 @@ module Condition = {
   type num
   type bool_
   type bin
+  type strSet
+  type numSet
+  type binSet
+  type list_
+  type map_
 
   // Paths/names/values are spread in un-indexed, so they stay polymorphic.
   type rec operand<_> =
@@ -374,6 +379,16 @@ module Condition = {
     AttributeValue({value: {bool: v.value}, alias: v.alias})
   let binary = (v: AttributeValue.from<Uint8Array.t>): operand<bin> =>
     AttributeValue({value: {b: v.value}, alias: v.alias})
+  let stringSet = (v: AttributeValue.from<array<string>>): operand<strSet> =>
+    AttributeValue({value: {ss: v.value}, alias: v.alias})
+  let numberSet = (v: AttributeValue.from<array<float>>): operand<numSet> =>
+    AttributeValue({value: {ns: v.value->Array.map(x => x->Float.toString)}, alias: v.alias})
+  let binarySet = (v: AttributeValue.from<array<Uint8Array.t>>): operand<binSet> =>
+    AttributeValue({value: {bs: v.value}, alias: v.alias})
+  let list = (v: AttributeValue.from<array<attributeValue>>): operand<list_> =>
+    AttributeValue({value: {l: v.value}, alias: v.alias})
+  let map = (v: AttributeValue.from<dict<attributeValue>>): operand<map_> =>
+    AttributeValue({value: {m: v.value}, alias: v.alias})
 
   module Overload = {
     @genType.opaque
@@ -522,6 +537,9 @@ module Update = {
   // rather than poly-variant tags.
   type num
   type list_
+  type strSet
+  type numSet
+  type binSet
 
   // - Sum/Sub (`+`/`-`) require numbers and yield a number.
   // - ListAppend requires lists and yields a list.
@@ -546,6 +564,12 @@ module Update = {
     AttributeValue({value: {n: v.value->Float.toString}, alias: v.alias})
   let list = (v: AttributeValue.from<array<attributeValue>>): operand<list_> =>
     AttributeValue({value: {l: v.value}, alias: v.alias})
+  let stringSet = (v: AttributeValue.from<array<string>>): operand<strSet> =>
+    AttributeValue({value: {ss: v.value}, alias: v.alias})
+  let numberSet = (v: AttributeValue.from<array<float>>): operand<numSet> =>
+    AttributeValue({value: {ns: v.value->Array.map(x => x->Float.toString)}, alias: v.alias})
+  let binarySet = (v: AttributeValue.from<array<Uint8Array.t>>): operand<binSet> =>
+    AttributeValue({value: {bs: v.value}, alias: v.alias})
 
   // The assignment target of a SET clause is schema-less, so operands are stored
   // with their category erased (the codemod renders this slot as `<unknown>`).

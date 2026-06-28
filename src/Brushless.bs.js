@@ -572,6 +572,56 @@ function binary(v) {
   };
 }
 
+function stringSet(v) {
+  return {
+    TAG: "AttributeValue",
+    value: {
+      SS: v.value
+    },
+    alias: v.alias
+  };
+}
+
+function numberSet(v) {
+  return {
+    TAG: "AttributeValue",
+    value: {
+      NS: v.value.map(x => x.toString())
+    },
+    alias: v.alias
+  };
+}
+
+function binarySet(v) {
+  return {
+    TAG: "AttributeValue",
+    value: {
+      BS: v.value
+    },
+    alias: v.alias
+  };
+}
+
+function list(v) {
+  return {
+    TAG: "AttributeValue",
+    value: {
+      L: v.value
+    },
+    alias: v.alias
+  };
+}
+
+function map(v) {
+  return {
+    TAG: "AttributeValue",
+    value: {
+      M: v.value
+    },
+    alias: v.alias
+  };
+}
+
 let Overload = {
   $amp$amp: and,
   $pipe$pipe: or,
@@ -663,6 +713,11 @@ let Condition = {
   number: number,
   boolean: boolean,
   binary: binary,
+  stringSet: stringSet,
+  numberSet: numberSet,
+  binarySet: binarySet,
+  list: list,
+  map: map,
   Overload: Overload,
   build: build
 };
@@ -813,11 +868,41 @@ function number$1(v) {
   };
 }
 
-function list(v) {
+function list$1(v) {
   return {
     TAG: "AttributeValue",
     value: {
       L: v.value
+    },
+    alias: v.alias
+  };
+}
+
+function stringSet$1(v) {
+  return {
+    TAG: "AttributeValue",
+    value: {
+      SS: v.value
+    },
+    alias: v.alias
+  };
+}
+
+function numberSet$1(v) {
+  return {
+    TAG: "AttributeValue",
+    value: {
+      NS: v.value.map(x => x.toString())
+    },
+    alias: v.alias
+  };
+}
+
+function binarySet$1(v) {
+  return {
+    TAG: "AttributeValue",
+    value: {
+      BS: v.value
     },
     alias: v.alias
   };
@@ -871,7 +956,10 @@ let Update = {
   sum: sum,
   sub: sub,
   number: number$1,
-  list: list,
+  list: list$1,
+  stringSet: stringSet$1,
+  numberSet: numberSet$1,
+  binarySet: binarySet$1,
   build: build$3
 };
 
@@ -881,7 +969,10 @@ let U = {
   sum: sum,
   sub: sub,
   number: number$1,
-  list: list,
+  list: list$1,
+  stringSet: stringSet$1,
+  numberSet: numberSet$1,
+  binarySet: binarySet$1,
   build: build$3
 };
 
@@ -908,6 +999,11 @@ let C = {
   number: number,
   boolean: boolean,
   binary: binary,
+  stringSet: stringSet,
+  numberSet: numberSet,
+  binarySet: binarySet,
+  list: list,
+  map: map,
   Overload: Overload,
   build: build
 };
