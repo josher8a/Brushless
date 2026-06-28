@@ -8,14 +8,11 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.mjs",
       "require": "./dist/index.js"
-    },
-    "./src/*": "./src/*"
+    }
   },
   "files": [
     "dist",
     "src/Brushless.res",
-    "src/Brushless.bs.js",
-    "src/Brushless.bs.ts",
     "src/external.ts",
     "rescript.json"
   ],
