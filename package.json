@@ -1,6 +1,6 @@
 {
   "name": "brushless",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "DynamoDB utils lib write in Rescript and Typescript",
   "types": "./dist/index.d.cts",
   "sideEffects": false,

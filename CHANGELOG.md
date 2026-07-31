@@ -1,15 +1,15 @@
 # Changelog
 
-## [Unreleased]
+## [0.4.0] — 2026-07-31
 
 ### Breaking
 
 - **ReScript consumers only:** the shared types moved out of the root module into
-  `Brushless.Types` — `Brushless.attributeValue_`, `Brushless.attributeValue`, and
+  `Brushless.Types`. `Brushless.attributeValue_`, `Brushless.attributeValue`, and
   `Brushless.comparator` are now `Brushless.Types.attributeValue_`, etc. Everything
   else is unchanged: `Brushless.Condition.*`, the `Brushless.C` / `K` / `U` / `P`
   aliases, and `Brushless.Condition.Overload` all resolve exactly as before.
-  TypeScript consumers are unaffected — the root import still exports
+  TypeScript consumers are unaffected, since the root import still exports
   `attributeValue`, `attributeValue_`, and `comparator`.
 
 ### Added
@@ -20,7 +20,7 @@
   `brushless/attribute-name`, `brushless/attribute-value`,
   `brushless/attribute-path`, `brushless/types`.
 - `sideEffects: false`, so bundlers may drop unused imports.
-- `prepublishOnly` build hook — `dist/` is gitignored but published, so publishing
+- `prepublishOnly` build hook. `dist/` is gitignored but published, so publishing
   from a stale tree previously shipped a stale artifact silently.
 
 ### Changed
@@ -45,7 +45,7 @@
   was.
 - Output extensions are now `.mjs` / `.cjs` with `.d.mts` / `.d.cts`
   declarations, and `exports` uses `import`/`require` conditions with per-format
-  types. No change to import specifiers — `brushless` and `brushless/condition`
+  types. No change to import specifiers: `brushless` and `brushless/condition`
   resolve as before.
 
 ### Treeshaking, measured
@@ -61,11 +61,11 @@ esbuild, ESM, minified, un-gzipped. Whole library is ~9.4 KB.
 | conditions + projection + register + paths | 9,314 B | 4,419 B |
 | every builder, via subpaths | 9,314 B | 5,204 B |
 | root import, one name | 9,314 B | 506 B |
-| root import, everything | 9,314 B | 9,372 B |
+| root import, everything | 9,658 B | 9,372 B |
 
 Existing code gets most of this without changes: the root import shakes now too.
 The remaining reason to prefer the per-module entries is that a module object
-(`C.equals`) still pins its whole module — 5,468 B versus 92 B for the same call
+(`C.equals`) still pins its whole module: 5,468 B versus 92 B for the same call
 through `brushless/condition`.
 
 ## [0.3.0] — 2026-03-07
