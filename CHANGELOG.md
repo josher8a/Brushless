@@ -1,5 +1,73 @@
 # Changelog
 
+## [Unreleased]
+
+### Breaking
+
+- **ReScript consumers only:** the shared types moved out of the root module into
+  `Brushless.Types` — `Brushless.attributeValue_`, `Brushless.attributeValue`, and
+  `Brushless.comparator` are now `Brushless.Types.attributeValue_`, etc. Everything
+  else is unchanged: `Brushless.Condition.*`, the `Brushless.C` / `K` / `U` / `P`
+  aliases, and `Brushless.Condition.Overload` all resolve exactly as before.
+  TypeScript consumers are unaffected — the root import still exports
+  `attributeValue`, `attributeValue_`, and `comparator`.
+
+### Added
+
+- Per-module entry points, so unused code can actually be dropped:
+  `brushless/condition`, `brushless/key-condition`, `brushless/update`,
+  `brushless/projection`, `brushless/register`, `brushless/identifier`,
+  `brushless/attribute-name`, `brushless/attribute-value`,
+  `brushless/attribute-path`, `brushless/types`.
+- `sideEffects: false`, so bundlers may drop unused imports.
+- `prepublishOnly` build hook — `dist/` is gitignored but published, so publishing
+  from a stale tree previously shipped a stale artifact silently.
+
+### Changed
+
+- `src/Brushless.res` split into one file per module (`Condition.res`,
+  `KeyCondition.res`, `Update.res`, `Projection.res`, `Register.res`,
+  `Identifier.res`, `AttributeName.res`, `AttributeValue.res`, `AttributePath.res`,
+  `Types.res`, `Internal.res`), with `namespace: true` in `rescript.json` so the
+  ReScript-side `Brushless.*` paths are preserved. genType now emits per-module
+  files whose exports are individually droppable; previously every export was
+  initialized through a nested member access (`BrushlessJS.Condition.equals`),
+  which no bundler can prove side-effect-free, so importing any one function
+  retained the entire library.
+- Bundler switched from `tsup` to `tsdown` (rolldown). tsup could not produce a
+  treeshakeable multi-entry build: with `splitting: true` each entry pulls shared
+  chunks in via bare `import './chunk-*.mjs'` statements and consumers retain the
+  whole chunk (`brushless/condition` measured 5,262 B whether the consumer used
+  one function or all of them), and with `splitting: false` the entries shake but
+  duplicate every shared leaf module. rolldown emits named
+  `import { … } from './chunk-…'` re-exports, so entries both share code and
+  shake. This also made the root import treeshakeable, which the tsup build never
+  was.
+- Output extensions are now `.mjs` / `.cjs` with `.d.mts` / `.d.cts`
+  declarations, and `exports` uses `import`/`require` conditions with per-format
+  types. No change to import specifiers — `brushless` and `brushless/condition`
+  resolve as before.
+
+### Treeshaking, measured
+
+esbuild, ESM, minified, un-gzipped. Whole library is ~9.4 KB.
+
+| Import | Before | After |
+| --- | --- | --- |
+| one `AttributeName` helper | 9,314 B | 73 B |
+| one `Condition` helper | 9,314 B | 92 B |
+| `Condition.build` + deps | 9,314 B | 3,750 B |
+| `KeyCondition.build` + deps | 9,314 B | 2,623 B |
+| conditions + projection + register + paths | 9,314 B | 4,419 B |
+| every builder, via subpaths | 9,314 B | 5,204 B |
+| root import, one name | 9,314 B | 506 B |
+| root import, everything | 9,314 B | 9,372 B |
+
+Existing code gets most of this without changes: the root import shakes now too.
+The remaining reason to prefer the per-module entries is that a module object
+(`C.equals`) still pins its whole module — 5,468 B versus 92 B for the same call
+through `brushless/condition`.
+
 ## [0.3.0] — 2026-03-07
 
 ### Breaking

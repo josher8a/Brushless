@@ -2,21 +2,125 @@
   "name": "brushless",
   "version": "0.3.0",
   "description": "DynamoDB utils lib write in Rescript and Typescript",
-  "types": "dist/index.d.ts",
+  "types": "./dist/index.d.cts",
+  "sideEffects": false,
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.js"
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./condition": {
+      "import": {
+        "types": "./dist/condition.d.mts",
+        "default": "./dist/condition.mjs"
+      },
+      "require": {
+        "types": "./dist/condition.d.cts",
+        "default": "./dist/condition.cjs"
+      }
+    },
+    "./key-condition": {
+      "import": {
+        "types": "./dist/key-condition.d.mts",
+        "default": "./dist/key-condition.mjs"
+      },
+      "require": {
+        "types": "./dist/key-condition.d.cts",
+        "default": "./dist/key-condition.cjs"
+      }
+    },
+    "./update": {
+      "import": {
+        "types": "./dist/update.d.mts",
+        "default": "./dist/update.mjs"
+      },
+      "require": {
+        "types": "./dist/update.d.cts",
+        "default": "./dist/update.cjs"
+      }
+    },
+    "./projection": {
+      "import": {
+        "types": "./dist/projection.d.mts",
+        "default": "./dist/projection.mjs"
+      },
+      "require": {
+        "types": "./dist/projection.d.cts",
+        "default": "./dist/projection.cjs"
+      }
+    },
+    "./register": {
+      "import": {
+        "types": "./dist/register.d.mts",
+        "default": "./dist/register.mjs"
+      },
+      "require": {
+        "types": "./dist/register.d.cts",
+        "default": "./dist/register.cjs"
+      }
+    },
+    "./identifier": {
+      "import": {
+        "types": "./dist/identifier.d.mts",
+        "default": "./dist/identifier.mjs"
+      },
+      "require": {
+        "types": "./dist/identifier.d.cts",
+        "default": "./dist/identifier.cjs"
+      }
+    },
+    "./attribute-name": {
+      "import": {
+        "types": "./dist/attribute-name.d.mts",
+        "default": "./dist/attribute-name.mjs"
+      },
+      "require": {
+        "types": "./dist/attribute-name.d.cts",
+        "default": "./dist/attribute-name.cjs"
+      }
+    },
+    "./attribute-value": {
+      "import": {
+        "types": "./dist/attribute-value.d.mts",
+        "default": "./dist/attribute-value.mjs"
+      },
+      "require": {
+        "types": "./dist/attribute-value.d.cts",
+        "default": "./dist/attribute-value.cjs"
+      }
+    },
+    "./attribute-path": {
+      "import": {
+        "types": "./dist/attribute-path.d.mts",
+        "default": "./dist/attribute-path.mjs"
+      },
+      "require": {
+        "types": "./dist/attribute-path.d.cts",
+        "default": "./dist/attribute-path.cjs"
+      }
+    },
+    "./types": {
+      "import": {
+        "types": "./dist/types.d.mts",
+        "default": "./dist/types.mjs"
+      },
+      "require": {
+        "types": "./dist/types.d.cts",
+        "default": "./dist/types.cjs"
+      }
     },
     "./src/*": "./src/*"
   },
   "files": [
     "dist",
-    "src/Brushless.res",
-    "src/Brushless.bs.js",
-    "src/Brushless.bs.ts",
-    "src/external.ts",
+    "src",
+    "!src/*.spec.ts",
     "rescript.json"
   ],
   "keywords": [
@@ -35,7 +139,8 @@
   },
   "homepage": "https://github.com/josher8a/brushless",
   "scripts": {
-    "build": "rescript && tsup",
+    "build": "rescript && tsdown",
+    "prepublishOnly": "npm run build",
     "res:build": "rescript",
     "res:clean": "rescript clean",
     "res:dev": "rescript watch",
@@ -65,7 +170,7 @@
     "@types/node": "^18.11.9",
     "bun": "^1.1.34",
     "rescript": "^12.2.0",
-    "tsup": "^8.5.1",
+    "tsdown": "^0.22.14",
     "typescript": "^5.6.3"
   }
 }

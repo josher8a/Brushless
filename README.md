@@ -7,6 +7,35 @@
 ```bash
 npm install brushless
 ```
+
+## Imports and treeshaking
+
+Every module has its own entry point. Import those and your bundler drops the
+functions you don't call:
+
+```typescript
+import * as C from 'brushless/condition';
+import * as R from 'brushless/register';
+import * as AP from 'brushless/attribute-path';
+```
+
+Available entry points: `brushless/condition`, `brushless/key-condition`,
+`brushless/update`, `brushless/projection`, `brushless/register`,
+`brushless/identifier`, `brushless/attribute-name`, `brushless/attribute-value`,
+`brushless/attribute-path`, and `brushless/types` (types only).
+
+The root import still works and exposes the same names as before:
+
+```typescript
+import { Condition, C, Register } from 'brushless';
+```
+
+Prefer the per-module entry points in bundled code. Reaching for a module object
+from the root (`Condition.equals`) pins that entire module, because an object
+property is not something a bundler can drop — measured with esbuild, one
+condition helper costs 92 B via `brushless/condition` and about 5.4 KB via
+`C.equals` from the root import.
+
 ## Usage
 
 TypeScript example usage:

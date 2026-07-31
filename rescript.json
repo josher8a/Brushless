@@ -1,5 +1,6 @@
 {
     "name": "brushless",
+    "namespace": true,
     "sources": {
       "dir": "src",
       "subdirs": true
